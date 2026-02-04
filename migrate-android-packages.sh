@@ -17,7 +17,7 @@ echo ""
 declare -a PLUGINS=(
   "analytics:analytics"
   "app:app"
-  "app-check:appcheck"
+  "appcheck:appcheck"
   "authentication:authentication"
   "crashlytics:crashlytics"
   "firestore:firestore"

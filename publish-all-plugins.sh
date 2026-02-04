@@ -20,7 +20,7 @@ echo ""
 PLUGINS=(
   "analytics"
   "app"
-  "app-check"
+  "appcheck"
   "authentication"
   "crashlytics"
   "firestore"

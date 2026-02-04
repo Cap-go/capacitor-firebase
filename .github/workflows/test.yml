@@ -26,10 +26,25 @@ jobs:
       - name: Enforce capacitor-swift-pm version
         run: |
           set -euo pipefail
-          if ! grep -Eq 'https://github.com/ionic-team/capacitor-swift-pm\.git"[[:space:]]*,[[:space:]]*from:[[:space:]]*"8\.0\.0"' Package.swift; then
-            echo "Expected capacitor-swift-pm to be pinned to 8.0.0 in Package.swift"
+          expected_regex='https://github.com/ionic-team/capacitor-swift-pm\.git"[[:space:]]*,[[:space:]]*from:[[:space:]]*"8\.0\.0"'
+          files=()
+          while IFS= read -r -d '' file; do
+            if grep -Eq 'capacitor-swift-pm' "$file"; then
+              files+=("$file")
+            fi
+          done < <(find packages -name Package.swift -print0)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No Package.swift files with capacitor-swift-pm dependency found."
             exit 1
           fi
+          failed=0
+          for file in "${files[@]}"; do
+            if ! grep -Eq "$expected_regex" "$file"; then
+              echo "Expected capacitor-swift-pm to be pinned to 8.0.0 in $file"
+              failed=1
+            fi
+          done
+          exit "$failed"
   test-android:
     name: Test Android platform
     runs-on: ubuntu-latest

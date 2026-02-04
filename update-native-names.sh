@@ -85,7 +85,7 @@ update_plugin() {
 # Process each plugin
 update_plugin "analytics" "Analytics"
 update_plugin "app" "App"
-update_plugin "app-check" "AppCheck"
+update_plugin "appcheck" "AppCheck"
 update_plugin "authentication" "Authentication"
 update_plugin "crashlytics" "Crashlytics"
 update_plugin "firestore" "Firestore"
