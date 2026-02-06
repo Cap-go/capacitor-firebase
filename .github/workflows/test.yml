@@ -62,6 +62,8 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
       - name: Install dependencies
         run: bun i
+      - name: Check plugin wiring
+        run: bun run check:wiring
       - name: Build packages affected by changes
         run: bun run affected:verify:android
 
@@ -81,6 +83,8 @@ jobs:
           xcode-version: '16.4'
       - name: Install dependencies
         run: bun i
+      - name: Check plugin wiring
+        run: bun run check:wiring
       - name: Install CocoaPods dependencies of packages affected by changes
         run: bun run affected:ios:pod:install
       - name: Install SPM dependencies of packages affected by changes
@@ -100,6 +104,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun i
+      - name: Check plugin wiring
+        run: bun run check:wiring
       - name: Build packages affected by changes
         run: bun run affected:verify:web
 
@@ -116,5 +122,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun i
+      - name: Check plugin wiring
+        run: bun run check:wiring
       - name: Lint packages affected by changes
         run: bun run affected:lint
