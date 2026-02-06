@@ -88,9 +88,7 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     this.throwUnimplementedError();
   }
 
-  public async removeDeliveredNotifications(
-    _options: RemoveDeliveredNotificationsOptions,
-  ): Promise<void> {
+  public async removeDeliveredNotifications(_options: RemoveDeliveredNotificationsOptions): Promise<void> {
     this.throwUnimplementedError();
   }
 
@@ -98,15 +96,11 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     this.throwUnimplementedError();
   }
 
-  public async subscribeToTopic(
-    _options: SubscribeToTopicOptions,
-  ): Promise<void> {
+  public async subscribeToTopic(_options: SubscribeToTopicOptions): Promise<void> {
     this.throwUnimplementedError();
   }
 
-  public async unsubscribeFromTopic(
-    _options: UnsubscribeFromTopicOptions,
-  ): Promise<void> {
+  public async unsubscribeFromTopic(_options: UnsubscribeFromTopicOptions): Promise<void> {
     this.throwUnimplementedError();
   }
 

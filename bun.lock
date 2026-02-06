@@ -69,7 +69,7 @@
         "firebase",
       ],
     },
-    "packages/app-check": {
+    "packages/appcheck": {
       "name": "@capgo/capacitor-firebase-app-check",
       "version": "8.0.1",
       "devDependencies": {
@@ -339,7 +339,7 @@
 
     "@capgo/capacitor-firebase-app": ["@capgo/capacitor-firebase-app@workspace:packages/app"],
 
-    "@capgo/capacitor-firebase-app-check": ["@capgo/capacitor-firebase-app-check@workspace:packages/app-check"],
+    "@capgo/capacitor-firebase-app-check": ["@capgo/capacitor-firebase-app-check@workspace:packages/appcheck"],
 
     "@capgo/capacitor-firebase-authentication": ["@capgo/capacitor-firebase-authentication@workspace:packages/authentication"],
 

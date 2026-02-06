@@ -1,4 +1,6 @@
 import Foundation
+// Required for Capacitor binary when Xcode builds SwiftPM targets with Explicit Modules enabled.
+import MobileCoreServices
 import Capacitor
 import FirebaseCore
 import FirebaseAuth
