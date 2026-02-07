@@ -6,10 +6,12 @@
       "name": "capacitor-firebase",
       "devDependencies": {
         "@changesets/cli": "2.29.8",
+        "@ionic/prettier-config": "4.0.0",
         "@robingenz/changelog-github": "0.0.1",
         "patch-package": "8.0.1",
         "pkg-pr-new": "0.0.20",
         "prettier-plugin-java": "2.6.7",
+        "prettier-pretty-check": "0.2.0",
         "turbo": "^2.8.3",
       },
     },
@@ -515,6 +517,8 @@
 
     "@ionic/eslint-config": ["@ionic/eslint-config@0.4.0", "", { "dependencies": { "@typescript-eslint/eslint-plugin": "^5.58.0", "@typescript-eslint/parser": "^5.58.0", "eslint-config-prettier": "^8.8.0", "eslint-plugin-import": "^2.27.0" }, "peerDependencies": { "eslint": ">=7" } }, "sha512-L8OXY29D3iGqNtteFj0iz3eoZIVgokBiVjCO8WMssNZa4GTHjYsase0rC9ASXGefMnLJu6rbNl3Gbx7NNxJRZQ=="],
 
+    "@ionic/prettier-config": ["@ionic/prettier-config@4.0.0", "", { "peerDependencies": { "prettier": "^2.4.0 || ^3.0.0" } }, "sha512-0DqL6CggVdgeJAWOLPUT73rF1VD5p0tVlCpC5GXz5vTIUBxNwsJ5085Q7wXjKiE5Odx3aOHGTcuRWCawFsLFag=="],
+
     "@ionic/swiftlint-config": ["@ionic/swiftlint-config@2.0.0", "", {}, "sha512-TXy76ALSKhUZzBziHz7aoEtSQwHofBIDRNzM9x4sndtC7fefbZsBw3UgGwXFTOc7hoj72EAGyqZNUhj9LlhaNQ=="],
 
     "@ionic/utils-array": ["@ionic/utils-array@2.1.6", "", { "dependencies": { "debug": "^4.0.0", "tslib": "^2.0.1" } }, "sha512-0JZ1Zkp3wURnv8oq6Qt7fMPo5MpjbLoUoa9Bu2Q4PJuSDWM8H8gwF3dQO7VTeUj3/0o1IB1wGkFWZZYgUXZMUg=="],
@@ -794,6 +798,8 @@
     "detect-indent": ["detect-indent@6.1.0", "", {}, "sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA=="],
 
     "detect-package-manager": ["detect-package-manager@3.0.2", "", { "dependencies": { "execa": "^5.1.1" } }, "sha512-8JFjJHutStYrfWwzfretQoyNGoZVW1Fsrp4JO9spa7h/fBfwgTMEIy4/LBzRDGsxwVPHU0q+T9YvwLDJoOApLQ=="],
+
+    "diff": ["diff@5.2.2", "", {}, "sha512-vtcDfH3TOjP8UekytvnHH1o1P4FcUdt4eQ1Y+Abap1tk/OB2MWQvcwS2ClCd1zuIhc3JKOx6p3kod8Vfys3E+A=="],
 
     "dir-glob": ["dir-glob@3.0.1", "", { "dependencies": { "path-type": "^4.0.0" } }, "sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA=="],
 
@@ -1206,6 +1212,8 @@
     "prettier": ["prettier@3.4.2", "", { "bin": "bin/prettier.cjs" }, "sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ=="],
 
     "prettier-plugin-java": ["prettier-plugin-java@2.6.7", "", { "dependencies": { "java-parser": "2.3.3", "lodash": "4.17.21" }, "peerDependencies": { "prettier": "^3.0.0" } }, "sha512-AVm+X7fhAZpYKiUCdUIGZ8HJbkGkTUgYQIKVuCQEplcqpGw2ewVnNGcPb1Kc3+MYMfiEqzhd8ZYhMGVHw6tZdQ=="],
+
+    "prettier-pretty-check": ["prettier-pretty-check@0.2.0", "", { "dependencies": { "diff": "^5.2.0" }, "bin": { "prettier-pretty-check": "index.js" } }, "sha512-gVmwxYvm1Qii1H6eULNcNchlruyXyKkluP1LBhUaqdSvvACc8FZ99zTWzqQHJrBu9qUrYmNRysPmnYSm9c7G6Q=="],
 
     "prompts": ["prompts@2.4.2", "", { "dependencies": { "kleur": "^3.0.3", "sisteransi": "^1.0.5" } }, "sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q=="],
 
