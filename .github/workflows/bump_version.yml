@@ -60,26 +60,32 @@ jobs:
                 --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
                 --tag-prefix "$pkg/v"
                 --path .
+                --commit-all
               )
               if [ "${{ github.ref }}" != "refs/heads/main" ]; then
                 args=(--prerelease alpha "${args[@]}")
               fi
 
+              # Include docgen README updates in the release commit if present.
+              git add README.md || true
+
               # Keep plugin major aligned with Capacitor major:
-              # never allow CI to bump from 8.x -> 9.x just because it sees old `feat!` history.
+              # never allow CI to bump from 8.x -> 9.x just because it sees old `feat!` history
+              # or because it can't find previous tags for this tag namespace yet.
+              DRY_OUT="$(bunx capacitor-plugin-standard-version@latest "${args[@]}" --dry-run 2>&1 || true)"
+              NEXT_VERSION="$(printf '%s\n' "$DRY_OUT" | sed -n 's/.*bumping version in .* from [^ ]* to \([^ ]*\).*/\1/p' | tail -n 1)"
+
               release_as=()
-              if git tag --list "$pkg/v*" | grep -q .; then
-                DRY_OUT="$(bunx capacitor-plugin-standard-version@latest "${args[@]}" --dry-run 2>&1 || true)"
-                NEXT_VERSION="$(printf '%s\n' "$DRY_OUT" | sed -n 's/.*bumping version in .* from [^ ]* to \([^ ]*\).*/\1/p' | tail -n 1)"
-                if [ -n "$NEXT_VERSION" ]; then
-                  NEXT_MAJOR="${NEXT_VERSION%%.*}"
-                  if [ "$NEXT_MAJOR" != "$CURRENT_MAJOR" ]; then
-                    release_as=(--release-as minor)
-                  fi
+              if [ -n "$NEXT_VERSION" ]; then
+                NEXT_MAJOR="${NEXT_VERSION%%.*}"
+                if [ "$NEXT_MAJOR" != "$CURRENT_MAJOR" ]; then
+                  # Smallest bump that still creates a tag and avoids a major.
+                  release_as=(--release-as patch)
                 fi
               else
-                # Seed initial tags in the namespaced format, without changing the current version.
-                release_as=(--first-release --release-as "$CURRENT_VERSION")
+                # If we can't parse the next version from dry-run output, force a patch bump so the
+                # tool always has something to commit and will never produce a major.
+                release_as=(--release-as patch)
               fi
 
               bunx capacitor-plugin-standard-version@latest "${args[@]}" "${release_as[@]}"
