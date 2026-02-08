@@ -52,22 +52,23 @@ jobs:
               # Update documentation
               bun run docgen || true
 
+              # Keep README changes (docgen output) in a separate commit, so releases remain clean.
+              git add README.md || true
+              git commit -m "docs: update documentation for $pkg" || true
+
               CURRENT_VERSION="$(node -p "require('./package.json').version")"
               CURRENT_MAJOR="${CURRENT_VERSION%%.*}"
 
               args=(
                 --skip.changelog
+                --skip.tag
                 --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
                 --tag-prefix "$pkg/v"
                 --path .
-                --commit-all
               )
               if [ "${{ github.ref }}" != "refs/heads/main" ]; then
                 args=(--prerelease alpha "${args[@]}")
               fi
-
-              # Include docgen README updates in the release commit if present.
-              git add README.md || true
 
               # Keep plugin major aligned with Capacitor major:
               # never allow CI to bump from 8.x -> 9.x just because it sees old `feat!` history
@@ -89,6 +90,13 @@ jobs:
               fi
 
               bunx capacitor-plugin-standard-version@latest "${args[@]}" "${release_as[@]}"
+
+              # Create the actual tag ourselves to avoid collisions between packages (both would otherwise tag "8.0.2").
+              NEW_VERSION="$(node -p "require('./package.json').version")"
+              TAG_NAME="$pkg/v$NEW_VERSION"
+              if ! git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+                git tag -a "$TAG_NAME" -m "chore(release): $pkg $NEW_VERSION"
+              fi
 
               cd ../..
             fi
