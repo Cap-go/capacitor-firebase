@@ -39,13 +39,35 @@ jobs:
         run: |
           cd packages/${{ steps.extract.outputs.package_name }}
           bun run build
-      - name: Generate AI changelog
+      - name: Generate changelog
         id: changelog
-        uses: mistricky/ccc@v0.2.3
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-sonnet-4-5-20250929
+        run: |
+          set -euo pipefail
+          CURRENT_TAG="${{ github.ref_name }}"
+          PKG="${{ steps.extract.outputs.package_name }}"
+
+          # Find the previous tag for this package (same tag namespace).
+          PREV_TAG="$(git tag --list "$PKG/v*" --sort=v:refname | tail -n 2 | head -n 1 || true)"
+
+          if [ -z "$PREV_TAG" ]; then
+            # First release in the new tag namespace; just show recent commits touching this package.
+            PREV_TAG="$CURRENT_TAG"
+            CHANGELOG="$(git log -n 20 --pretty=format:'- %s (%h)' "$CURRENT_TAG" -- "packages/$PKG" || true)"
+          else
+            CHANGELOG="$(git log --pretty=format:'- %s (%h)' "$PREV_TAG..$CURRENT_TAG" -- "packages/$PKG" || true)"
+          fi
+
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="(no changes detected)"
+          fi
+
+          {
+            echo "from_tag=$PREV_TAG"
+            echo "to_tag=$CURRENT_TAG"
+            echo "result<<'EOF'"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Publish to npm
         uses: js-devtools/npm-publish@v4
         if: ${{ !contains(github.ref, '-alpha.') }}
