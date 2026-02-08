@@ -64,7 +64,7 @@ jobs:
           {
             echo "from_tag=$PREV_TAG"
             echo "to_tag=$CURRENT_TAG"
-            echo "result<<'EOF'"
+            echo "result<<EOF"
             echo "$CHANGELOG"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
