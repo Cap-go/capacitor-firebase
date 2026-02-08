@@ -44,27 +44,45 @@ jobs:
           echo "Changed packages: $CHANGED_PACKAGES"
       - name: Bump versions and create tags
         run: |
+          set -euo pipefail
           for pkg in ${{ steps.changed.outputs.packages }}; do
             if [ -d "packages/$pkg" ]; then
               cd "packages/$pkg"
 
               # Update documentation
               bun run docgen || true
-              git add README.md || true
-              git commit -m "docs: update documentation for $pkg" || true
 
-              # Create version bump
-              if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-                bunx capacitor-plugin-standard-version@latest --skip.changelog --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
-              else
-                bunx capacitor-plugin-standard-version@latest --prerelease alpha --skip.changelog --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
+              CURRENT_VERSION="$(node -p "require('./package.json').version")"
+              CURRENT_MAJOR="${CURRENT_VERSION%%.*}"
+
+              args=(
+                --skip.changelog
+                --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
+                --tag-prefix "$pkg/v"
+                --path .
+              )
+              if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+                args=(--prerelease alpha "${args[@]}")
               fi
 
-              # Rename tag to include package name
-              LATEST_TAG=$(git describe --tags --abbrev=0)
-              NEW_TAG="$pkg/$LATEST_TAG"
-              git tag $NEW_TAG $LATEST_TAG
-              git tag -d $LATEST_TAG
+              # Keep plugin major aligned with Capacitor major:
+              # never allow CI to bump from 8.x -> 9.x just because it sees old `feat!` history.
+              release_as=()
+              if git tag --list "$pkg/v*" | grep -q .; then
+                DRY_OUT="$(bunx capacitor-plugin-standard-version@latest "${args[@]}" --dry-run 2>&1 || true)"
+                NEXT_VERSION="$(printf '%s\n' "$DRY_OUT" | sed -n 's/.*bumping version in .* from [^ ]* to \([^ ]*\).*/\1/p' | tail -n 1)"
+                if [ -n "$NEXT_VERSION" ]; then
+                  NEXT_MAJOR="${NEXT_VERSION%%.*}"
+                  if [ "$NEXT_MAJOR" != "$CURRENT_MAJOR" ]; then
+                    release_as=(--release-as minor)
+                  fi
+                fi
+              else
+                # Seed initial tags in the namespaced format, without changing the current version.
+                release_as=(--first-release --release-as "$CURRENT_VERSION")
+              fi
+
+              bunx capacitor-plugin-standard-version@latest "${args[@]}" "${release_as[@]}"
 
               cd ../..
             fi
