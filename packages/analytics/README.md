@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Analytics](https://firebase.google.com/docs/analytics).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

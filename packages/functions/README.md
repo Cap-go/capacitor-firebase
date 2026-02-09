@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Cloud Functions](https://firebase.google.com/docs/functions/).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

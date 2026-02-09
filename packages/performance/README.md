@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Performance Monitoring](https://firebase.google.com/docs/perf-mon).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

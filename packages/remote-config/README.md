@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Remote Config](https://firebase.google.com/docs/remote-config).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

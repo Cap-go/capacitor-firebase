@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase App](https://firebase.google.com/docs).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

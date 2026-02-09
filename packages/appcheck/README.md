@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase App Check](https://firebase.google.com/docs/app-check).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |

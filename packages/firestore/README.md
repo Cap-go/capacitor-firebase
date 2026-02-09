@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Cloud Firestore](https://firebase.google.com/docs/firestore/).[^1]
 
+
 ## Guides
 
 - [Announcing the Capacitor Firebase Cloud Firestore Plugin](https://capgo.app/blog/announcing-the-capacitor-firebase-cloud-firestore-plugin/)

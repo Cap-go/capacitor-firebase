@@ -8,6 +8,7 @@
 
 Unofficial Capacitor plugin for [Firebase Crashlytics](https://firebase.google.com/docs/crashlytics/).[^1]
 
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |
