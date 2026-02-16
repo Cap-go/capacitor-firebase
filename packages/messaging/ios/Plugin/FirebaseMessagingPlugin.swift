@@ -30,7 +30,7 @@ public class FirebaseMessagingPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion = "8.0.1"
+    private let pluginVersion: String = "8.0.1"
     private var implementation: FirebaseMessaging?
 
     public let tag = "FirebaseMessaging"
