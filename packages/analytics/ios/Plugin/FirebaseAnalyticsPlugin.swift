@@ -13,6 +13,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "FirebaseAnalytics"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getAppInstanceId", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getSessionId", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setConsent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserId", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserProperty", returnType: CAPPluginReturnPromise),
@@ -53,6 +54,24 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             result["appInstanceId"] = appInstanceId
         }
         call.resolve(result)
+    }
+
+    @objc func getSessionId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject("Firebase Analytics not initialized.")
+            return
+        }
+        implementation.getSessionId(completion: { sessionId, error in
+            if let error = error {
+                call.reject(error.localizedDescription)
+                return
+            }
+            var result = JSObject()
+            if let sessionId = sessionId {
+                result["sessionId"] = Double(sessionId)
+            }
+            call.resolve(result)
+        })
     }
 
     @objc func setConsent(_ call: CAPPluginCall) {
