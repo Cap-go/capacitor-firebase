@@ -17,7 +17,7 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.1"
+    private let pluginVersion: String = "8.0.2"
     public let tag = "FirebaseApp"
     public let errorEnabledMissing = "enabled must be provided."
     public let errorGetTokenFailed = "Failed to get token."

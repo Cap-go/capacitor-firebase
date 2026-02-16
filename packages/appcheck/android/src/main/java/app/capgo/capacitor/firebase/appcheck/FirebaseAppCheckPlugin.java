@@ -11,7 +11,7 @@ import com.google.firebase.appcheck.AppCheckToken;
 @CapacitorPlugin(name = "FirebaseAppCheck")
 public class FirebaseAppCheckPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.1";
+    private final String pluginVersion = "8.0.2";
 
     public static final String TAG = "FirebaseAppCheck";
     public static final String ERROR_ENABLED_MISSING = "enabled must be provided.";
