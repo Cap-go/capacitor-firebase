@@ -98,6 +98,6 @@ export class FirebaseAppCheckWeb extends WebPlugin implements FirebaseAppCheckPl
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.1' };
   }
 }

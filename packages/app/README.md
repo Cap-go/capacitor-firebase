@@ -106,10 +106,14 @@ Get the configuration options for this app.
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -134,6 +138,13 @@ getPluginVersion() => Promise<{ version: string; }>
 | **`gcmSenderId`**   | <code>string</code> | The Project Number.                                            | 0.1.0 |
 | **`projectId`**     | <code>string</code> | The Google Cloud project ID.                                   | 0.1.0 |
 | **`storageBucket`** | <code>string</code> | The Google Cloud Storage bucket name.                          | 0.1.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 </docgen-api>
 

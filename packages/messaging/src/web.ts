@@ -153,6 +153,6 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.1' };
   }
 }

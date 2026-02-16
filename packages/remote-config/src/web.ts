@@ -101,6 +101,6 @@ export class FirebaseRemoteConfigWeb extends WebPlugin implements FirebaseRemote
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.1' };
   }
 }
