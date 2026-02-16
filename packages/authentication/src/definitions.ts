@@ -535,6 +535,8 @@ export interface FirebaseAuthenticationPlugin {
    * @since 0.1.0
    */
   removeAllListeners(): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

@@ -177,6 +177,8 @@ export interface FirebaseMessagingPlugin {
    * @since 0.2.2
    */
   removeAllListeners(): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

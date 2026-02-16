@@ -333,6 +333,7 @@ const removeAllListeners = async () => {
 * [`addCollectionGroupSnapshotListener(...)`](#addcollectiongroupsnapshotlistener)
 * [`removeSnapshotListener(...)`](#removesnapshotlistener)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -647,6 +648,17 @@ removeAllListeners() => Promise<void>
 Remove all listeners for this plugin.
 
 **Since:** 5.2.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

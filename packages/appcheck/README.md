@@ -107,6 +107,7 @@ const removeAllListeners = async () => {
 * [`setTokenAutoRefreshEnabled(...)`](#settokenautorefreshenabled)
 * [`addListener('tokenChanged', ...)`](#addlistenertokenchanged-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -200,6 +201,17 @@ Remove all listeners for this plugin.
 Only available for Web.
 
 **Since:** 1.3.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

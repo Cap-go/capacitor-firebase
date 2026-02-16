@@ -51,6 +51,8 @@ export interface FirebaseStoragePlugin {
    * @since 6.1.0
    */
   useEmulator(options: UseEmulatorOptions): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

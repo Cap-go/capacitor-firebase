@@ -119,6 +119,8 @@ export interface FirebaseFirestorePlugin {
    * @since 5.2.0
    */
   removeAllListeners(): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

@@ -19,8 +19,11 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "didCrashOnPreviousExecution", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sendUnsentReports", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "deleteUnsentReports", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "recordException", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "recordException", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion = "8.0.2"
     public let errorMessageMissing = "message must be provided."
     public let errorKeyMissing = "key must be provided."
     public let errorValueMissing = "value must be provided."
@@ -129,5 +132,9 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             implementation?.recordExceptionWithStacktrace(message, stacktrace!)
         }
         call.resolve()
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

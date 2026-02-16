@@ -20,6 +20,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseStorage")
 public class FirebaseStoragePlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseStorage";
     public static final String ERROR_PATH_MISSING = "path must be provided.";
     public static final String ERROR_URI_MISSING = "uri must be provided.";
@@ -248,6 +250,17 @@ public class FirebaseStoragePlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage(), FirebaseStorageHelper.createErrorCode(exception));
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

@@ -31,6 +31,8 @@ import org.json.JSONObject;
 )
 public class FirebaseMessagingPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String PUSH_NOTIFICATIONS = "receive";
 
     public static final String TAG = "FirebaseMessaging";
@@ -358,5 +360,16 @@ public class FirebaseMessagingPlugin extends Plugin {
             return null;
         }
         return (FirebaseMessagingPlugin) handle.getInstance();
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

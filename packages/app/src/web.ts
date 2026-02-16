@@ -22,4 +22,8 @@ export class FirebaseAppWeb extends WebPlugin implements FirebaseAppPlugin {
       storageBucket: app.options.storageBucket || '',
     };
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

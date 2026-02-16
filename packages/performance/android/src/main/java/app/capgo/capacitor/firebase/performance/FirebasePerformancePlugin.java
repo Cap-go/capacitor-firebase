@@ -12,6 +12,8 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebasePerformance")
 public class FirebasePerformancePlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebasePerformance";
     public static final String ERROR_TRACE_NAME_MISSING = "traceName must be provided.";
     public static final String ERROR_METRIC_NAME_MISSING = "metricName must be provided.";
@@ -298,5 +300,16 @@ public class FirebasePerformancePlugin extends Plugin {
     @PluginMethod
     public void record(PluginCall call) {
         call.unimplemented("Not implemented on Android.");
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }
