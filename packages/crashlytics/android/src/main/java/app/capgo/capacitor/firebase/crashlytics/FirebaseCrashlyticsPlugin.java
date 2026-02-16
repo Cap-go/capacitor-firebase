@@ -11,7 +11,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseCrashlytics")
 public class FirebaseCrashlyticsPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.2";
+    private final String pluginVersion = "8.0.3";
 
     public static final String TAG = "FirebaseCrashlytics";
     public static final String ERROR_MESSAGE_MISSING = "message must be provided.";
