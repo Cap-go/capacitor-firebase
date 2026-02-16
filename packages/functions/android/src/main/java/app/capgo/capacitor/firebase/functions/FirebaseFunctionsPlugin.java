@@ -14,6 +14,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseFunctions")
 public class FirebaseFunctionsPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseFunctions";
     public static final String ERROR_NAME_MISSING = "name must be provided.";
     public static final String ERROR_URL_MISSING = "url must be provided.";
@@ -105,6 +107,17 @@ public class FirebaseFunctionsPlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

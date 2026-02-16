@@ -446,4 +446,8 @@ export class FirebaseFirestoreWeb extends WebPlugin implements FirebaseFirestore
       return await this.buildFirebaseQueryNonFilterConstraint(queryConstraint);
     }
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

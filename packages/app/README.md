@@ -65,6 +65,7 @@ const getOptions = async () => {
 
 * [`getName()`](#getname)
 * [`getOptions()`](#getoptions)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 
 </docgen-index>
@@ -98,6 +99,17 @@ Get the configuration options for this app.
 **Returns:** <code>Promise&lt;<a href="#getoptionsresult">GetOptionsResult</a>&gt;</code>
 
 **Since:** 0.1.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

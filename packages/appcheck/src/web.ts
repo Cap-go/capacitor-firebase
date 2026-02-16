@@ -96,4 +96,8 @@ export class FirebaseAppCheckWeb extends WebPlugin implements FirebaseAppCheckPl
     };
     this.notifyListeners(FirebaseAppCheckWeb.tokenChangedEvent, event);
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

@@ -82,6 +82,8 @@ export interface FirebaseCrashlyticsPlugin {
    * @since 0.1.0
    */
   recordException(options: RecordExceptionOptions): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

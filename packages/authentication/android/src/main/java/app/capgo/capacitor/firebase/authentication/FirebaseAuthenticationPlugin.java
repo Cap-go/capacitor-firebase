@@ -30,6 +30,8 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "FirebaseAuthentication", requestCodes = { FacebookAuthProviderHandler.RC_FACEBOOK_AUTH })
 public class FirebaseAuthenticationPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.2";
+
     public static final String TAG = "FirebaseAuthentication";
     public static final String ERROR_CODE_PREFIX = "auth";
     public static final String PHONE_VERIFICATION_COMPLETED_EVENT = "phoneVerificationCompleted";
@@ -1095,5 +1097,16 @@ public class FirebaseAuthenticationPlugin extends Plugin {
         config.setProviders(providers);
 
         return config;
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

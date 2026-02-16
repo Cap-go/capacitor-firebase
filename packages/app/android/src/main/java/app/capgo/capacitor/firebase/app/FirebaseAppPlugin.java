@@ -12,6 +12,8 @@ import com.google.firebase.FirebaseOptions;
 @CapacitorPlugin(name = "FirebaseApp")
 public class FirebaseAppPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseApp";
 
     @PluginMethod
@@ -49,5 +51,16 @@ public class FirebaseAppPlugin extends Plugin {
 
     private FirebaseApp getFirebaseAppInstance() {
         return FirebaseApp.getInstance();
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

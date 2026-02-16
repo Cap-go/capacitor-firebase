@@ -25,8 +25,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "addDocumentSnapshotListener", returnType: CAPPluginReturnCallback),
         CAPPluginMethod(name: "addCollectionSnapshotListener", returnType: CAPPluginReturnCallback),
         CAPPluginMethod(name: "addCollectionGroupSnapshotListener", returnType: CAPPluginReturnCallback),
-        CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion: String = "8.0.1"
     public let tag = "FirebaseFirestore"
     public let errorReferenceMissing = "reference must be provided."
     public let errorDataMissing = "data must be provided."
@@ -403,5 +406,9 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         implementation?.removeAllListeners {
             call.resolve()
         }
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

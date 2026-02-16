@@ -17,6 +17,8 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseRemoteConfig")
 public class FirebaseRemoteConfigPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseRemoteConfig";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
     public static final String ERROR_CALLBACK_ID_MISSING = "callbackId must be provided.";
@@ -260,6 +262,17 @@ public class FirebaseRemoteConfigPlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

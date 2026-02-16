@@ -143,7 +143,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-import '@capgo/capacitor-firebase-messaging'
+/// <reference types="@capgo/capacitor-firebase-messaging" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 
@@ -265,6 +265,7 @@ const removeAllListeners = async () => {
 * [`addListener('notificationReceived', ...)`](#addlistenernotificationreceived-)
 * [`addListener('notificationActionPerformed', ...)`](#addlistenernotificationactionperformed-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -586,6 +587,17 @@ removeAllListeners() => Promise<void>
 Remove all listeners for this plugin.
 
 **Since:** 0.2.2
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

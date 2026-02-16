@@ -32,6 +32,8 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseFirestore")
 public class FirebaseFirestorePlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseFirestore";
     public static final String ERROR_CODE_PREFIX = "firestore";
     public static final String ERROR_REFERENCE_MISSING = "reference must be provided.";
@@ -591,6 +593,17 @@ public class FirebaseFirestorePlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage(), FirebaseFirestoreHelper.createErrorCode(exception));
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

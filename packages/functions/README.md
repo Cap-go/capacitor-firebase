@@ -94,6 +94,7 @@ const useEmulator = async () => {
 * [`callByName(...)`](#callbyname)
 * [`callByUrl(...)`](#callbyurl)
 * [`useEmulator(...)`](#useemulator)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -163,6 +164,17 @@ On Android, the cleartext traffic must be allowed. On the Capacitor configuratio
 | **`options`** | <code><a href="#useemulatoroptions">UseEmulatorOptions</a></code> |
 
 **Since:** 6.1.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

@@ -131,4 +131,8 @@ export class FirebaseAnalyticsWeb extends WebPlugin implements FirebaseAnalytics
   ): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

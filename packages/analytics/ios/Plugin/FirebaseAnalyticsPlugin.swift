@@ -26,8 +26,11 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithEmailAddress", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithPhoneNumber", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedEmailAddress", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedPhoneNumber", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedPhoneNumber", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion: String = "8.0.1"
     public let errorUserIdMissing = "userId must be provided."
     public let errorKeyMissing = "key must be provided."
     public let errorValueMissing = "value must be provided."
@@ -197,5 +200,9 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         let hashedPhone = FirebaseAnalyticsHelper.sha256(phone)
         implementation?.initiateOnDeviceConversionMeasurement(hashedPhone: hashedPhone)
         call.resolve()
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

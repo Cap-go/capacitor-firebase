@@ -73,8 +73,11 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "useEmulator", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "verifyBeforeUpdateEmail", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestAppTrackingTransparencyPermission", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "checkAppTrackingTransparencyPermission", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "checkAppTrackingTransparencyPermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion: String = "8.0.2"
     public let tag = "FirebaseAuthentication"
     public let errorProviderIdMissing = "providerId must be provided."
     public let errorNoUserSignedIn = "No user is signed in."
@@ -730,5 +733,9 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         return config
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

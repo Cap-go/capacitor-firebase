@@ -13,8 +13,11 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getToken", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setTokenAutoRefreshEnabled", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setTokenAutoRefreshEnabled", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion: String = "8.0.1"
     public let tag = "FirebaseApp"
     public let errorEnabledMissing = "enabled must be provided."
     public let errorGetTokenFailed = "Failed to get token."
@@ -82,5 +85,9 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
         var result = JSObject()
         result["token"] = token ?? NSNull()
         notifyListeners(tokenChangedEvent, data: result, retainUntilConsumed: true)
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

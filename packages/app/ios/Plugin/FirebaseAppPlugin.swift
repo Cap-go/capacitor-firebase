@@ -13,9 +13,11 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "FirebaseApp"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getName", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getOptions", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getOptions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
+    private let pluginVersion: String = "8.0.1"
     override public func load() {
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
@@ -37,5 +39,9 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
             "projectId": FirebaseApp.app()?.options.projectID ?? "",
             "storageBucket": FirebaseApp.app()?.options.storageBucket ?? ""
         ])
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }
