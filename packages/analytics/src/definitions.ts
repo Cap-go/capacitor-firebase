@@ -12,7 +12,7 @@ export interface FirebaseAnalyticsPlugin {
    *
    * Only available for Android and iOS.
    *
-   * @since 8.0.1
+   * @since 7.4.4
    */
   getSessionId(): Promise<GetSessionIdResult>;
   /**
@@ -134,7 +134,7 @@ export interface GetAppInstanceIdResult {
 }
 
 /**
- * @since 8.0.1
+ * @since 7.4.4
  */
 export interface GetSessionIdResult {
   /**
@@ -144,7 +144,7 @@ export interface GetSessionIdResult {
    *
    * Not defined if `FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.ConsentStatus.DENIED`.
    *
-   * @since 8.0.1
+   * @since 7.4.4
    */
   sessionId?: number;
 }

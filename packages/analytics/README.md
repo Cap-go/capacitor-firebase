@@ -218,7 +218,7 @@ Only available for Android and iOS.
 
 **Returns:** <code>Promise&lt;<a href="#getsessionidresult">GetSessionIdResult</a>&gt;</code>
 
-**Since:** 8.0.1
+**Since:** 7.4.4
 
 --------------------
 
@@ -468,7 +468,7 @@ Only available for iOS.
 
 | Prop            | Type                | Description                                                                                                                                                                                                                                            | Since |
 | --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
-| **`sessionId`** | <code>number</code> | The current session id. Matches Firebase Analytics `ga_session_id`. Not defined if `FirebaseAnalytics.<a href="#consenttype">ConsentType</a>.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.<a href="#consentstatus">ConsentStatus</a>.DENIED`. | 8.0.1 |
+| **`sessionId`** | <code>number</code> | The current session id. Matches Firebase Analytics `ga_session_id`. Not defined if `FirebaseAnalytics.<a href="#consenttype">ConsentType</a>.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.<a href="#consentstatus">ConsentStatus</a>.DENIED`. | 7.4.4 |
 
 
 #### SetConsentOptions
