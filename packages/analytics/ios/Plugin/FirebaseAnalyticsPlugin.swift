@@ -57,7 +57,11 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getSessionId(_ call: CAPPluginCall) {
-        implementation?.getSessionId(completion: { sessionId, error in
+        guard let implementation = implementation else {
+            call.reject("Firebase Analytics not initialized.")
+            return
+        }
+        implementation.getSessionId(completion: { sessionId, error in
             if let error = error {
                 call.reject(error.localizedDescription)
                 return

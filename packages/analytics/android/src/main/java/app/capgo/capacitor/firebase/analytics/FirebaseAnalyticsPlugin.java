@@ -46,7 +46,8 @@ public class FirebaseAnalyticsPlugin extends Plugin {
             );
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
-            call.reject(exception.getMessage());
+            String message = exception.getMessage() != null ? exception.getMessage() : "Get app instance id failed.";
+            call.reject(message);
         }
     }
 
@@ -72,7 +73,8 @@ public class FirebaseAnalyticsPlugin extends Plugin {
             );
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
-            call.reject(exception.getMessage());
+            String message = exception.getMessage() != null ? exception.getMessage() : "Get session id failed.";
+            call.reject(message);
         }
     }
 
