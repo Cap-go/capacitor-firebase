@@ -154,6 +154,7 @@ const record = async () => {
 * [`putMetric(...)`](#putmetric)
 * [`getMetric(...)`](#getmetric)
 * [`record(...)`](#record)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -369,6 +370,17 @@ Only available on web.
 | **`options`** | <code><a href="#recordoptions">RecordOptions</a></code> |
 
 **Since:** 6.3.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

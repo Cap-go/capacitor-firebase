@@ -109,6 +109,8 @@ export interface FirebaseAnalyticsPlugin {
   initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(
     options: InitiateOnDeviceConversionMeasurementWithHashedPhoneNumberOptions,
   ): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

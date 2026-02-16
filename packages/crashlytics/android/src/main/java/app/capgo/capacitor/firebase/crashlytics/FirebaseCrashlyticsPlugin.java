@@ -11,6 +11,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseCrashlytics")
 public class FirebaseCrashlyticsPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.2";
+
     public static final String TAG = "FirebaseCrashlytics";
     public static final String ERROR_MESSAGE_MISSING = "message must be provided.";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
@@ -161,6 +163,17 @@ public class FirebaseCrashlyticsPlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

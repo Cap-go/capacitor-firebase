@@ -11,6 +11,8 @@ import com.google.firebase.appcheck.AppCheckToken;
 @CapacitorPlugin(name = "FirebaseAppCheck")
 public class FirebaseAppCheckPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseAppCheck";
     public static final String ERROR_ENABLED_MISSING = "enabled must be provided.";
     public static final String TOKEN_CHANGED_EVENT = "tokenChanged";
@@ -91,5 +93,16 @@ public class FirebaseAppCheckPlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("token", token.getToken());
         notifyListeners(TOKEN_CHANGED_EVENT, result, true);
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

@@ -12,6 +12,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseAnalytics")
 public class FirebaseAnalyticsPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.1";
+
     public static final String TAG = "FirebaseAnalytics";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
     public static final String ERROR_ENABLED_MISSING = "enabled must be provided.";
@@ -196,5 +198,16 @@ public class FirebaseAnalyticsPlugin extends Plugin {
     @PluginMethod
     public void initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(PluginCall call) {
         call.unimplemented("Not implemented on Android.");
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

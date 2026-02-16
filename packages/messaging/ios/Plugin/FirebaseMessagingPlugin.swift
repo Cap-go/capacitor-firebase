@@ -26,8 +26,11 @@ public class FirebaseMessagingPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "unsubscribeFromTopic", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "createChannel", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "deleteChannel", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "listChannels", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "listChannels", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion = "8.0.1"
     private var implementation: FirebaseMessaging?
 
     public let tag = "FirebaseMessaging"
@@ -235,5 +238,9 @@ public class FirebaseMessagingPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         return config
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

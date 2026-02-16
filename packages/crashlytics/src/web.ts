@@ -51,4 +51,8 @@ export class FirebaseCrashlyticsWeb extends WebPlugin implements FirebaseCrashly
   public async recordException(_options: RecordExceptionOptions): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

@@ -34,6 +34,8 @@ export interface FirebaseAppCheckPlugin {
    * @since 1.3.0
    */
   removeAllListeners(): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

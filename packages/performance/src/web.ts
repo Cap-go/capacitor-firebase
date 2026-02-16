@@ -117,4 +117,8 @@ export class FirebasePerformanceWeb extends WebPlugin implements FirebasePerform
     const trace = createTrace(perf, traceName);
     trace.record(startTime, duration, options);
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: 'web' };
+  }
 }

@@ -21,8 +21,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "removeAttribute", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "putMetric", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getMetric", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "record", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "record", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion = "8.0.1"
     public let errorTraceNameMissing = "traceName must be provided."
     public let errorMetricNameMissing = "metricName must be provided."
     public let errorEnabledMissing = "enabled must be provided."
@@ -216,5 +219,9 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func record(_ call: CAPPluginCall) {
         call.unimplemented("Not implemented on iOS.")
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

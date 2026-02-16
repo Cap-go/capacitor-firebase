@@ -20,8 +20,11 @@ public class FirebaseRemoteConfigPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setMinimumFetchInterval", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSettings", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "addConfigUpdateListener", returnType: CAPPluginReturnCallback),
-        CAPPluginMethod(name: "removeConfigUpdateListener", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "removeConfigUpdateListener", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion = "8.0.1"
     public let tag = "FirebaseRemoteConfig"
     public let errorKeyMissing = "key must be provided."
     public let errorFetchAndActivatefailed = "fetchAndActivate failed."
@@ -177,5 +180,9 @@ public class FirebaseRemoteConfigPlugin: CAPPlugin, CAPBridgedPlugin {
 
         implementation?.removeAllListeners()
         super.removeAllListeners(call)
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

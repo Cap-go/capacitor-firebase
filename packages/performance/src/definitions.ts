@@ -74,6 +74,8 @@ export interface FirebasePerformancePlugin {
    * @since 6.3.0
    */
   record(options: RecordOptions): Promise<void>;
+
+  getPluginVersion(): Promise<{ version: string }>;
 }
 
 /**

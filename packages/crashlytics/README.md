@@ -212,6 +212,7 @@ const recordExceptionWithStacktrace = async (error: Error) => {
 * [`sendUnsentReports()`](#sendunsentreports)
 * [`deleteUnsentReports()`](#deleteunsentreports)
 * [`recordException(...)`](#recordexception)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -397,6 +398,17 @@ Only available for Android and iOS.
 | **`options`** | <code><a href="#recordexceptionoptions">RecordExceptionOptions</a></code> |
 
 **Since:** 0.1.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 

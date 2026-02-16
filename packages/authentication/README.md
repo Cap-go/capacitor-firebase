@@ -513,6 +513,7 @@ const verifyBeforeUpdateEmail = async () => {
 * [`addListener('phoneVerificationFailed', ...)`](#addlistenerphoneverificationfailed-)
 * [`addListener('phoneCodeSent', ...)`](#addlistenerphonecodesent-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -1756,6 +1757,17 @@ removeAllListeners() => Promise<void>
 Remove all listeners for this plugin.
 
 **Since:** 0.1.0
+
+--------------------
+
+
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<{ version: string; }>
+```
+
+**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
 
 --------------------
 
