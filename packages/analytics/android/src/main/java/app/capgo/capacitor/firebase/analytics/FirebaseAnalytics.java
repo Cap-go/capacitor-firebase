@@ -28,12 +28,34 @@ public class FirebaseAnalytics {
                 if (!task.isSuccessful()) {
                     Exception exception = task.getException();
                     Log.w(FirebaseAnalyticsPlugin.TAG, "Get AppInstanceId failed.", exception);
-                    resultCallback.error(exception.getMessage());
+                    String message = exception != null && exception.getMessage() != null
+                        ? exception.getMessage()
+                        : "Unknown error getting app instance id.";
+                    resultCallback.error(message);
                     return;
                 }
 
                 String appInstanceId = task.getResult();
                 resultCallback.success(appInstanceId);
+            });
+    }
+
+    public void getSessionId(@NonNull final GetSessionIdCallback resultCallback) {
+        getFirebaseAnalyticsInstance()
+            .getSessionId()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    Exception exception = task.getException();
+                    Log.w(FirebaseAnalyticsPlugin.TAG, "Get SessionId failed.", exception);
+                    String message = exception != null && exception.getMessage() != null
+                        ? exception.getMessage()
+                        : "Unknown error getting session id.";
+                    resultCallback.error(message);
+                    return;
+                }
+
+                Long sessionId = task.getResult();
+                resultCallback.success(sessionId);
             });
     }
 

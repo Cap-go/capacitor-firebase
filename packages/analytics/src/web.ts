@@ -12,6 +12,7 @@ import {
 import type {
   FirebaseAnalyticsPlugin,
   GetAppInstanceIdResult,
+  GetSessionIdResult,
   InitiateOnDeviceConversionMeasurementWithEmailAddressOptions,
   InitiateOnDeviceConversionMeasurementWithPhoneNumberOptions,
   InitiateOnDeviceConversionMeasurementWithHashedEmailAddressOptions,
@@ -29,6 +30,10 @@ import { ConsentStatus, ConsentType } from './definitions';
 
 export class FirebaseAnalyticsWeb extends WebPlugin implements FirebaseAnalyticsPlugin {
   public async getAppInstanceId(): Promise<GetAppInstanceIdResult> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  public async getSessionId(): Promise<GetSessionIdResult> {
     throw this.unimplemented('Not implemented on web.');
   }
 

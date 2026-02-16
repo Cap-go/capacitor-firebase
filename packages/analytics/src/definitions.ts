@@ -8,6 +8,14 @@ export interface FirebaseAnalyticsPlugin {
    */
   getAppInstanceId(): Promise<GetAppInstanceIdResult>;
   /**
+   * Retrieves the current session id (`ga_session_id`).
+   *
+   * Only available for Android and iOS.
+   *
+   * @since 8.0.1
+   */
+  getSessionId(): Promise<GetSessionIdResult>;
+  /**
    * Sets the user's consent mode.
    *
    * @since 6.0.0
@@ -123,6 +131,22 @@ export interface GetAppInstanceIdResult {
    * @since 1.4.0
    */
   appInstanceId?: string;
+}
+
+/**
+ * @since 8.0.1
+ */
+export interface GetSessionIdResult {
+  /**
+   * The current session id.
+   *
+   * Matches Firebase Analytics `ga_session_id`.
+   *
+   * Not defined if `FirebaseAnalytics.ConsentType.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.ConsentStatus.DENIED`.
+   *
+   * @since 8.0.1
+   */
+  sessionId?: number;
 }
 
 /**
