@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-firebase-app-check",
-  "version": "8.0.1",
+  "version": "7.4.3",
   "description": "Capacitor plugin for Firebase App Check.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -49,15 +49,15 @@
     "check:wiring": "node scripts/check-capacitor-plugin-wiring.mjs"
   },
   "devDependencies": {
-    "@capacitor/android": "8.0.0",
-    "@capacitor/cli": "8.0.0",
-    "@capacitor/core": "8.0.0",
+    "@capacitor/android": "7.0.0",
+    "@capacitor/cli": "7.0.0",
+    "@capacitor/core": "7.0.0",
     "@capacitor/docgen": "0.3.1",
-    "@capacitor/ios": "8.0.0",
+    "@capacitor/ios": "7.0.0",
     "@ionic/eslint-config": "0.4.0",
     "@ionic/swiftlint-config": "2.0.0",
     "eslint": "8.57.0",
-    "firebase": "12.6.0",
+    "firebase": "11.6.0",
     "prettier": "3.4.2",
     "prettier-plugin-java": "2.6.7",
     "rimraf": "6.1.2",
@@ -66,8 +66,8 @@
     "typescript": "5.9.3"
   },
   "peerDependencies": {
-    "@capacitor/core": ">=8.0.0",
-    "firebase": "^12.6.0"
+    "@capacitor/core": ">=7.0.0",
+    "firebase": "^11.6.0"
   },
   "peerDependenciesMeta": {
     "firebase": {

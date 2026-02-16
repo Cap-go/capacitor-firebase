@@ -143,7 +143,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-import '@capgo/capacitor-firebase-messaging'
+/// <reference types="@capgo/capacitor-firebase" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 

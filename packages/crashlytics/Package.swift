@@ -3,14 +3,14 @@ import PackageDescription
 
 let package = Package(
     name: "CapgoCapacitorFirebaseCrashlytics",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v14)],
     products: [
         .library(
             name: "CapgoCapacitorFirebaseCrashlytics",
             targets: ["CapgoFirebaseCrashlyticsPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.0.0"),
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "12.9.0"))
     ],
     targets: [

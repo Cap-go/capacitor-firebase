@@ -3,14 +3,14 @@ import PackageDescription
 
 let package = Package(
     name: "CapgoCapacitorFirebaseAppCheck",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v14)],
     products: [
         .library(
             name: "CapgoCapacitorFirebaseAppCheck",
             targets: ["CapgoFirebaseAppCheckPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.0.0"),
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "12.9.0")),
         .package(name: "google-app-check", url: "https://github.com/google/app-check.git", "11.0.1"..<"12.0.0")
     ],
