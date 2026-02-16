@@ -30,7 +30,7 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "FirebaseAuthentication", requestCodes = { FacebookAuthProviderHandler.RC_FACEBOOK_AUTH })
 public class FirebaseAuthenticationPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.2";
+    private final String pluginVersion = "8.0.3";
 
     public static final String TAG = "FirebaseAuthentication";
     public static final String ERROR_CODE_PREFIX = "auth";
