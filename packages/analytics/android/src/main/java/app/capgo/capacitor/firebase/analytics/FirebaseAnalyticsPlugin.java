@@ -51,6 +51,32 @@ public class FirebaseAnalyticsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getSessionId(PluginCall call) {
+        try {
+            implementation.getSessionId(
+                new GetSessionIdCallback() {
+                    @Override
+                    public void success(@Nullable Long sessionId) {
+                        JSObject result = new JSObject();
+                        if (sessionId != null) {
+                            result.put("sessionId", sessionId);
+                        }
+                        call.resolve(result);
+                    }
+
+                    @Override
+                    public void error(String message) {
+                        call.reject(message);
+                    }
+                }
+            );
+        } catch (Exception exception) {
+            Logger.error(TAG, exception.getMessage(), exception);
+            call.reject(exception.getMessage());
+        }
+    }
+
+    @PluginMethod
     public void setConsent(PluginCall call) {
         try {
             com.google.firebase.analytics.FirebaseAnalytics.ConsentType consentType = FirebaseAnalyticsHelper.mapStringToConsentType(

@@ -37,6 +37,22 @@ public class FirebaseAnalytics {
             });
     }
 
+    public void getSessionId(@NonNull final GetSessionIdCallback resultCallback) {
+        getFirebaseAnalyticsInstance()
+            .getSessionId()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    Exception exception = task.getException();
+                    Log.w(FirebaseAnalyticsPlugin.TAG, "Get SessionId failed.", exception);
+                    resultCallback.error(exception.getMessage());
+                    return;
+                }
+
+                Long sessionId = task.getResult();
+                resultCallback.success(sessionId);
+            });
+    }
+
     public void setConsent(
         @NonNull com.google.firebase.analytics.FirebaseAnalytics.ConsentType consentType,
         @NonNull com.google.firebase.analytics.FirebaseAnalytics.ConsentStatus consentStatus
