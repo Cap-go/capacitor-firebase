@@ -790,6 +790,6 @@ export class FirebaseAuthenticationWeb extends WebPlugin implements FirebaseAuth
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.3' };
   }
 }

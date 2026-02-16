@@ -21,7 +21,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     private let pluginVersion: String = "8.0.2"
-    public let tag = "FirebaseFirestore"
+    public let tag = "FirebaseStorage"
     public let errorPathMissing = "path must be provided."
     public let errorUriMissing = "uri must be provided."
     public let errorMetadataMissing = "metadata must be provided."

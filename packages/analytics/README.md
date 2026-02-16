@@ -458,10 +458,14 @@ Only available for iOS.
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -569,6 +573,13 @@ getPluginVersion() => Promise<{ version: string; }>
 | Prop                    | Type                | Description                                                         | Since |
 | ----------------------- | ------------------- | ------------------------------------------------------------------- | ----- |
 | **`phoneNumberToHash`** | <code>string</code> | The phone number to initiate on-device conversion measurement with. | 7.2.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Enums

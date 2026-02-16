@@ -119,6 +119,6 @@ export class FirebasePerformanceWeb extends WebPlugin implements FirebasePerform
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.2' };
   }
 }

@@ -11,8 +11,24 @@ export interface FirebaseAppPlugin {
    * @since 0.1.0
    */
   getOptions(): Promise<GetOptionsResult>;
+  /**
+   * Get the version of this plugin.
+   *
+   * @since 8.0.1
+   */
+  getPluginVersion(): Promise<GetPluginVersionResult>;
+}
 
-  getPluginVersion(): Promise<{ version: string }>;
+/**
+ * @since 8.0.1
+ */
+export interface GetPluginVersionResult {
+  /**
+   * The semantic version of this plugin.
+   *
+   * @since 8.0.1
+   */
+  version: string;
 }
 
 /**

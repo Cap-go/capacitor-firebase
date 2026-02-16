@@ -157,6 +157,6 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.2' };
   }
 }
