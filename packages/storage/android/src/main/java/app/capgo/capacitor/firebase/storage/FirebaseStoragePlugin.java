@@ -20,7 +20,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseStorage")
 public class FirebaseStoragePlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.2";
+    private final String pluginVersion = "8.0.3";
 
     public static final String TAG = "FirebaseStorage";
     public static final String ERROR_PATH_MISSING = "path must be provided.";
