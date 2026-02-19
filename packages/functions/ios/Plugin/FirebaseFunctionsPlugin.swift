@@ -16,7 +16,7 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.2"
+    private let pluginVersion: String = "8.0.3"
     public let tag = "FirebaseFunctions"
     public let errorNameMissing = "name must be provided."
     public let errorHostMissing = "host must be provided."
