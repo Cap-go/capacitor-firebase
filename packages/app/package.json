@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-firebase-app",
-  "version": "8.0.2",
+  "version": "8.0.3",
   "description": "Capacitor plugin for Firebase App.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

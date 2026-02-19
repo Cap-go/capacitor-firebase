@@ -12,7 +12,7 @@ import com.google.firebase.FirebaseOptions;
 @CapacitorPlugin(name = "FirebaseApp")
 public class FirebaseAppPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.2";
+    private final String pluginVersion = "8.0.3";
 
     public static final String TAG = "FirebaseApp";
 
