@@ -143,7 +143,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-/// <reference types="@capgo/capacitor-firebase-messaging" />
+/// <reference types="@capgo/capacitor-firebase" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 
@@ -594,10 +594,14 @@ Remove all listeners for this plugin.
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -734,6 +738,13 @@ getPluginVersion() => Promise<{ version: string; }>
 | **`actionId`**     | <code>string</code>                                   | The action performed on the notification.                        | 0.2.2 |
 | **`inputValue`**   | <code>string</code>                                   | Text entered on the notification action. Only available for iOS. | 0.2.2 |
 | **`notification`** | <code><a href="#notification">Notification</a></code> | The notification in which the action was performed.              | 0.2.2 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

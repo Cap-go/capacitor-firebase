@@ -535,8 +535,24 @@ export interface FirebaseAuthenticationPlugin {
    * @since 0.1.0
    */
   removeAllListeners(): Promise<void>;
+  /**
+   * Get the version of this plugin.
+   *
+   * @since 8.0.2
+   */
+  getPluginVersion(): Promise<GetPluginVersionResult>;
+}
 
-  getPluginVersion(): Promise<{ version: string }>;
+/**
+ * @since 8.0.2
+ */
+export interface GetPluginVersionResult {
+  /**
+   * The semantic version of this plugin.
+   *
+   * @since 8.0.2
+   */
+  version: string;
 }
 
 /**

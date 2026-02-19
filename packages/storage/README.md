@@ -294,10 +294,14 @@ On Android, the cleartext traffic must be allowed. On the Capacitor configuratio
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -433,6 +437,13 @@ getPluginVersion() => Promise<{ version: string; }>
 | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----- |
 | **`host`** | <code>string</code> | The emulator host without any port or scheme. Note when using a Android Emulator device: 10.0.2.2 is the special IP address to connect to the 'localhost' of the host computer. |                   | 6.1.0 |
 | **`port`** | <code>number</code> | The emulator port.                                                                                                                                                              | <code>9199</code> | 6.1.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

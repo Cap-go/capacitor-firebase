@@ -53,6 +53,6 @@ export class FirebaseCrashlyticsWeb extends WebPlugin implements FirebaseCrashly
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.3' };
   }
 }

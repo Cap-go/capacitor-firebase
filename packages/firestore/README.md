@@ -655,10 +655,14 @@ Remove all listeners for this plugin.
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -907,6 +911,13 @@ getPluginVersion() => Promise<{ version: string; }>
 | Prop             | Type                                              | Since |
 | ---------------- | ------------------------------------------------- | ----- |
 | **`callbackId`** | <code><a href="#callbackid">CallbackId</a></code> | 5.2.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

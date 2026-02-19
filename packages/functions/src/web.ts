@@ -40,6 +40,6 @@ export class FirebaseFunctionsWeb extends WebPlugin implements FirebaseFunctions
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: 'web' };
+    return { version: '8.0.2' };
   }
 }

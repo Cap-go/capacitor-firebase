@@ -103,7 +103,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-/// <reference types="@capgo/capacitor-firebase-authentication" />
+/// <reference types="@capgo/capacitor-firebase" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 
@@ -1764,10 +1764,14 @@ Remove all listeners for this plugin.
 ### getPluginVersion()
 
 ```typescript
-getPluginVersion() => Promise<{ version: string; }>
+getPluginVersion() => Promise<GetPluginVersionResult>
 ```
 
-**Returns:** <code>Promise&lt;{ version: string; }&gt;</code>
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.2
 
 --------------------
 
@@ -2202,6 +2206,13 @@ bundle identifiers.
 | Prop                 | Type                | Description                                                             | Since |
 | -------------------- | ------------------- | ----------------------------------------------------------------------- | ----- |
 | **`verificationId`** | <code>string</code> | The verification ID, which is needed to identify the verification code. | 1.3.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.2 |
 
 
 ### Type Aliases
