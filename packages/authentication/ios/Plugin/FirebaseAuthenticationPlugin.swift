@@ -77,7 +77,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.3"
+    private let pluginVersion: String = "8.0.4"
     public let tag = "FirebaseAuthentication"
     public let errorProviderIdMissing = "providerId must be provided."
     public let errorNoUserSignedIn = "No user is signed in."
