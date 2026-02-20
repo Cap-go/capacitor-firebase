@@ -17,7 +17,7 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseRemoteConfig")
 public class FirebaseRemoteConfigPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.3";
+    private final String pluginVersion = "8.0.4";
 
     public static final String TAG = "FirebaseRemoteConfig";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
