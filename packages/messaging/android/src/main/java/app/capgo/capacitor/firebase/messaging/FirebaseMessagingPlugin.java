@@ -31,7 +31,7 @@ import org.json.JSONObject;
 )
 public class FirebaseMessagingPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.3";
+    private final String pluginVersion = "8.0.4";
 
     public static final String PUSH_NOTIFICATIONS = "receive";
 
