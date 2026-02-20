@@ -32,7 +32,7 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseFirestore")
 public class FirebaseFirestorePlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.3";
+    private final String pluginVersion = "8.0.4";
 
     public static final String TAG = "FirebaseFirestore";
     public static final String ERROR_CODE_PREFIX = "firestore";
