@@ -20,7 +20,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.3"
+    private let pluginVersion: String = "8.0.4"
     public let tag = "FirebaseStorage"
     public let errorPathMissing = "path must be provided."
     public let errorUriMissing = "uri must be provided."
