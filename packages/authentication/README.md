@@ -513,6 +513,7 @@ const verifyBeforeUpdateEmail = async () => {
 * [`addListener('phoneVerificationFailed', ...)`](#addlistenerphoneverificationfailed-)
 * [`addListener('phoneCodeSent', ...)`](#addlistenerphonecodesent-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -1760,6 +1761,21 @@ Remove all listeners for this plugin.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.2
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -2190,6 +2206,13 @@ bundle identifiers.
 | Prop                 | Type                | Description                                                             | Since |
 | -------------------- | ------------------- | ----------------------------------------------------------------------- | ----- |
 | **`verificationId`** | <code>string</code> | The verification ID, which is needed to identify the verification code. | 1.3.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.2 |
 
 
 ### Type Aliases

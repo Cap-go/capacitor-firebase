@@ -95,6 +95,7 @@ const useEmulator = async () => {
 * [`callByName(...)`](#callbyname)
 * [`callByUrl(...)`](#callbyurl)
 * [`useEmulator(...)`](#useemulator)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -168,6 +169,21 @@ On Android, the cleartext traffic must be allowed. On the Capacitor configuratio
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -200,6 +216,13 @@ On Android, the cleartext traffic must be allowed. On the Capacitor configuratio
 | **`host`**                 | <code>string</code> | The emulator host without any port or scheme. Note when using a Android Emulator device: 10.0.2.2 is the special IP address to connect to the 'localhost' of the host computer. |                   | 6.1.0 |
 | **`port`**                 | <code>number</code> | The emulator port.                                                                                                                                                              | <code>5001</code> | 6.1.0 |
 | **`regionOrCustomDomain`** | <code>string</code> | The region the callable functions are located in or a custom domain hosting the callable functions.                                                                             |                   |       |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

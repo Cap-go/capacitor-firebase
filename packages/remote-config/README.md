@@ -140,6 +140,7 @@ const removeAllListeners = async () => {
 * [`addConfigUpdateListener(...)`](#addconfigupdatelistener)
 * [`removeConfigUpdateListener(...)`](#removeconfigupdatelistener)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -355,6 +356,21 @@ Remove all listeners for this plugin.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -431,6 +447,13 @@ Remove all listeners for this plugin.
 | Prop     | Type                                              | Description                       | Since |
 | -------- | ------------------------------------------------- | --------------------------------- | ----- |
 | **`id`** | <code><a href="#callbackid">CallbackId</a></code> | The id of the listener to remove. | 5.4.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

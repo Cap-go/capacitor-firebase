@@ -168,6 +168,7 @@ const initiateOnDeviceConversionMeasurementWithHashedPhoneNumber = async () => {
 <docgen-index>
 
 * [`getAppInstanceId()`](#getappinstanceid)
+* [`getSessionId()`](#getsessionid)
 * [`setConsent(...)`](#setconsent)
 * [`setUserId(...)`](#setuserid)
 * [`setUserProperty(...)`](#setuserproperty)
@@ -181,6 +182,7 @@ const initiateOnDeviceConversionMeasurementWithHashedPhoneNumber = async () => {
 * [`initiateOnDeviceConversionMeasurementWithPhoneNumber(...)`](#initiateondeviceconversionmeasurementwithphonenumber)
 * [`initiateOnDeviceConversionMeasurementWithHashedEmailAddress(...)`](#initiateondeviceconversionmeasurementwithhashedemailaddress)
 * [`initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(...)`](#initiateondeviceconversionmeasurementwithhashedphonenumber)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Enums](#enums)
 
@@ -202,6 +204,23 @@ Only available for Android and iOS.
 **Returns:** <code>Promise&lt;<a href="#getappinstanceidresult">GetAppInstanceIdResult</a>&gt;</code>
 
 **Since:** 1.4.0
+
+--------------------
+
+
+### getSessionId()
+
+```typescript
+getSessionId() => Promise<GetSessionIdResult>
+```
+
+Retrieves the current session id (`ga_session_id`).
+
+Only available for Android and iOS.
+
+**Returns:** <code>Promise&lt;<a href="#getsessionidresult">GetSessionIdResult</a>&gt;</code>
+
+**Since:** 8.0.1
 
 --------------------
 
@@ -437,6 +456,21 @@ Only available for iOS.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -445,6 +479,13 @@ Only available for iOS.
 | Prop                | Type                | Description                                                                                                                                                                                             | Since |
 | ------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
 | **`appInstanceId`** | <code>string</code> | The app instance id. Not defined if `FirebaseAnalytics.<a href="#consenttype">ConsentType</a>.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.<a href="#consentstatus">ConsentStatus</a>.DENIED`. | 1.4.0 |
+
+
+#### GetSessionIdResult
+
+| Prop            | Type                | Description                                                                                                                                                                                                                                            | Since |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| **`sessionId`** | <code>number</code> | The current session id. Matches Firebase Analytics `ga_session_id`. Not defined if `FirebaseAnalytics.<a href="#consenttype">ConsentType</a>.ANALYTICS_STORAGE` has been set to `FirebaseAnalytics.<a href="#consentstatus">ConsentStatus</a>.DENIED`. | 8.0.1 |
 
 
 #### SetConsentOptions
@@ -533,6 +574,13 @@ Only available for iOS.
 | Prop                    | Type                | Description                                                         | Since |
 | ----------------------- | ------------------- | ------------------------------------------------------------------- | ----- |
 | **`phoneNumberToHash`** | <code>string</code> | The phone number to initiate on-device conversion measurement with. | 7.2.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Enums

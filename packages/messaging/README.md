@@ -144,7 +144,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-import '@capgo/capacitor-firebase-messaging'
+/// <reference types="@capgo/capacitor-firebase-messaging" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 
@@ -266,6 +266,7 @@ const removeAllListeners = async () => {
 * [`addListener('notificationReceived', ...)`](#addlistenernotificationreceived-)
 * [`addListener('notificationActionPerformed', ...)`](#addlistenernotificationactionperformed-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -591,6 +592,21 @@ Remove all listeners for this plugin.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -723,6 +739,13 @@ Remove all listeners for this plugin.
 | **`actionId`**     | <code>string</code>                                   | The action performed on the notification.                        | 0.2.2 |
 | **`inputValue`**   | <code>string</code>                                   | Text entered on the notification action. Only available for iOS. | 0.2.2 |
 | **`notification`** | <code><a href="#notification">Notification</a></code> | The notification in which the action was performed.              | 0.2.2 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

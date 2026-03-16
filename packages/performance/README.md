@@ -155,6 +155,7 @@ const record = async () => {
 * [`putMetric(...)`](#putmetric)
 * [`getMetric(...)`](#getmetric)
 * [`record(...)`](#record)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -374,6 +375,21 @@ Only available on web.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -484,6 +500,13 @@ Only available on web.
 | **`startTime`** | <code>number</code>                                                                             | Start time of the trace since epoch in milliseconds.                          | 6.3.0 |
 | **`duration`**  | <code>number</code>                                                                             | The duration of the trace in milliseconds.                                    | 6.3.0 |
 | **`options`**   | <code>{ metrics?: { [key: string]: number; }; attributes?: { [key: string]: string; }; }</code> | An optional object that holds optional maps of custom metrics and attributes. | 6.3.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

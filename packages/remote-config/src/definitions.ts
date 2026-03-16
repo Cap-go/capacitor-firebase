@@ -80,6 +80,24 @@ export interface FirebaseRemoteConfigPlugin {
    * @since 5.4.0
    */
   removeAllListeners(): Promise<void>;
+  /**
+   * Get the version of this plugin.
+   *
+   * @since 8.0.1
+   */
+  getPluginVersion(): Promise<GetPluginVersionResult>;
+}
+
+/**
+ * @since 8.0.1
+ */
+export interface GetPluginVersionResult {
+  /**
+   * The semantic version of this plugin.
+   *
+   * @since 8.0.1
+   */
+  version: string;
 }
 
 /**

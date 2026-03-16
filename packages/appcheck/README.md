@@ -108,6 +108,7 @@ const removeAllListeners = async () => {
 * [`setTokenAutoRefreshEnabled(...)`](#settokenautorefreshenabled)
 * [`addListener('tokenChanged', ...)`](#addlistenertokenchanged-)
 * [`removeAllListeners()`](#removealllisteners)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -205,6 +206,21 @@ Only available for Web.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -253,6 +269,13 @@ Only available for Web.
 | Prop        | Type                | Description                        | Since |
 | ----------- | ------------------- | ---------------------------------- | ----- |
 | **`token`** | <code>string</code> | The App Check token in JWT format. | 1.3.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 
 ### Type Aliases

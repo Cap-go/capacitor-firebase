@@ -12,6 +12,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseAnalytics")
 public class FirebaseAnalyticsPlugin extends Plugin {
 
+    private final String pluginVersion = "8.0.5";
+
     public static final String TAG = "FirebaseAnalytics";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
     public static final String ERROR_ENABLED_MISSING = "enabled must be provided.";
@@ -46,7 +48,35 @@ public class FirebaseAnalyticsPlugin extends Plugin {
             );
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
-            call.reject(exception.getMessage());
+            String message = exception.getMessage() != null ? exception.getMessage() : "Get app instance id failed.";
+            call.reject(message);
+        }
+    }
+
+    @PluginMethod
+    public void getSessionId(PluginCall call) {
+        try {
+            implementation.getSessionId(
+                new GetSessionIdCallback() {
+                    @Override
+                    public void success(@Nullable Long sessionId) {
+                        JSObject result = new JSObject();
+                        if (sessionId != null) {
+                            result.put("sessionId", sessionId);
+                        }
+                        call.resolve(result);
+                    }
+
+                    @Override
+                    public void error(String message) {
+                        call.reject(message);
+                    }
+                }
+            );
+        } catch (Exception exception) {
+            Logger.error(TAG, exception.getMessage(), exception);
+            String message = exception.getMessage() != null ? exception.getMessage() : "Get session id failed.";
+            call.reject(message);
         }
     }
 
@@ -196,5 +226,16 @@ public class FirebaseAnalyticsPlugin extends Plugin {
     @PluginMethod
     public void initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(PluginCall call) {
         call.unimplemented("Not implemented on Android.");
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
+        }
     }
 }

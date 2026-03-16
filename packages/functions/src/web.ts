@@ -50,4 +50,8 @@ export class FirebaseFunctionsWeb extends WebPlugin implements FirebaseFunctions
     const port = options.port || 5001;
     connectFunctionsEmulator(functions, options.host, port);
   }
+
+  async getPluginVersion(): Promise<{ version: string }> {
+    return { version: '8.0.2' };
+  }
 }

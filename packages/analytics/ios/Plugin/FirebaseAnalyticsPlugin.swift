@@ -13,6 +13,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "FirebaseAnalytics"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getAppInstanceId", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getSessionId", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setConsent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserId", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserProperty", returnType: CAPPluginReturnPromise),
@@ -25,8 +26,11 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithEmailAddress", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithPhoneNumber", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedEmailAddress", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedPhoneNumber", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedPhoneNumber", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
+
+    private let pluginVersion: String = "8.0.5"
     public let errorUserIdMissing = "userId must be provided."
     public let errorKeyMissing = "key must be provided."
     public let errorValueMissing = "value must be provided."
@@ -53,6 +57,24 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             result["appInstanceId"] = appInstanceId
         }
         call.resolve(result)
+    }
+
+    @objc func getSessionId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject("Firebase Analytics not initialized.")
+            return
+        }
+        implementation.getSessionId(completion: { sessionId, error in
+            if let error = error {
+                call.reject(error.localizedDescription)
+                return
+            }
+            var result = JSObject()
+            if let sessionId = sessionId {
+                result["sessionId"] = Double(sessionId)
+            }
+            call.resolve(result)
+        })
     }
 
     @objc func setConsent(_ call: CAPPluginCall) {
@@ -178,5 +200,9 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         let hashedPhone = FirebaseAnalyticsHelper.sha256(phone)
         implementation?.initiateOnDeviceConversionMeasurement(hashedPhone: hashedPhone)
         call.resolve()
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

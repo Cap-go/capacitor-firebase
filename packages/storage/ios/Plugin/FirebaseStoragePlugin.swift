@@ -16,9 +16,12 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "listFiles", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "updateMetadata", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "uploadFile", returnType: CAPPluginReturnCallback),
-        CAPPluginMethod(name: "useEmulator", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "useEmulator", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
-    public let tag = "FirebaseFirestore"
+
+    private let pluginVersion: String = "8.0.4"
+    public let tag = "FirebaseStorage"
     public let errorPathMissing = "path must be provided."
     public let errorUriMissing = "uri must be provided."
     public let errorMetadataMissing = "metadata must be provided."
@@ -180,5 +183,9 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         implementation?.useEmulator(host, port)
         call.resolve()
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }
