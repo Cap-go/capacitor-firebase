@@ -13,6 +13,7 @@ on:
 
 jobs:
   sync:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     name: "Sync changes from upstream repository"
     permissions:

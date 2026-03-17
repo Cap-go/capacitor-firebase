@@ -19,6 +19,7 @@ env:
 
 jobs:
   guard_swiftpm_version:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -46,6 +47,7 @@ jobs:
           done
           exit "$failed"
   test-android:
+    timeout-minutes: 30
     name: Test Android platform
     runs-on: ubuntu-latest
     steps:
@@ -68,6 +70,7 @@ jobs:
         run: bun run affected:verify:android
 
   test-ios:
+    timeout-minutes: 30
     name: Test iOS platform
     runs-on: macos-15
     steps:
@@ -93,6 +96,7 @@ jobs:
         run: bun run affected:verify:ios
 
   test-web:
+    timeout-minutes: 30
     name: Test Web platform
     runs-on: ubuntu-latest
     steps:
@@ -110,6 +114,7 @@ jobs:
         run: bun run affected:verify:web
 
   lint:
+    timeout-minutes: 30
     name: Lint
     runs-on: macos-15
     needs: [test-android, test-ios, test-web]
