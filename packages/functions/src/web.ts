@@ -15,13 +15,9 @@ export class FirebaseFunctionsWeb extends WebPlugin implements FirebaseFunctions
     options: CallByNameOptions<RequestData>,
   ): Promise<CallByNameResult<ResponseData>> {
     const functions = getFunctions(undefined, options.region);
-    const callable = httpsCallable<RequestData, ResponseData>(
-      functions,
-      options.name,
-      {
-        timeout: options.timeout,
-      },
-    );
+    const callable = httpsCallable<RequestData, ResponseData>(functions, options.name, {
+      timeout: options.timeout,
+    });
     const result = await callable(options.data);
     return {
       data: result.data,
@@ -32,13 +28,9 @@ export class FirebaseFunctionsWeb extends WebPlugin implements FirebaseFunctions
     options: CallByUrlOptions<RequestData>,
   ): Promise<CallResult<ResponseData>> {
     const functions = getFunctions();
-    const callable = httpsCallableFromURL<RequestData, ResponseData>(
-      functions,
-      options.url,
-      {
-        timeout: options.timeout,
-      },
-    );
+    const callable = httpsCallableFromURL<RequestData, ResponseData>(functions, options.url, {
+      timeout: options.timeout,
+    });
     const result = await callable(options.data);
     return {
       data: result.data,
