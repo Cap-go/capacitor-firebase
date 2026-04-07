@@ -75,21 +75,25 @@ jobs:
             echo "$CHANGELOG"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+      - name: Setup Node.js for npm publish
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          registry-url: 'https://registry.npmjs.org'
       - name: Publish to npm
-        uses: js-devtools/npm-publish@v4
         if: ${{ !contains(github.ref, '-alpha.') }}
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          provenance: true
-          package: packages/${{ steps.extract.outputs.package_name }}/package.json
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd packages/${{ steps.extract.outputs.package_name }}
+          npm publish --provenance --access public
       - name: Publish to npm (alpha)
-        uses: js-devtools/npm-publish@v4
         if: ${{ contains(github.ref, '-alpha.') }}
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          tag: next
-          provenance: true
-          package: packages/${{ steps.extract.outputs.package_name }}/package.json
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd packages/${{ steps.extract.outputs.package_name }}
+          npm publish --tag next --provenance --access public
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v2
