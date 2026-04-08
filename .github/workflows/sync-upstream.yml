@@ -1,5 +1,9 @@
 name: Sync from Upstream
 
+env:
+  UPSTREAM_REPO: capawesome-team/capacitor-firebase
+  DEFAULT_UPSTREAM_BRANCH: main
+
 on:
   schedule:
     # Run every day at 9 AM UTC
@@ -13,11 +17,12 @@ on:
 
 jobs:
   sync:
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     name: "Sync changes from upstream repository"
     permissions:
       contents: write
+      issues: write
       pull-requests: write
     steps:
       - name: Check out
@@ -34,13 +39,13 @@ jobs:
 
       - name: Add upstream remote
         run: |
-          git remote add upstream https://github.com/capawesome-team/capacitor-firebase.git || true
+          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git || true
           git fetch upstream
 
       - name: Check for upstream changes
         id: check_changes
         run: |
-          UPSTREAM_BRANCH="${{ github.event.inputs.branch || 'main' }}"
+          UPSTREAM_BRANCH="${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}"
           git fetch upstream $UPSTREAM_BRANCH
 
           # Check if there are new commits
@@ -63,28 +68,67 @@ jobs:
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
           git checkout -b $BRANCH_NAME
 
+      - name: Setup Bun
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Claude Code
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: bun add -g @anthropic-ai/claude-code
+
+      - name: Ensure sync labels exist
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          source .github/scripts/sync-gh-helpers.sh
+          ensure_sync_labels "${GITHUB_REPOSITORY}"
+
       - name: Merge upstream changes
         if: steps.check_changes.outputs.has_changes == 'true'
         id: merge
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          UPSTREAM_BRANCH="${{ github.event.inputs.branch || 'main' }}"
+          set -euo pipefail
 
-          # Try to merge upstream changes
-          if git merge upstream/$UPSTREAM_BRANCH --no-edit -m "chore: sync from upstream capawesome-team/capacitor-firebase"; then
+          UPSTREAM_BRANCH="${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}"
+          MERGE_MESSAGE="chore: sync from upstream ${{ env.UPSTREAM_REPO }}"
+
+          if git merge "upstream/$UPSTREAM_BRANCH" --no-edit -m "$MERGE_MESSAGE"; then
             echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "resolution_mode=clean" >> $GITHUB_OUTPUT
+            echo "ai_status=not-needed" >> $GITHUB_OUTPUT
             echo "✅ Merge successful"
+            exit 0
+          fi
+
+          if ! git diff --name-only --diff-filter=U | grep -q .; then
+            echo "Merge failed without unresolved conflicts"
+            exit 1
+          fi
+
+          echo "⚠️ Merge conflicts detected"
+          CONFLICTS=$(git diff --name-only --diff-filter=U)
+          echo "conflicts<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONFLICTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "${ANTHROPIC_API_KEY:-}" ] && bash .github/scripts/resolve-conflicts-with-claude.sh main "upstream/$UPSTREAM_BRANCH" "scheduled upstream sync"; then
+            git commit -m "$MERGE_MESSAGE (claude-resolved conflicts)"
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "resolution_mode=claude" >> $GITHUB_OUTPUT
+            echo "ai_status=resolved" >> $GITHUB_OUTPUT
+            echo "✅ Claude resolved merge conflicts"
           else
-            echo "merge_status=conflict" >> $GITHUB_OUTPUT
-            echo "⚠️ Merge conflicts detected"
-
-            # Get list of conflicting files
-            CONFLICTS=$(git diff --name-only --diff-filter=U)
-            echo "conflicts<<EOF" >> $GITHUB_OUTPUT
-            echo "$CONFLICTS" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-
-            # Abort the merge
+            if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+              echo "ai_status=skipped-no-key" >> $GITHUB_OUTPUT
+            else
+              echo "ai_status=failed" >> $GITHUB_OUTPUT
+            fi
             git merge --abort
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "resolution_mode=manual" >> $GITHUB_OUTPUT
           fi
 
       - name: Push sync branch
@@ -95,85 +139,129 @@ jobs:
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
         id: create_pr
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          branch: ${{ env.branch_name }}
-          title: "chore: sync from upstream capawesome-team/capacitor-firebase"
-          body: |
-            ## 🔄 Upstream Sync
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          RESOLUTION_MODE: ${{ steps.merge.outputs.resolution_mode }}
+        run: |
+          set -euo pipefail
 
-            This PR syncs changes from the upstream repository [capawesome-team/capacitor-firebase](https://github.com/capawesome-team/capacitor-firebase).
+          source .github/scripts/sync-gh-helpers.sh
 
-            ### Changes Included
-            - Latest commits from upstream `${{ github.event.inputs.branch || 'main' }}` branch
-            - Upstream commit: `${{ steps.check_changes.outputs.upstream_commit }}`
+          if [ "$RESOLUTION_MODE" = "claude" ]; then
+            RESOLUTION_NOTES=$(cat <<'EOF'
+          ### Conflict Resolution
+          - Git detected merge conflicts while syncing upstream changes
+          - Claude Code resolved the conflicted files before this PR was created
+          EOF
+          )
+          else
+            RESOLUTION_NOTES=$(cat <<'EOF'
+          ### Conflict Resolution
+          - No merge conflicts required AI assistance
+          EOF
+          )
+          fi
 
-            ### Automated Process
-            - ✅ Tests will run automatically
-            - ✅ Auto-merge enabled if all checks pass
-            - 🤖 Generated by GitHub Actions
+          PR_BODY=$(cat <<EOF
+          ## 🔄 Upstream Sync
 
-            ---
+          This PR syncs changes from the upstream repository [${{ env.UPSTREAM_REPO }}](https://github.com/${{ env.UPSTREAM_REPO }}).
 
-            **Note:** This PR will automatically merge if all tests pass. If tests fail, manual review will be required.
-          labels: |
-            upstream-sync
-            automated
-          draft: false
+          ### Changes Included
+          - Latest commits from upstream \`${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}\` branch
+          - Upstream commit: \`${{ steps.check_changes.outputs.upstream_commit }}\`
+
+          ${RESOLUTION_NOTES}
+
+          ### Automated Process
+          - ✅ Tests will run automatically
+          - ✅ Auto-merge is enabled once checks pass
+          - 🤖 Generated by GitHub Actions
+
+          ---
+          *Created by the upstream sync workflow*
+          EOF
+          )
+
+          PR_NUMBER="$(create_pr_and_capture_number "${GITHUB_REPOSITORY}" "main" "${{ env.branch_name }}" "chore: sync from upstream ${{ env.UPSTREAM_REPO }}" "$PR_BODY" || true)"
+
+          if [ -z "$PR_NUMBER" ]; then
+            {
+              echo "## ⚠️ Pull request creation needs manual follow-up"
+              echo
+              echo "The sync branch \`${{ env.branch_name }}\` was pushed successfully, but the workflow could not create or find a pull request."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          add_labels_to_pr "${GITHUB_REPOSITORY}" "$PR_NUMBER" upstream-sync automated || true
+          echo "pull_request_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Enable auto-merge
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success' && steps.create_pr.outputs.pull-request-number
+        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success' && steps.create_pr.outputs.pull_request_number
         run: |
-          gh pr merge ${{ steps.create_pr.outputs.pull-request-number }} --auto --squash
+          gh pr merge ${{ steps.create_pr.outputs.pull_request_number }} --auto --squash || {
+            echo "Auto-merge could not be enabled for PR #${{ steps.create_pr.outputs.pull_request_number }}" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Comment on conflicts
+      - name: Report unresolved conflicts
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'conflict'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: ${{ steps.create_pr.outputs.pull-request-number }}
-          body: |
-            ## ⚠️ Merge Conflicts Detected
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          AI_STATUS: ${{ steps.merge.outputs.ai_status }}
+        run: |
+          set -euo pipefail
 
-            The upstream sync encountered merge conflicts in the following files:
+          source .github/scripts/sync-gh-helpers.sh
+          ensure_sync_labels "${GITHUB_REPOSITORY}"
 
-            ```
-            ${{ steps.merge.outputs.conflicts }}
-            ```
+          if [ "$AI_STATUS" = "skipped-no-key" ]; then
+            AI_LINE="- Claude Code could not run because \`ANTHROPIC_API_KEY\` is not configured"
+          elif [ "$AI_STATUS" = "failed" ]; then
+            AI_LINE="- Claude Code attempted the conflict resolution but could not finish cleanly"
+          else
+            AI_LINE="- Claude Code was not able to resolve the conflicts automatically"
+          fi
 
-            **Manual resolution required:**
-            1. Check out this branch locally
-            2. Resolve the conflicts
-            3. Push the resolved changes
+          ISSUE_BODY=$(cat <<EOF
+          ## ⚠️ Upstream sync needs manual conflict resolution
 
-            The PR will auto-merge once tests pass.
+          An automatic sync from [${{ env.UPSTREAM_REPO }}](https://github.com/${{ env.UPSTREAM_REPO }}) encountered merge conflicts.
 
-      - name: Create issue for conflicts
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'conflict'
-        uses: peter-evans/create-issue-from-file@v5
-        with:
-          title: "⚠️ Upstream sync failed due to merge conflicts"
-          content: |
-            ## Upstream Sync Failed
+          ### Conflicting Files
+          \`\`\`
+          ${{ steps.merge.outputs.conflicts }}
+          \`\`\`
 
-            An automatic sync from [capawesome-team/capacitor-firebase](https://github.com/capawesome-team/capacitor-firebase) failed due to merge conflicts.
+          ### AI Resolution Attempt
+          ${AI_LINE}
 
-            ### Conflicting Files
-            ```
-            ${{ steps.merge.outputs.conflicts }}
-            ```
+          ### Sync Details
+          - Upstream branch: \`${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}\`
+          - Upstream commit: \`${{ steps.check_changes.outputs.upstream_commit }}\`
+          - Attempted branch name: \`${{ env.branch_name }}\`
 
-            ### Action Required
-            1. Manually resolve the conflicts
-            2. Review and merge the changes
-            3. Update our fork with resolved conflicts
+          ### Action Required
+          1. Check out \`main\` locally
+          2. Merge the upstream commit
+          3. Resolve the listed conflicts and open a PR
+          EOF
+          )
 
-            ### Sync Details
-            - Upstream commit: `${{ steps.check_changes.outputs.upstream_commit }}`
-            - Attempted branch: `${{ env.branch_name }}`
-          labels: |
-            upstream-sync
-            merge-conflict
-            manual-review-required
+          ISSUE_NUMBER="$(create_or_update_conflict_issue "${GITHUB_REPOSITORY}" "⚠️ Upstream sync requires manual conflict resolution" "$ISSUE_BODY" || true)"
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "Created or updated issue #$ISSUE_NUMBER"
+            exit 0
+          fi
+
+          {
+            echo "## ⚠️ Upstream sync needs manual conflict resolution"
+            echo
+            echo "The workflow could not open an issue automatically. Details are below."
+            echo
+            echo "$ISSUE_BODY"
+          } >> "$GITHUB_STEP_SUMMARY"
