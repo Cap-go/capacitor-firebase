@@ -96,7 +96,7 @@ jobs:
           npm publish --tag next --provenance --access public
       - name: Create GitHub release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body: |
             ## 🆕 Changelog
