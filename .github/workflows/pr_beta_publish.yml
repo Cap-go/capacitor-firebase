@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Resolve PR and access checks
         id: pr
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             const commandMatch = context.eventName === 'issue_comment'
@@ -137,7 +137,7 @@ jobs:
             core.setOutput('head_sha', pr.head.sha);
 
       - name: Mark publish as running
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         env:
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           ACTOR: ${{ steps.pr.outputs.actor }}
@@ -190,13 +190,13 @@ jobs:
             });
 
       - name: Check out PR head
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
         with:
           ref: ${{ steps.pr.outputs.head_sha }}
           fetch-depth: 0
           filter: blob:none
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2.2.0
 
       - name: Install dependencies
         run: bun i
@@ -302,7 +302,7 @@ jobs:
           bun run build
 
       - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
@@ -322,7 +322,7 @@ jobs:
 
       - name: Publish success comment
         if: ${{ success() }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             const marker = '<!-- pr-beta-publish -->';
@@ -385,7 +385,7 @@ jobs:
 
       - name: Publish failure comment
         if: ${{ failure() && steps.pr.outputs.pr_number != '' }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9.0.0
         env:
           PACKAGE_SELECTOR: ${{ steps.pr.outputs.package_selector }}
         with:
