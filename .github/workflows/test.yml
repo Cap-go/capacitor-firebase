@@ -19,7 +19,7 @@ env:
 
 jobs:
   guard_swiftpm_version:
-    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    # Allow up to 45 minutes for full monorepo iOS builds after upstream sync.
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +52,7 @@ jobs:
           done
           exit "$failed"
   test-android:
-    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    # Allow up to 45 minutes for full monorepo iOS builds after upstream sync.
     timeout-minutes: 10
     name: Test Android platform
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
         run: bun run affected:verify:android
 
   test-ios:
-    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    # Allow up to 45 minutes for full monorepo iOS builds after upstream sync.
     timeout-minutes: 45
     name: Test iOS platform
     runs-on: macos-15
@@ -111,7 +111,7 @@ jobs:
         run: bun run affected:verify:ios
 
   test-web:
-    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    # Allow up to 45 minutes for full monorepo iOS builds after upstream sync.
     timeout-minutes: 10
     name: Test Web platform
     runs-on: ubuntu-latest
@@ -134,7 +134,7 @@ jobs:
         run: bun run affected:verify:web
 
   lint:
-    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    # Allow up to 45 minutes for full monorepo iOS builds after upstream sync.
     timeout-minutes: 10
     name: Lint
     runs-on: macos-15

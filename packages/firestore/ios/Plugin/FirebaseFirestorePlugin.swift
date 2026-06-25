@@ -27,7 +27,8 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "addDocumentSnapshotListener", returnType: CAPPluginReturnCallback),
         CAPPluginMethod(name: "addCollectionSnapshotListener", returnType: CAPPluginReturnCallback),
         CAPPluginMethod(name: "addCollectionGroupSnapshotListener", returnType: CAPPluginReturnCallback),
-        CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseFirestore"
     public let errorReferenceMissing = "reference must be provided."
@@ -37,7 +38,12 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorCallbackIdMissing = "callbackId must be provided."
     public let errorImplementationMissing = "implementation is not initialized."
     private var implementation: FirebaseFirestore?
+    private let pluginVersion: String = "8.3.0"
     private var pluginCallMap: [String: CAPPluginCall] = [:]
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
+    }
 
     override public func load() {
         self.implementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())

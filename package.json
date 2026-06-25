@@ -48,7 +48,8 @@
     "prettier-pretty-check": "0.2.0"
   },
   "lint-staged": {
-    "**/*.{css,html,ts,js,java}": "prettier --write"
+    "**/*.{css,html,ts,js}": "prettier --write",
+    "**/*.java": "prettier --write --plugin=prettier-plugin-java"
   },
   "repository": {
     "type": "git",
