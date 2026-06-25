@@ -1,7 +1,13 @@
 import type { PermissionState } from '@capacitor/core';
 import { WebPlugin } from '@capacitor/core';
 import type { MessagePayload } from 'firebase/messaging';
-import { deleteToken, getMessaging, getToken, isSupported as isSupportedInWeb, onMessage } from 'firebase/messaging';
+import {
+  deleteToken,
+  getMessaging,
+  getToken,
+  isSupported as isSupportedInWeb,
+  onMessage,
+} from 'firebase/messaging';
 
 import type {
   Channel,
@@ -20,17 +26,20 @@ import type {
 } from './definitions';
 import { Notification } from './definitions';
 
-export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessagingPlugin {
+export class FirebaseMessagingWeb
+  extends WebPlugin
+  implements FirebaseMessagingPlugin
+{
   public static readonly notificationReceivedEvent = 'notificationReceived';
 
   constructor() {
     super();
-    isSupportedInWeb().then((supported) => {
+    isSupportedInWeb().then(supported => {
       if (!supported) {
         return;
       }
       const messaging = getMessaging();
-      onMessage(messaging, (payload) => this.handleNotificationReceived(payload));
+      onMessage(messaging, payload => this.handleNotificationReceived(payload));
     });
   }
 
@@ -41,7 +50,9 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
         receive: 'denied',
       };
     }
-    const receive = this.convertNotificationPermissionToPermissionState(Notification.permission);
+    const receive = this.convertNotificationPermissionToPermissionState(
+      Notification.permission,
+    );
     return {
       receive,
     };
@@ -55,7 +66,9 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
       };
     }
     const notificationPermission = await Notification.requestPermission();
-    const receive = this.convertNotificationPermissionToPermissionState(notificationPermission);
+    const receive = this.convertNotificationPermissionToPermissionState(
+      notificationPermission,
+    );
     return {
       receive,
     };
@@ -88,7 +101,9 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     this.throwUnimplementedError();
   }
 
-  public async removeDeliveredNotifications(_options: RemoveDeliveredNotificationsOptions): Promise<void> {
+  public async removeDeliveredNotifications(
+    _options: RemoveDeliveredNotificationsOptions,
+  ): Promise<void> {
     this.throwUnimplementedError();
   }
 
@@ -96,11 +111,15 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     this.throwUnimplementedError();
   }
 
-  public async subscribeToTopic(_options: SubscribeToTopicOptions): Promise<void> {
+  public async subscribeToTopic(
+    _options: SubscribeToTopicOptions,
+  ): Promise<void> {
     this.throwUnimplementedError();
   }
 
-  public async unsubscribeFromTopic(_options: UnsubscribeFromTopicOptions): Promise<void> {
+  public async unsubscribeFromTopic(
+    _options: UnsubscribeFromTopicOptions,
+  ): Promise<void> {
     this.throwUnimplementedError();
   }
 
@@ -124,7 +143,9 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     this.notifyListeners(FirebaseMessagingWeb.notificationReceivedEvent, event);
   }
 
-  private createNotificationResult(messagePayload: MessagePayload): Notification {
+  private createNotificationResult(
+    messagePayload: MessagePayload,
+  ): Notification {
     const notification: Notification = {
       body: messagePayload.notification?.body,
       data: messagePayload.data,
@@ -135,7 +156,9 @@ export class FirebaseMessagingWeb extends WebPlugin implements FirebaseMessaging
     return notification;
   }
 
-  private convertNotificationPermissionToPermissionState(permission: NotificationPermission) {
+  private convertNotificationPermissionToPermissionState(
+    permission: NotificationPermission,
+  ) {
     let state: PermissionState = 'prompt';
     switch (permission) {
       case 'granted':
