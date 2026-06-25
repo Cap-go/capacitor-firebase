@@ -1,4 +1,5 @@
 import Foundation
+import StoreKit
 
 import Capacitor
 import FirebaseCore
@@ -6,7 +7,11 @@ import FirebaseAnalytics
 
 @objc public class FirebaseAnalytics: NSObject {
 
-    override init() {
+    private let plugin: FirebaseAnalyticsPlugin
+
+    init(plugin: FirebaseAnalyticsPlugin) {
+        self.plugin = plugin
+        super.init()
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
@@ -69,6 +74,26 @@ import FirebaseAnalytics
 
     @objc public func resetAnalyticsData() {
         Analytics.resetAnalyticsData()
+    }
+
+    @available(iOS 15.0, *)
+    public func logTransaction(transactionId: UInt64, completion: @escaping (String?) -> Void) {
+        Task {
+            var matchedTransaction: Transaction?
+            for await result in Transaction.all {
+                let transaction = FirebaseAnalyticsHelper.getTransaction(from: result)
+                if transaction.id == transactionId {
+                    matchedTransaction = transaction
+                    break
+                }
+            }
+            guard let transaction = matchedTransaction else {
+                completion(self.plugin.errorTransactionNotFound)
+                return
+            }
+            Analytics.logTransaction(transaction)
+            completion(nil)
+        }
     }
 
     @objc public func initiateOnDeviceConversionMeasurement(email: String) {

@@ -1,3 +1,27 @@
+/// <reference types="@capacitor/cli" />
+
+import type { DocumentReference } from './document-reference';
+
+declare module '@capacitor/cli' {
+  export interface PluginsConfig {
+    /**
+     * These configuration values are available:
+     *
+     * @since 8.2.0
+     */
+    FirebaseFirestore?: {
+      /**
+       * The database ID of the Firestore database to use.
+       *
+       * Only available for Android and iOS.
+       *
+       * @since 8.2.0
+       */
+      databaseId?: string;
+    };
+  }
+}
+
 export interface FirebaseFirestorePlugin {
   /**
    * Adds a new document to a collection with the given data.
@@ -6,88 +30,13 @@ export interface FirebaseFirestorePlugin {
    */
   addDocument(options: AddDocumentOptions): Promise<AddDocumentResult>;
   /**
-   * Writes to the document referred to by the specified reference.
-   * If the document does not yet exist, it will be created.
-   *
-   * @since 5.2.0
-   */
-  setDocument(options: SetDocumentOptions): Promise<void>;
-  /**
-   * Reads the document referred to by the specified reference.
-   *
-   * @since 5.2.0
-   */
-  getDocument<T extends DocumentData = DocumentData>(options: GetDocumentOptions): Promise<GetDocumentResult<T>>;
-  /**
-   * Updates fields in the document referred to by the specified reference.
-   *
-   * @since 5.2.0
-   */
-  updateDocument(options: UpdateDocumentOptions): Promise<void>;
-  /**
-   * Deletes the document referred to by the specified reference.
-   *
-   * @since 5.2.0
-   */
-  deleteDocument(options: DeleteDocumentOptions): Promise<void>;
-  /**
-   * Execute multiple write operations as a single batch.
+   * Adds a listener for collection group snapshot events.
    *
    * @since 6.1.0
    */
-  writeBatch(options: WriteBatchOptions): Promise<void>;
-  /**
-   * Reads the collection referenced by the specified reference.
-   *
-   * @since 5.2.0
-   */
-  getCollection<T extends DocumentData = DocumentData>(options: GetCollectionOptions): Promise<GetCollectionResult<T>>;
-  /**
-   * Reads the collection group referenced by the specified reference.
-   */
-  getCollectionGroup<T extends DocumentData = DocumentData>(
-    options: GetCollectionGroupOptions,
-  ): Promise<GetCollectionGroupResult<T>>;
-  /**
-   * Fetches the number of documents in a collection.
-   *
-   * @since 6.4.0
-   */
-  getCountFromServer(options: GetCountFromServerOptions): Promise<GetCountFromServerResult>;
-  /**
-   * Clears the persistent storage. This includes pending writes and cached documents.
-   *
-   * Must be called after the app is shutdown or when the app is first initialized.
-   *
-   * @since 5.2.0
-   */
-  clearPersistence(): Promise<void>;
-  /**
-   * Re-enables use of the network.
-   *
-   * @since 5.2.0
-   */
-  enableNetwork(): Promise<void>;
-  /**
-   * Disables use of the network.
-   *
-   * @since 5.2.0
-   */
-  disableNetwork(): Promise<void>;
-  /**
-   * Instrument your app to talk to the Firestore emulator.
-   *
-   * @since 6.1.0
-   */
-  useEmulator(options: UseEmulatorOptions): Promise<void>;
-  /**
-   * Adds a listener for document snapshot events.
-   *
-   * @since 5.2.0
-   */
-  addDocumentSnapshotListener<T extends DocumentData = DocumentData>(
-    options: AddDocumentSnapshotListenerOptions,
-    callback: AddDocumentSnapshotListenerCallback<T>,
+  addCollectionGroupSnapshotListener<T extends DocumentData = DocumentData>(
+    options: AddCollectionGroupSnapshotListenerOptions,
+    callback: AddCollectionGroupSnapshotListenerCallback<T>,
   ): Promise<CallbackId>;
   /**
    * Adds a listener for collection snapshot events.
@@ -99,20 +48,86 @@ export interface FirebaseFirestorePlugin {
     callback: AddCollectionSnapshotListenerCallback<T>,
   ): Promise<CallbackId>;
   /**
-   * Adds a listener for collection group snapshot events.
-   *
-   * @since 6.1.0
-   */
-  addCollectionGroupSnapshotListener<T extends DocumentData = DocumentData>(
-    options: AddCollectionGroupSnapshotListenerOptions,
-    callback: AddCollectionGroupSnapshotListenerCallback<T>,
-  ): Promise<CallbackId>;
-  /**
-   * Remove a listener for document or collection snapshot events.
+   * Adds a listener for document snapshot events.
    *
    * @since 5.2.0
    */
-  removeSnapshotListener(options: RemoveSnapshotListenerOptions): Promise<void>;
+  addDocumentSnapshotListener<T extends DocumentData = DocumentData>(
+    options: AddDocumentSnapshotListenerOptions,
+    callback: AddDocumentSnapshotListenerCallback<T>,
+  ): Promise<CallbackId>;
+  /**
+   * Clears the persistent storage. This includes pending writes and cached documents.
+   *
+   * **Attention**: Must be called after the app is shutdown or when the app is first initialized.
+   *
+   * @since 5.2.0
+   */
+  clearPersistence(): Promise<void>;
+  /**
+   * Deletes the document referred to by the specified reference.
+   *
+   * @since 5.2.0
+   */
+  deleteDocument(options: DeleteDocumentOptions): Promise<void>;
+  /**
+   * Disables use of the network.
+   *
+   * @since 5.2.0
+   */
+  disableNetwork(): Promise<void>;
+  /**
+   * Disables offline persistence.
+   *
+   * **Attention**: Must be called before any other Firestore method.
+   *
+   * @since 8.2.0
+   */
+  disablePersistence(): Promise<void>;
+  /**
+   * Enables offline persistence.
+   *
+   * **Attention**: Must be called before any other Firestore method.
+   *
+   * @since 8.2.0
+   */
+  enablePersistence(options?: EnablePersistenceOptions): Promise<void>;
+  /**
+   * Re-enables use of the network.
+   *
+   * @since 5.2.0
+   */
+  enableNetwork(): Promise<void>;
+  /**
+   * Reads the collection referenced by the specified reference.
+   *
+   * @since 5.2.0
+   */
+  getCollection<T extends DocumentData = DocumentData>(
+    options: GetCollectionOptions,
+  ): Promise<GetCollectionResult<T>>;
+  /**
+   * Reads the collection group referenced by the specified reference.
+   */
+  getCollectionGroup<T extends DocumentData = DocumentData>(
+    options: GetCollectionGroupOptions,
+  ): Promise<GetCollectionGroupResult<T>>;
+  /**
+   * Fetches the number of documents in a collection.
+   *
+   * @since 6.4.0
+   */
+  getCountFromServer(
+    options: GetCountFromServerOptions,
+  ): Promise<GetCountFromServerResult>;
+  /**
+   * Reads the document referred to by the specified reference.
+   *
+   * @since 5.2.0
+   */
+  getDocument<T extends DocumentData = DocumentData>(
+    options: GetDocumentOptions,
+  ): Promise<GetDocumentResult<T>>;
   /**
    * Remove all listeners for this plugin.
    *
@@ -120,23 +135,36 @@ export interface FirebaseFirestorePlugin {
    */
   removeAllListeners(): Promise<void>;
   /**
-   * Get the version of this plugin.
+   * Remove a listener for document or collection snapshot events.
    *
-   * @since 8.0.1
+   * @since 5.2.0
    */
-  getPluginVersion(): Promise<GetPluginVersionResult>;
-}
-
-/**
- * @since 8.0.1
- */
-export interface GetPluginVersionResult {
+  removeSnapshotListener(options: RemoveSnapshotListenerOptions): Promise<void>;
   /**
-   * The semantic version of this plugin.
+   * Writes to the document referred to by the specified reference.
+   * If the document does not yet exist, it will be created.
    *
-   * @since 8.0.1
+   * @since 5.2.0
    */
-  version: string;
+  setDocument(options: SetDocumentOptions): Promise<void>;
+  /**
+   * Updates fields in the document referred to by the specified reference.
+   *
+   * @since 5.2.0
+   */
+  updateDocument(options: UpdateDocumentOptions): Promise<void>;
+  /**
+   * Instrument your app to talk to the Firestore emulator.
+   *
+   * @since 6.1.0
+   */
+  useEmulator(options: UseEmulatorOptions): Promise<void>;
+  /**
+   * Execute multiple write operations as a single batch.
+   *
+   * @since 6.1.0
+   */
+  writeBatch(options: WriteBatchOptions): Promise<void>;
 }
 
 /**
@@ -426,12 +454,27 @@ export interface SnapshotListenerOptions {
    * @default "default"
    */
   readonly source?: 'default' | 'cache';
+  /**
+   * Control how pending server timestamps are returned in snapshots
+   * that have not yet been acknowledged by the server.
+   *
+   * - `none`: pending server timestamps are returned as `null`.
+   * - `estimate`: pending server timestamps are replaced with the
+   *   local client's time estimate.
+   * - `previous`: pending server timestamps are replaced with the
+   *   previous value of the field (or `null` if there is no previous value).
+   *
+   * @since 8.3.0
+   * @default "none"
+   */
+  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
 
 /**
  * @since 5.2.0
  */
-export interface AddDocumentSnapshotListenerOptions extends SnapshotListenerOptions {
+export interface AddDocumentSnapshotListenerOptions
+  extends SnapshotListenerOptions {
   /**
    * The reference as a string, with path components separated by a forward slash (`/`).
    *
@@ -456,7 +499,8 @@ export type AddDocumentSnapshotListenerCallbackEvent<T> = GetDocumentResult<T>;
 /**
  * @since 5.2.0
  */
-export interface AddCollectionSnapshotListenerOptions extends SnapshotListenerOptions {
+export interface AddCollectionSnapshotListenerOptions
+  extends SnapshotListenerOptions {
   /**
    * The reference as a string, with path components separated by a forward slash (`/`).
    *
@@ -488,12 +532,14 @@ export type AddCollectionSnapshotListenerCallback<T> = (
 /**
  * @since 5.2.0
  */
-export type AddCollectionSnapshotListenerCallbackEvent<T> = GetCollectionResult<T>;
+export type AddCollectionSnapshotListenerCallbackEvent<T> =
+  GetCollectionResult<T>;
 
 /**
  * @since 6.1.0
  */
-export interface AddCollectionGroupSnapshotListenerOptions extends SnapshotListenerOptions {
+export interface AddCollectionGroupSnapshotListenerOptions
+  extends SnapshotListenerOptions {
   /**
    * The reference as a string, with path components separated by a forward slash (`/`).
    *
@@ -525,7 +571,8 @@ export type AddCollectionGroupSnapshotListenerCallback<T> = (
 /**
  * @since 6.1.0
  */
-export type AddCollectionGroupSnapshotListenerCallbackEvent<T> = GetCollectionGroupResult<T>;
+export type AddCollectionGroupSnapshotListenerCallbackEvent<T> =
+  GetCollectionGroupResult<T>;
 
 /**
  * @since 5.2.0
@@ -552,6 +599,18 @@ export interface GetCountFromServerOptions {
    * @since 6.4.0
    */
   reference: string;
+  /**
+   * The filter to apply.
+   *
+   * @since 8.3.0
+   */
+  compositeFilter?: QueryCompositeFilterConstraint;
+  /**
+   * Narrow or order the set of documents to count, but do not explicitly filter for document fields.
+   *
+   * @since 8.3.0
+   */
+  queryConstraints?: QueryNonFilterConstraint[];
 }
 
 /**
@@ -567,23 +626,25 @@ export interface GetCountFromServerResult {
 }
 
 /**
- * @since 5.2.0
+ * @since 8.2.0
  */
-export interface DocumentReference {
+export interface EnablePersistenceOptions {
   /**
-   * The document's identifier within its collection.
+   * The cache size in bytes.
    *
-   * @since 5.2.0
-   * @example 'Aorq09lkt1ynbR7xhTUx'
+   * @since 8.2.0
+   * @default 104857600 (100 MB)
    */
-  id: string;
+  cacheSizeBytes?: number;
   /**
-   * The path of the document.
+   * Whether to synchronize persistence across multiple tabs.
    *
-   * @since 5.2.0
-   * @example 'users/Aorq09lkt1ynbR7xhTUx'
+   * Only available for Web.
+   *
+   * @since 8.2.0
+   * @default false
    */
-  path: string;
+  synchronizeTabs?: boolean;
 }
 
 /**
@@ -639,7 +700,9 @@ export interface SnapshotMetadata {
 /**
  * @since 5.2.0
  */
-export type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
+export type QueryFilterConstraint =
+  | QueryFieldFilterConstraint
+  | QueryCompositeFilterConstraint;
 
 /**
  * @since 5.2.0
@@ -671,7 +734,9 @@ export interface QueryCompositeFilterConstraint {
 /**
  * @since 5.2.0
  */
-export type QueryConstraint = QueryFieldFilterConstraint | QueryNonFilterConstraint;
+export type QueryConstraint =
+  | QueryFieldFilterConstraint
+  | QueryNonFilterConstraint;
 
 /**
  * @since 5.2.0
@@ -831,3 +896,177 @@ export type QueryConstraintType =
  * @since 5.2.0
  */
 export type OrderByDirection = 'desc' | 'asc';
+
+/**
+ * Represents a Firestore Timestamp as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreTimestamp {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'timestamp';
+  /**
+   * @since 8.2.0
+   */
+  seconds: number;
+  /**
+   * @since 8.2.0
+   */
+  nanoseconds: number;
+}
+
+/**
+ * Represents a Firestore GeoPoint as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreGeoPoint {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'geopoint';
+  /**
+   * @since 8.2.0
+   */
+  latitude: number;
+  /**
+   * @since 8.2.0
+   */
+  longitude: number;
+}
+
+/**
+ * Represents a Firestore DocumentReference as a plain marker object.
+ *
+ * @since 8.3.0
+ */
+export interface FirestoreDocumentReference {
+  /**
+   * @since 8.3.0
+   */
+  __type__: 'documentReference';
+  /**
+   * The document's identifier within its collection.
+   *
+   * @since 8.3.0
+   */
+  id: string;
+  /**
+   * The path of the document.
+   *
+   * @since 8.3.0
+   */
+  path: string;
+}
+
+/**
+ * Represents a Firestore Bytes value as a plain marker object.
+ *
+ * @since 8.3.0
+ */
+export interface FirestoreBytes {
+  /**
+   * @since 8.3.0
+   */
+  __type__: 'bytes';
+  /**
+   * The base64-encoded bytes value.
+   *
+   * @since 8.3.0
+   */
+  bytes: string;
+}
+
+/**
+ * Represents a special numeric value (`NaN`, `Infinity`, or `-Infinity`) as
+ * a plain marker object, since these values are not JSON-serializable and
+ * cannot be transferred over the Capacitor bridge as regular numbers.
+ *
+ * @since 8.3.0
+ */
+export interface FirestoreNumber {
+  /**
+   * @since 8.3.0
+   */
+  __type__: 'number';
+  /**
+   * The string representation of the special numeric value.
+   *
+   * @since 8.3.0
+   */
+  value: 'NaN' | 'Infinity' | '-Infinity';
+}
+
+/**
+ * Represents a Firestore server timestamp sentinel as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreServerTimestamp {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'serverTimestamp';
+}
+
+/**
+ * Represents a Firestore arrayUnion operation as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreArrayUnion {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'arrayUnion';
+  /**
+   * @since 8.2.0
+   */
+  elements: any[];
+}
+
+/**
+ * Represents a Firestore arrayRemove operation as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreArrayRemove {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'arrayRemove';
+  /**
+   * @since 8.2.0
+   */
+  elements: any[];
+}
+
+/**
+ * Represents a Firestore delete field sentinel as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreDelete {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'delete';
+}
+
+/**
+ * Represents a Firestore increment operation as a plain marker object.
+ *
+ * @since 8.2.0
+ */
+export interface FirestoreIncrement {
+  /**
+   * @since 8.2.0
+   */
+  __type__: 'increment';
+  /**
+   * @since 8.2.0
+   */
+  operand: number;
+}

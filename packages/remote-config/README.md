@@ -147,8 +147,10 @@ const removeAllListeners = async () => {
 * [`getBoolean(...)`](#getboolean)
 * [`getNumber(...)`](#getnumber)
 * [`getString(...)`](#getstring)
+* [`getAll()`](#getall)
 * [`getInfo()`](#getinfo)
 * [`setMinimumFetchInterval(...)`](#setminimumfetchinterval)
+* [`setDefaults(...)`](#setdefaults)
 * [`setSettings(...)`](#setsettings)
 * [`addConfigUpdateListener(...)`](#addconfigupdatelistener)
 * [`removeConfigUpdateListener(...)`](#removeconfigupdatelistener)
@@ -263,6 +265,21 @@ Get the value for the given key as a string.
 --------------------
 
 
+### getAll()
+
+```typescript
+getAll() => Promise<GetAllResult>
+```
+
+Get all the values from the Remote Config service.
+
+**Returns:** <code>Promise&lt;<a href="#getallresult">GetAllResult</a>&gt;</code>
+
+**Since:** 8.3.0
+
+--------------------
+
+
 ### getInfo()
 
 ```typescript
@@ -293,6 +310,23 @@ Only available for Web.
 | **`options`** | <code><a href="#setminimumfetchintervaloptions">SetMinimumFetchIntervalOptions</a></code> |
 
 **Since:** 1.3.0
+
+--------------------
+
+
+### setDefaults(...)
+
+```typescript
+setDefaults(options: SetDefaultsOptions) => Promise<void>
+```
+
+Sets config defaults for parameter keys and values in the default namespace config.
+
+| Param         | Type                                                              |
+| ------------- | ----------------------------------------------------------------- |
+| **`options`** | <code><a href="#setdefaultsoptions">SetDefaultsOptions</a></code> |
+
+**Since:** 8.3.0
 
 --------------------
 
@@ -396,10 +430,10 @@ Get the version of this plugin.
 
 #### GetBooleanResult
 
-| Prop         | Type                                                      | Description                                                                         | Since |
-| ------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`value`**  | <code>boolean</code>                                      | The value for the given key as a boolean.                                           | 1.3.0 |
-| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. Only available for Android and iOS. | 1.3.0 |
+| Prop         | Type                                                      | Description                                     | Since |
+| ------------ | --------------------------------------------------------- | ----------------------------------------------- | ----- |
+| **`value`**  | <code>boolean</code>                                      | The value for the given key as a boolean.       | 1.3.0 |
+| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. | 1.3.0 |
 
 
 #### GetOptions
@@ -411,18 +445,33 @@ Get the version of this plugin.
 
 #### GetNumberResult
 
-| Prop         | Type                                                      | Description                                                                         | Since |
-| ------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`value`**  | <code>number</code>                                       | The value for the given key as a number.                                            | 1.3.0 |
-| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. Only available for Android and iOS. | 1.3.0 |
+| Prop         | Type                                                      | Description                                     | Since |
+| ------------ | --------------------------------------------------------- | ----------------------------------------------- | ----- |
+| **`value`**  | <code>number</code>                                       | The value for the given key as a number.        | 1.3.0 |
+| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. | 1.3.0 |
 
 
 #### GetStringResult
 
-| Prop         | Type                                                      | Description                                                                         | Since |
-| ------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`value`**  | <code>string</code>                                       | The value for the given key as a string.                                            | 1.3.0 |
-| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. Only available for Android and iOS. | 1.3.0 |
+| Prop         | Type                                                      | Description                                     | Since |
+| ------------ | --------------------------------------------------------- | ----------------------------------------------- | ----- |
+| **`value`**  | <code>string</code>                                       | The value for the given key as a string.        | 1.3.0 |
+| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. | 1.3.0 |
+
+
+#### GetAllResult
+
+| Prop         | Type                                                                                  | Description              | Since |
+| ------------ | ------------------------------------------------------------------------------------- | ------------------------ | ----- |
+| **`values`** | <code>Record&lt;string, <a href="#getallresultvalue">GetAllResultValue</a>&gt;</code> | The values for all keys. | 8.3.0 |
+
+
+#### GetAllResultValue
+
+| Prop         | Type                                                      | Description                                     | Since |
+| ------------ | --------------------------------------------------------- | ----------------------------------------------- | ----- |
+| **`value`**  | <code>string</code>                                       | The value as a string.                          | 8.3.0 |
+| **`source`** | <code><a href="#getvaluesource">GetValueSource</a></code> | Indicates at which source this value came from. | 8.3.0 |
 
 
 #### GetInfoResult
@@ -438,6 +487,13 @@ Get the version of this plugin.
 | Prop                                | Type                | Description                                                                                                                                                                           | Default            | Since |
 | ----------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----- |
 | **`minimumFetchIntervalInSeconds`** | <code>number</code> | Define the maximum age in seconds of an entry in the config cache before it is considered stale. During development, it's recommended to set a relatively low minimum fetch interval. | <code>43200</code> | 1.3.0 |
+
+
+#### SetDefaultsOptions
+
+| Prop           | Type                                                           | Description                                          | Since |
+| -------------- | -------------------------------------------------------------- | ---------------------------------------------------- | ----- |
+| **`defaults`** | <code>Record&lt;string, string \| number \| boolean&gt;</code> | Defines the dictionary of values to set as defaults. | 8.3.0 |
 
 
 #### SetSettingsOptions

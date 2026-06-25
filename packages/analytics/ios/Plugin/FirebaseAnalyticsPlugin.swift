@@ -23,6 +23,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setEnabled", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "isEnabled", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "resetAnalyticsData", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "logTransaction", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithEmailAddress", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithPhoneNumber", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedEmailAddress", returnType: CAPPluginReturnPromise),
@@ -38,6 +39,9 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorEnabledMissing = "enabled must be provided."
     public let errorConsentTypeMissing = "consentType must be provided."
     public let errorConsentStatusMissing = "consentStatus must be provided."
+    public let errorTransactionIdMissing = "transactionId must be provided."
+    public let errorInvalidTransactionId = "transactionId is not a valid numeric identifier."
+    public let errorTransactionNotFound = "Transaction not found."
     public let errorEmailAddressMissing = "emailAddress must be provided."
     public let errorInvalidEmailFormat = "Invalid email format. Please provide a valid email address."
     public let errorPhoneNumberMissing = "phoneNumber must be provided."
@@ -47,7 +51,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAnalytics?
 
     override public func load() {
-        implementation = FirebaseAnalytics()
+        implementation = FirebaseAnalytics(plugin: self)
     }
 
     @objc func getAppInstanceId(_ call: CAPPluginCall) {
@@ -145,6 +149,28 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func resetAnalyticsData(_ call: CAPPluginCall) {
         implementation?.resetAnalyticsData()
         call.resolve()
+    }
+
+    @objc func logTransaction(_ call: CAPPluginCall) {
+        guard let transactionId = call.getString("transactionId") else {
+            call.reject(errorTransactionIdMissing)
+            return
+        }
+        guard let transactionIdUInt64 = UInt64(transactionId) else {
+            call.reject(errorInvalidTransactionId)
+            return
+        }
+        if #available(iOS 15.0, *) {
+            implementation?.logTransaction(transactionId: transactionIdUInt64) { errorMessage in
+                if let errorMessage = errorMessage {
+                    call.reject(errorMessage)
+                } else {
+                    call.resolve()
+                }
+            }
+        } else {
+            call.unavailable("Not available on iOS < 15.0.")
+        }
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithEmailAddress(_ call: CAPPluginCall) {

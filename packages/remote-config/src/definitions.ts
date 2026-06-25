@@ -36,6 +36,12 @@ export interface FirebaseRemoteConfigPlugin {
    */
   getString(options: GetStringOptions): Promise<GetStringResult>;
   /**
+   * Get all the values from the Remote Config service.
+   *
+   * @since 8.3.0
+   */
+  getAll(): Promise<GetAllResult>;
+  /**
    * Get information about the last fetch operation.
    *
    * @since 7.5.0
@@ -49,7 +55,15 @@ export interface FirebaseRemoteConfigPlugin {
    * @since 1.3.0
    * @deprecated Use `setSettings(...)` instead.
    */
-  setMinimumFetchInterval(options: SetMinimumFetchIntervalOptions): Promise<void>;
+  setMinimumFetchInterval(
+    options: SetMinimumFetchIntervalOptions,
+  ): Promise<void>;
+  /**
+   * Sets config defaults for parameter keys and values in the default namespace config.
+   *
+   * @since 8.3.0
+   */
+  setDefaults(options: SetDefaultsOptions): Promise<void>;
   /**
    * Set the remote config settings.
    *
@@ -65,7 +79,9 @@ export interface FirebaseRemoteConfigPlugin {
    *
    * @since 5.4.0
    */
-  addConfigUpdateListener(callback: AddConfigUpdateListenerOptionsCallback): Promise<CallbackId>;
+  addConfigUpdateListener(
+    callback: AddConfigUpdateListenerOptionsCallback,
+  ): Promise<CallbackId>;
   /**
    * Remove a listener for the config update event.
    *
@@ -73,7 +89,9 @@ export interface FirebaseRemoteConfigPlugin {
    *
    * @since 5.4.0
    */
-  removeConfigUpdateListener(options: RemoveConfigUpdateListenerOptions): Promise<void>;
+  removeConfigUpdateListener(
+    options: RemoveConfigUpdateListenerOptions,
+  ): Promise<void>;
   /**
    * Remove all listeners for this plugin.
    *
@@ -157,8 +175,6 @@ export interface GetBooleanResult {
   /**
    * Indicates at which source this value came from.
    *
-   * Only available for Android and iOS.
-   *
    * @since 1.3.0
    */
   source?: GetValueSource;
@@ -176,8 +192,6 @@ export interface GetNumberResult {
   value: number;
   /**
    * Indicates at which source this value came from.
-   *
-   * Only available for Android and iOS.
    *
    * @since 1.3.0
    */
@@ -197,9 +211,37 @@ export interface GetStringResult {
   /**
    * Indicates at which source this value came from.
    *
-   * Only available for Android and iOS.
-   *
    * @since 1.3.0
+   */
+  source?: GetValueSource;
+}
+
+/**
+ * @since 8.3.0
+ */
+export interface GetAllResult {
+  /**
+   * The values for all keys.
+   *
+   * @since 8.3.0
+   */
+  values: Record<string, GetAllResultValue>;
+}
+
+/**
+ * @since 8.3.0
+ */
+export interface GetAllResultValue {
+  /**
+   * The value as a string.
+   *
+   * @since 8.3.0
+   */
+  value: string;
+  /**
+   * Indicates at which source this value came from.
+   *
+   * @since 8.3.0
    */
   source?: GetValueSource;
 }
@@ -217,6 +259,18 @@ export interface SetMinimumFetchIntervalOptions {
    * @see https://firebase.google.com/docs/reference/js/remote-config.remoteconfigsettings#remoteconfigsettingsminimumfetchintervalmillis
    */
   minimumFetchIntervalInSeconds: number;
+}
+
+/**
+ * @since 8.3.0
+ */
+export interface SetDefaultsOptions {
+  /**
+   * Defines the dictionary of values to set as defaults.
+   *
+   * @since 8.3.0
+   */
+  defaults: Record<string, string | number | boolean>;
 }
 
 /**

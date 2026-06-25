@@ -157,7 +157,7 @@ In `capacitor.config.json`:
 In `capacitor.config.ts`:
 
 ```ts
-/// <reference types="@capgo/capacitor-firebase-messaging" />
+/// <reference types="@capgo/capacitor-firebase" />
 
 import { CapacitorConfig } from '@capacitor/cli';
 
@@ -278,6 +278,7 @@ const removeAllListeners = async () => {
 * [`addListener('tokenReceived', ...)`](#addlistenertokenreceived-)
 * [`addListener('notificationReceived', ...)`](#addlistenernotificationreceived-)
 * [`addListener('notificationActionPerformed', ...)`](#addlistenernotificationactionperformed-)
+* [`addListener('apnsTokenReceived', ...)`](#addlistenerapnstokenreceived-)
 * [`removeAllListeners()`](#removealllisteners)
 * [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
@@ -592,6 +593,28 @@ Only available for Android and iOS.
 --------------------
 
 
+### addListener('apnsTokenReceived', ...)
+
+```typescript
+addListener(eventName: 'apnsTokenReceived', listenerFunc: ApnsTokenReceivedListener) => Promise<PluginListenerHandle>
+```
+
+Called when the APNs token is received.
+
+Only available for iOS.
+
+| Param              | Type                                                                            |
+| ------------------ | ------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'apnsTokenReceived'</code>                                                |
+| **`listenerFunc`** | <code><a href="#apnstokenreceivedlistener">ApnsTokenReceivedListener</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+**Since:** 8.2.0
+
+--------------------
+
+
 ### removeAllListeners()
 
 ```typescript
@@ -754,6 +777,13 @@ Get the version of this plugin.
 | **`notification`** | <code><a href="#notification">Notification</a></code> | The notification in which the action was performed.              | 0.2.2 |
 
 
+#### ApnsTokenReceivedEvent
+
+| Prop        | Type                | Description                                               | Since |
+| ----------- | ------------------- | --------------------------------------------------------- | ----- |
+| **`token`** | <code>string</code> | The native APNs token as an uppercase hex-encoded string. | 8.2.0 |
+
+
 #### GetPluginVersionResult
 
 | Prop          | Type                | Description                          | Since |
@@ -793,6 +823,13 @@ Callback to receive the notification received event.
 Callback to receive the notification action performed event.
 
 <code>(event: <a href="#notificationactionperformedevent">NotificationActionPerformedEvent</a>): void</code>
+
+
+#### ApnsTokenReceivedListener
+
+Callback to receive the APNs token received event.
+
+<code>(event: <a href="#apnstokenreceivedevent">ApnsTokenReceivedEvent</a>): void</code>
 
 
 ### Enums

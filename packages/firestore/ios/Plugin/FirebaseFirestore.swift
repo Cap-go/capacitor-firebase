@@ -26,10 +26,12 @@ private actor ListenerRegistrationMap {
 
 @objc public class FirebaseFirestore: NSObject {
     private let plugin: FirebaseFirestorePlugin
+    private let config: FirebaseFirestoreConfig
     private var listenerRegistrationMap = ListenerRegistrationMap()
 
-    init(plugin: FirebaseFirestorePlugin) {
+    init(plugin: FirebaseFirestorePlugin, config: FirebaseFirestoreConfig) {
         self.plugin = plugin
+        self.config = config
         super.init()
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
@@ -41,7 +43,7 @@ private actor ListenerRegistrationMap {
         let data = options.getData()
 
         var documentReference: DocumentReference?
-        documentReference = Firestore.firestore().collection(reference).addDocument(data: data) { error in
+        documentReference = getFirestoreInstance().collection(reference).addDocument(data: data) { error in
             if let error = error {
                 completion(nil, error)
             } else {
@@ -56,7 +58,7 @@ private actor ListenerRegistrationMap {
         let data = options.getData()
         let merge = options.getMerge()
 
-        Firestore.firestore().document(reference).setData(data, merge: merge) { error in
+        getFirestoreInstance().document(reference).setData(data, merge: merge) { error in
             if let error = error {
                 completion(error)
             } else {
@@ -68,7 +70,7 @@ private actor ListenerRegistrationMap {
     @objc public func getDocument(_ options: GetDocumentOptions, completion: @escaping (Result?, Error?) -> Void) {
         let reference = options.getReference()
 
-        Firestore.firestore().document(reference).getDocument { documentSnapshot, error in
+        getFirestoreInstance().document(reference).getDocument { documentSnapshot, error in
             if let error = error {
                 completion(nil, error)
             } else {
@@ -82,7 +84,7 @@ private actor ListenerRegistrationMap {
         let reference = options.getReference()
         let data = options.getData()
 
-        Firestore.firestore().document(reference).updateData(data) { error in
+        getFirestoreInstance().document(reference).updateData(data) { error in
             if let error = error {
                 completion(error)
             } else {
@@ -94,7 +96,7 @@ private actor ListenerRegistrationMap {
     @objc public func deleteDocument(_ options: DeleteDocumentOptions, completion: @escaping (Error?) -> Void) {
         let reference = options.getReference()
 
-        Firestore.firestore().document(reference).delete { error in
+        getFirestoreInstance().document(reference).delete { error in
             if let error = error {
                 completion(error)
             } else {
@@ -106,13 +108,13 @@ private actor ListenerRegistrationMap {
     @objc public func writeBatch(_ options: WriteBatchOptions, completion: @escaping (Error?) -> Void) {
         let operations = options.getOperations()
 
-        let batch = Firestore.firestore().batch()
+        let batch = getFirestoreInstance().batch()
         for operation in operations {
             let type = operation.getType()
             let reference = operation.getReference()
             let data = operation.getData()
 
-            let documentReference = Firestore.firestore().document(reference)
+            let documentReference = getFirestoreInstance().document(reference)
             switch type {
             case "set":
                 if let setOpts = operation.getOptions(), setOpts.isMerge() {
@@ -149,7 +151,7 @@ private actor ListenerRegistrationMap {
 
         Task {
             do {
-                let collectionReference = Firestore.firestore().collection(reference)
+                let collectionReference = getFirestoreInstance().collection(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
                     if let filter = compositeFilter.toFilter() {
@@ -158,7 +160,7 @@ private actor ListenerRegistrationMap {
                 }
                 if !queryConstraints.isEmpty {
                     for queryConstraint in queryConstraints {
-                        query = try await queryConstraint.toQuery(query: query)
+                        query = try await queryConstraint.toQuery(query: query, firestore: getFirestoreInstance())
                     }
                 }
 
@@ -178,7 +180,7 @@ private actor ListenerRegistrationMap {
 
         Task {
             do {
-                let collectionReference = Firestore.firestore().collectionGroup(reference)
+                let collectionReference = getFirestoreInstance().collectionGroup(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
                     if let filter = compositeFilter.toFilter() {
@@ -187,7 +189,7 @@ private actor ListenerRegistrationMap {
                 }
                 if !queryConstraints.isEmpty {
                     for queryConstraint in queryConstraints {
-                        query = try await queryConstraint.toQuery(query: query)
+                        query = try await queryConstraint.toQuery(query: query, firestore: getFirestoreInstance())
                     }
                 }
 
@@ -200,39 +202,71 @@ private actor ListenerRegistrationMap {
         }
     }
 
+    @objc public func disablePersistence() {
+        let firestore = getFirestoreInstance()
+        let settings = firestore.settings
+        settings.cacheSettings = MemoryCacheSettings()
+        firestore.settings = settings
+    }
+
+    @objc public func enablePersistence(_ cacheSizeBytes: NSNumber?) {
+        let firestore = getFirestoreInstance()
+        let settings = firestore.settings
+        if let cacheSizeBytes = cacheSizeBytes {
+            settings.cacheSettings = PersistentCacheSettings(sizeBytes: cacheSizeBytes)
+        } else {
+            settings.cacheSettings = PersistentCacheSettings()
+        }
+        firestore.settings = settings
+    }
+
     @objc public func clearPersistence(completion: @escaping (Error?) -> Void) {
-        Firestore.firestore().clearPersistence { error in
+        getFirestoreInstance().clearPersistence { error in
             completion(error)
         }
     }
 
     @objc public func enableNetwork(completion: @escaping (Error?) -> Void) {
-        Firestore.firestore().enableNetwork { error in
+        getFirestoreInstance().enableNetwork { error in
             completion(error)
         }
     }
 
     @objc public func disableNetwork(completion: @escaping (Error?) -> Void) {
-        Firestore.firestore().disableNetwork { error in
+        getFirestoreInstance().disableNetwork { error in
             completion(error)
         }
     }
 
     @objc func useEmulator(_ host: String, _ port: Int) {
-        let settings = Firestore.firestore().settings
+        let firestore = getFirestoreInstance()
+        let settings = firestore.settings
         settings.host = "\(host):\(port)"
         settings.isSSLEnabled = false
-        Firestore.firestore().settings = settings
+        firestore.settings = settings
     }
 
     @objc public func getCountFromServer(_ options: GetCountFromServerOptions, completion: @escaping (Result?, Error?) -> Void) {
         let reference = options.getReference()
-        let collectionReference = Firestore.firestore().collection(reference)
-        let countQuery = collectionReference.count
+        let compositeFilter = options.getCompositeFilter()
+        let queryConstraints = options.getQueryConstraints()
 
         Task {
             do {
-                let snapshot = try await countQuery.getAggregation(source: .server)
+                let collectionReference = getFirestoreInstance().collection(reference)
+                var query = collectionReference as Query
+                if let compositeFilter = compositeFilter {
+                    if let filter = compositeFilter.toFilter() {
+                        query = query.whereFilter(filter)
+                    }
+                }
+                if !queryConstraints.isEmpty {
+                    for queryConstraint in queryConstraints {
+                        query = try await queryConstraint.toQuery(query: query, firestore: getFirestoreInstance())
+                    }
+                }
+
+                let snapshot = try await query.count.getAggregation(source: .server)
                 let result = GetCountFromServerResult(snapshot.count.intValue)
                 completion(result, nil)
             } catch {
@@ -244,13 +278,14 @@ private actor ListenerRegistrationMap {
     @objc public func addDocumentSnapshotListener(_ options: AddDocumentSnapshotListenerOptions, completion: @escaping (Result?, Error?) -> Void) {
         let reference = options.getReference()
         let includeMetadataChanges = options.getIncludeMetadataChanges()
+        let serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(options.getServerTimestampBehavior())
         let callbackId = options.getCallbackId()
 
-        let listenerRegistration = Firestore.firestore().document(reference).addSnapshotListener(includeMetadataChanges: includeMetadataChanges) { documentSnapshot, error in
+        let listenerRegistration = getFirestoreInstance().document(reference).addSnapshotListener(includeMetadataChanges: includeMetadataChanges) { documentSnapshot, error in
             if let error = error {
                 completion(nil, error)
             } else {
-                let result = GetDocumentResult(documentSnapshot!)
+                let result = GetDocumentResult(documentSnapshot!, serverTimestampBehavior)
                 completion(result, nil)
             }
         }
@@ -264,11 +299,12 @@ private actor ListenerRegistrationMap {
         let compositeFilter = options.getCompositeFilter()
         let queryConstraints = options.getQueryConstraints()
         let includeMetadataChanges = options.getIncludeMetadataChanges()
+        let serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(options.getServerTimestampBehavior())
         let callbackId = options.getCallbackId()
 
         Task {
             do {
-                let collectionReference = Firestore.firestore().collection(reference)
+                let collectionReference = getFirestoreInstance().collection(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
                     if let filter = compositeFilter.toFilter() {
@@ -277,7 +313,7 @@ private actor ListenerRegistrationMap {
                 }
                 if !queryConstraints.isEmpty {
                     for queryConstraint in queryConstraints {
-                        query = try await queryConstraint.toQuery(query: query)
+                        query = try await queryConstraint.toQuery(query: query, firestore: getFirestoreInstance())
                     }
                 }
 
@@ -285,7 +321,7 @@ private actor ListenerRegistrationMap {
                     if let error = error {
                         completion(nil, error)
                     } else {
-                        let result = GetCollectionResult(querySnapshot!)
+                        let result = GetCollectionResult(querySnapshot!, serverTimestampBehavior)
                         completion(result, nil)
                     }
                 }
@@ -301,11 +337,12 @@ private actor ListenerRegistrationMap {
         let compositeFilter = options.getCompositeFilter()
         let queryConstraints = options.getQueryConstraints()
         let includeMetadataChanges = options.getIncludeMetadataChanges()
+        let serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(options.getServerTimestampBehavior())
         let callbackId = options.getCallbackId()
 
         Task {
             do {
-                let collectionReference = Firestore.firestore().collectionGroup(reference)
+                let collectionReference = getFirestoreInstance().collectionGroup(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
                     if let filter = compositeFilter.toFilter() {
@@ -314,7 +351,7 @@ private actor ListenerRegistrationMap {
                 }
                 if !queryConstraints.isEmpty {
                     for queryConstraint in queryConstraints {
-                        query = try await queryConstraint.toQuery(query: query)
+                        query = try await queryConstraint.toQuery(query: query, firestore: getFirestoreInstance())
                     }
                 }
 
@@ -322,7 +359,7 @@ private actor ListenerRegistrationMap {
                     if let error = error {
                         completion(nil, error)
                     } else {
-                        let result = GetCollectionGroupResult(querySnapshot!)
+                        let result = GetCollectionGroupResult(querySnapshot!, serverTimestampBehavior)
                         completion(result, nil)
                     }
                 }
@@ -346,5 +383,12 @@ private actor ListenerRegistrationMap {
             await listenerRegistrationMap.removeAll()
             completion()
         }
+    }
+
+    public func getFirestoreInstance() -> Firestore {
+        if let databaseId = config.databaseId {
+            return Firestore.firestore(database: databaseId)
+        }
+        return Firestore.firestore()
     }
 }
