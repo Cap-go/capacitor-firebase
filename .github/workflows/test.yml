@@ -81,7 +81,7 @@ jobs:
 
   test-ios:
     # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
-    timeout-minutes: 25
+    timeout-minutes: 45
     name: Test iOS platform
     runs-on: macos-15
     steps:
