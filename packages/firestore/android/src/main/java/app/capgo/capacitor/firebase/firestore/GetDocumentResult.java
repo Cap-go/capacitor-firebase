@@ -1,5 +1,6 @@
 package app.capgo.capacitor.firebase.firestore.classes.results;
 
+import androidx.annotation.NonNull;
 import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
 import app.capgo.capacitor.firebase.firestore.interfaces.Result;
 import com.getcapacitor.JSObject;
@@ -10,12 +11,20 @@ public class GetDocumentResult implements Result {
 
     private DocumentSnapshot documentSnapshot;
 
+    @NonNull
+    private DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior;
+
     public GetDocumentResult(DocumentSnapshot documentSnapshot) {
+        this(documentSnapshot, DocumentSnapshot.ServerTimestampBehavior.NONE);
+    }
+
+    public GetDocumentResult(DocumentSnapshot documentSnapshot, @NonNull DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior) {
         this.documentSnapshot = documentSnapshot;
+        this.serverTimestampBehavior = serverTimestampBehavior;
     }
 
     public JSObject toJSObject() {
-        Object snapshotDataResult = FirebaseFirestoreHelper.createJSObjectFromMap(documentSnapshot.getData());
+        Object snapshotDataResult = FirebaseFirestoreHelper.createJSObjectFromMap(documentSnapshot.getData(serverTimestampBehavior));
 
         JSObject snapshotResult = new JSObject();
         snapshotResult.put("id", documentSnapshot.getId());

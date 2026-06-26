@@ -7,6 +7,7 @@ import app.capgo.capacitor.firebase.functions.classes.options.CallByUrlOptions;
 import app.capgo.capacitor.firebase.functions.classes.results.CallResult;
 import app.capgo.capacitor.firebase.functions.interfaces.NonEmptyResultCallback;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 public class FirebaseFunctions {
 
@@ -20,9 +21,15 @@ public class FirebaseFunctions {
         String name = options.getName();
         String region = options.getRegion();
         Object data = options.getData();
+        Long timeout = options.getTimeout();
 
-        getFirebaseFunctionsInstance(region)
-            .getHttpsCallable(name)
+        com.google.firebase.functions.HttpsCallableReference callable = getFirebaseFunctionsInstance(region).getHttpsCallable(name);
+
+        if (timeout != null) {
+            callable.setTimeout(timeout, TimeUnit.MILLISECONDS);
+        }
+
+        callable
             .call(data)
             .addOnSuccessListener(task -> {
                 CallResult result = new CallResult(task.getData());
@@ -36,9 +43,15 @@ public class FirebaseFunctions {
     public void callByUrl(@NonNull CallByUrlOptions options, @NonNull NonEmptyResultCallback callback) {
         URL url = options.getUrl();
         Object data = options.getData();
+        Long timeout = options.getTimeout();
 
-        getFirebaseFunctionsInstance(null)
-            .getHttpsCallableFromUrl(url)
+        com.google.firebase.functions.HttpsCallableReference callable = getFirebaseFunctionsInstance(null).getHttpsCallableFromUrl(url);
+
+        if (timeout != null) {
+            callable.setTimeout(timeout, TimeUnit.MILLISECONDS);
+        }
+
+        callable
             .call(data)
             .addOnSuccessListener(task -> {
                 CallResult result = new CallResult(task.getData());
@@ -49,8 +62,8 @@ public class FirebaseFunctions {
             });
     }
 
-    public void useEmulator(@NonNull String host, int port) {
-        getFirebaseFunctionsInstance(null).useEmulator(host, port);
+    public void useEmulator(@NonNull String host, int port, @Nullable String regionOrCustomDomain) {
+        getFirebaseFunctionsInstance(regionOrCustomDomain).useEmulator(host, port);
     }
 
     private com.google.firebase.functions.FirebaseFunctions getFirebaseFunctionsInstance(@Nullable String regionOrCustomDomain) {

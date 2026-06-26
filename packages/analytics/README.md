@@ -191,6 +191,7 @@ const initiateOnDeviceConversionMeasurementWithHashedPhoneNumber = async () => {
 * [`setEnabled(...)`](#setenabled)
 * [`isEnabled()`](#isenabled)
 * [`resetAnalyticsData()`](#resetanalyticsdata)
+* [`logTransaction(...)`](#logtransaction)
 * [`initiateOnDeviceConversionMeasurementWithEmailAddress(...)`](#initiateondeviceconversionmeasurementwithemailaddress)
 * [`initiateOnDeviceConversionMeasurementWithPhoneNumber(...)`](#initiateondeviceconversionmeasurementwithphonenumber)
 * [`initiateOnDeviceConversionMeasurementWithHashedEmailAddress(...)`](#initiateondeviceconversionmeasurementwithhashedemailaddress)
@@ -393,6 +394,25 @@ Only available for Android and iOS.
 --------------------
 
 
+### logTransaction(...)
+
+```typescript
+logTransaction(options: LogTransactionOptions) => Promise<void>
+```
+
+Logs a StoreKit 2 transaction.
+
+Only available for iOS (15.0+).
+
+| Param         | Type                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| **`options`** | <code><a href="#logtransactionoptions">LogTransactionOptions</a></code> |
+
+**Since:** 8.2.0
+
+--------------------
+
+
 ### initiateOnDeviceConversionMeasurementWithEmailAddress(...)
 
 ```typescript
@@ -559,6 +579,13 @@ Get the version of this plugin.
 | Prop          | Type                 | Since |
 | ------------- | -------------------- | ----- |
 | **`enabled`** | <code>boolean</code> | 0.1.0 |
+
+
+#### LogTransactionOptions
+
+| Prop                | Type                | Description                                                | Since |
+| ------------------- | ------------------- | ---------------------------------------------------------- | ----- |
+| **`transactionId`** | <code>string</code> | The StoreKit 2 `Transaction.id` value as a numeric string. | 8.2.0 |
 
 
 #### InitiateOnDeviceConversionMeasurementWithEmailAddressOptions

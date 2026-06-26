@@ -52,7 +52,9 @@ export interface FirebaseAnalyticsPlugin {
    *
    * @since 0.1.0
    */
-  setSessionTimeoutDuration(options: SetSessionTimeoutDurationOptions): Promise<void>;
+  setSessionTimeoutDuration(
+    options: SetSessionTimeoutDurationOptions,
+  ): Promise<void>;
   /**
    * Enables/disables automatic data collection.
    * The value does not apply until the next run of the app.
@@ -77,6 +79,14 @@ export interface FirebaseAnalyticsPlugin {
    * @since 0.1.0
    */
   resetAnalyticsData(): Promise<void>;
+  /**
+   * Logs a StoreKit 2 transaction.
+   *
+   * Only available for iOS (15.0+).
+   *
+   * @since 8.2.0
+   */
+  logTransaction(options: LogTransactionOptions): Promise<void>;
   /**
    * Initiates on-device conversion measurement with an email address.
    *
@@ -319,6 +329,18 @@ export enum ConsentStatus {
    * @since 6.0.0
    */
   Denied = 'DENIED',
+}
+
+/**
+ * @since 8.2.0
+ */
+export interface LogTransactionOptions {
+  /**
+   * The StoreKit 2 `Transaction.id` value as a numeric string.
+   *
+   * @since 8.2.0
+   */
+  transactionId: string;
 }
 
 /**

@@ -54,7 +54,8 @@ export interface GetPluginVersionResult {
 /**
  * @since 6.1.0
  */
-export interface CallByNameOptions<RequestData = unknown> extends CallOptions<RequestData> {
+export interface CallByNameOptions<RequestData = unknown>
+  extends CallOptions<RequestData> {
   /**
    * The name of the callable function.
    *
@@ -79,7 +80,8 @@ export type CallByNameResult<ResponseData = unknown> = CallResult<ResponseData>;
 /**
  * @since 6.1.0
  */
-export interface CallByUrlOptions<RequestData = unknown> extends CallOptions<RequestData> {
+export interface CallByUrlOptions<RequestData = unknown>
+  extends CallOptions<RequestData> {
   /**
    * The URL of the callable function.
    *
@@ -104,6 +106,12 @@ export interface CallOptions<RequestData = unknown> {
    * @since 6.1.0
    */
   data?: RequestData | null;
+  /**
+   * Time in milliseconds after which to cancel if there is no response.
+   *
+   * @since 8.1.0
+   */
+  timeout?: number;
 }
 
 /**

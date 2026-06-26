@@ -1,8 +1,14 @@
 import { WebPlugin } from '@capacitor/core';
-import type { ListOptions, SettableMetadata, UploadMetadata, UploadTaskSnapshot } from 'firebase/storage';
+import type {
+  ListOptions,
+  SettableMetadata,
+  UploadMetadata,
+  UploadTaskSnapshot,
+} from 'firebase/storage';
 import {
   connectStorageEmulator,
   deleteObject,
+  getBlob,
   getDownloadURL,
   getMetadata,
   getStorage,
@@ -14,6 +20,9 @@ import {
 
 import type {
   DeleteFileOptions,
+  DownloadFileCallback,
+  DownloadFileCallbackEvent,
+  DownloadFileOptions,
   FirebaseStoragePlugin,
   GetDownloadUrlOptions,
   GetDownloadUrlResult,
@@ -28,8 +37,36 @@ import type {
   UseEmulatorOptions,
 } from './definitions';
 
-export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlugin {
+export class FirebaseStorageWeb
+  extends WebPlugin
+  implements FirebaseStoragePlugin
+{
   public static readonly ERROR_BLOB_MISSING = 'blob must be provided.';
+
+  private lastCallbackId = 0;
+
+  public async downloadFile(
+    options: DownloadFileOptions,
+    callback: DownloadFileCallback,
+  ): Promise<string> {
+    const storage = getStorage();
+    const storageRef = ref(storage, options.path);
+    getBlob(storageRef)
+      .then(blob => {
+        const result: DownloadFileCallbackEvent = {
+          progress: 1,
+          bytesTransferred: blob.size,
+          totalBytes: blob.size,
+          completed: true,
+          blob,
+        };
+        callback(result, undefined);
+      })
+      .catch(error => {
+        callback(null, error);
+      });
+    return this.generateCallbackId();
+  }
 
   public async deleteFile(options: DeleteFileOptions): Promise<void> {
     const storage = getStorage();
@@ -37,14 +74,18 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     await deleteObject(storageRef);
   }
 
-  public async getDownloadUrl(options: GetDownloadUrlOptions): Promise<GetDownloadUrlResult> {
+  public async getDownloadUrl(
+    options: GetDownloadUrlOptions,
+  ): Promise<GetDownloadUrlResult> {
     const storage = getStorage();
     const storageRef = ref(storage, options.path);
     const downloadUrl = await getDownloadURL(storageRef);
     return { downloadUrl };
   }
 
-  public async getMetadata(options: GetMetadataOptions): Promise<GetMetadataResult> {
+  public async getMetadata(
+    options: GetMetadataOptions,
+  ): Promise<GetMetadataResult> {
     const storage = getStorage();
     const storageRef = ref(storage, options.path);
     const metadata = await getMetadata(storageRef);
@@ -79,7 +120,7 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     };
     const listResult = await list(storageRef, listOptions);
     const result: ListFilesResult = {
-      items: listResult.items.map((item) => ({
+      items: listResult.items.map(item => ({
         bucket: item.bucket,
         name: item.name,
         path: item.fullPath,
@@ -105,7 +146,10 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     await updateMetadata(storageRef, metadata);
   }
 
-  public async uploadFile(options: UploadFileOptions, callback: UploadFileCallback): Promise<string> {
+  public async uploadFile(
+    options: UploadFileOptions,
+    callback: UploadFileCallback,
+  ): Promise<string> {
     if (!options.blob) {
       throw new Error(FirebaseStorageWeb.ERROR_BLOB_MISSING);
     }
@@ -125,11 +169,11 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     }
     const uploadTask = uploadBytesResumable(storageRef, options.blob, metadata);
     uploadTask.on('state_changed', {
-      next: (snapshot) => {
+      next: snapshot => {
         const result = this.createUploadFileCallbackEvent(snapshot);
         callback(result, undefined);
       },
-      error: (error) => {
+      error: error => {
         callback(null, error);
       },
       complete: () => {
@@ -137,7 +181,7 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
         callback(result, undefined);
       },
     });
-    return Date.now().toString();
+    return this.generateCallbackId();
   }
 
   public async useEmulator(options: UseEmulatorOptions): Promise<void> {
@@ -146,7 +190,9 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     connectStorageEmulator(storage, options.host, port);
   }
 
-  private createUploadFileCallbackEvent(snapshot: UploadTaskSnapshot): UploadFileCallbackEvent {
+  private createUploadFileCallbackEvent(
+    snapshot: UploadTaskSnapshot,
+  ): UploadFileCallbackEvent {
     const result: UploadFileCallbackEvent = {
       progress: snapshot.bytesTransferred / snapshot.totalBytes,
       bytesTransferred: snapshot.bytesTransferred,
@@ -156,7 +202,11 @@ export class FirebaseStorageWeb extends WebPlugin implements FirebaseStoragePlug
     return result;
   }
 
+  private generateCallbackId(): string {
+    return (++this.lastCallbackId).toString();
+  }
+
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.0.2' };
+    return { version: '8.3.0' };
   }
 }

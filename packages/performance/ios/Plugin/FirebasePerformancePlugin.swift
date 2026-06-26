@@ -25,7 +25,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.4"
+    private let pluginVersion: String = "8.3.0"
     public let errorTraceNameMissing = "traceName must be provided."
     public let errorMetricNameMissing = "metricName must be provided."
     public let errorEnabledMissing = "enabled must be provided."

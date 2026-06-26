@@ -19,8 +19,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getCollection", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCollectionGroup", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCountFromServer", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "enableNetwork", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disableNetwork", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "disablePersistence", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "enableNetwork", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "enablePersistence", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "useEmulator", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "addDocumentSnapshotListener", returnType: CAPPluginReturnCallback),
         CAPPluginMethod(name: "addCollectionSnapshotListener", returnType: CAPPluginReturnCallback),
@@ -28,19 +30,23 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
-
-    private let pluginVersion: String = "8.0.4"
     public let tag = "FirebaseFirestore"
     public let errorReferenceMissing = "reference must be provided."
     public let errorDataMissing = "data must be provided."
     public let errorOperationsMissing = "operations must be provided."
     public let errorHostMissing = "host must be provided."
     public let errorCallbackIdMissing = "callbackId must be provided."
+    public let errorImplementationMissing = "implementation is not initialized."
     private var implementation: FirebaseFirestore?
+    private let pluginVersion: String = "8.3.0"
     private var pluginCallMap: [String: CAPPluginCall] = [:]
 
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
+    }
+
     override public func load() {
-        self.implementation = FirebaseFirestore(plugin: self)
+        self.implementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
     }
 
     @objc func addDocument(_ call: CAPPluginCall) {
@@ -53,7 +59,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let options = AddDocumentOptions(reference: reference, data: data)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = AddDocumentOptions(reference: reference, data: data, firestore: firestore)
 
         implementation?.addDocument(options, completion: { result, error in
             if let error = error {
@@ -78,7 +88,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let merge = call.getBool("merge", false)
 
-        let options = SetDocumentOptions(reference: reference, data: data, merge: merge)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = SetDocumentOptions(reference: reference, data: data, merge: merge, firestore: firestore)
 
         implementation?.setDocument(options, completion: { error in
             if let error = error {
@@ -120,7 +134,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let options = UpdateDocumentOptions(reference: reference, data: data)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = UpdateDocumentOptions(reference: reference, data: data, firestore: firestore)
 
         implementation?.updateDocument(options, completion: { error in
             if let error = error {
@@ -156,7 +174,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let options = WriteBatchOptions(operations: operations)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = WriteBatchOptions(operations: operations, firestore: firestore)
 
         implementation?.writeBatch(options, completion: { error in
             if let error = error {
@@ -176,7 +198,16 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         let compositeFilter = call.getObject("compositeFilter")
         let queryConstraints = call.getArray("queryConstraints", JSObject.self)
 
-        let options = GetCollectionOptions(reference: reference, compositeFilter: compositeFilter, queryConstraints: queryConstraints)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = GetCollectionOptions(
+            reference: reference,
+            compositeFilter: compositeFilter,
+            queryConstraints: queryConstraints,
+            firestore: firestore
+        )
 
         implementation?.getCollection(options, completion: { result, error in
             if let error = error {
@@ -198,7 +229,16 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         let compositeFilter = call.getObject("compositeFilter")
         let queryConstraints = call.getArray("queryConstraints", JSObject.self)
 
-        let options = GetCollectionGroupOptions(reference: reference, compositeFilter: compositeFilter, queryConstraints: queryConstraints)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = GetCollectionGroupOptions(
+            reference: reference,
+            compositeFilter: compositeFilter,
+            queryConstraints: queryConstraints,
+            firestore: firestore
+        )
 
         implementation?.getCollectionGroup(options, completion: { result, error in
             if let error = error {
@@ -223,6 +263,22 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         })
     }
 
+    @objc func disableNetwork(_ call: CAPPluginCall) {
+        implementation?.disableNetwork(completion: { error in
+            if let error = error {
+                CAPLog.print("[", self.tag, "] ", error)
+                call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
+                return
+            }
+            call.resolve()
+        })
+    }
+
+    @objc func disablePersistence(_ call: CAPPluginCall) {
+        implementation?.disablePersistence()
+        call.resolve()
+    }
+
     @objc func enableNetwork(_ call: CAPPluginCall) {
         implementation?.enableNetwork(completion: { error in
             if let error = error {
@@ -234,15 +290,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         })
     }
 
-    @objc func disableNetwork(_ call: CAPPluginCall) {
-        implementation?.disableNetwork(completion: { error in
-            if let error = error {
-                CAPLog.print("[", self.tag, "] ", error)
-                call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
-                return
-            }
-            call.resolve()
-        })
+    @objc func enablePersistence(_ call: CAPPluginCall) {
+        let cacheSizeBytes = call.getInt("cacheSizeBytes") as NSNumber?
+
+        implementation?.enablePersistence(cacheSizeBytes)
+        call.resolve()
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
@@ -261,8 +313,14 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorReferenceMissing)
             return
         }
+        let compositeFilter = call.getObject("compositeFilter")
+        let queryConstraints = call.getArray("queryConstraints", JSObject.self)
 
-        let options = GetCountFromServerOptions(reference: reference)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = GetCountFromServerOptions(reference: reference, compositeFilter: compositeFilter, queryConstraints: queryConstraints, firestore: firestore)
 
         implementation?.getCountFromServer(options, completion: { result, error in
             if let error = error {
@@ -284,6 +342,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let includeMetadataChanges = call.getBool("includeMetadataChanges", false)
+        let serverTimestampBehavior = call.getString("serverTimestamps")
         guard let callbackId = call.callbackId else {
             call.reject(errorCallbackIdMissing)
             return
@@ -291,7 +350,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
         self.pluginCallMap[callbackId] = call
 
-        let options = AddDocumentSnapshotListenerOptions(reference: reference, includeMetadataChanges: includeMetadataChanges, callbackId: callbackId)
+        let options = AddDocumentSnapshotListenerOptions(reference: reference, includeMetadataChanges: includeMetadataChanges, serverTimestampBehavior: serverTimestampBehavior, callbackId: callbackId)
 
         implementation?.addDocumentSnapshotListener(options, completion: { result, error in
             if let error = error {
@@ -315,6 +374,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         let compositeFilter = call.getObject("compositeFilter")
         let queryConstraints = call.getArray("queryConstraints", JSObject.self)
         let includeMetadataChanges = call.getBool("includeMetadataChanges", false)
+        let serverTimestampBehavior = call.getString("serverTimestamps")
         guard let callbackId = call.callbackId else {
             call.reject(errorCallbackIdMissing)
             return
@@ -322,7 +382,19 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
         self.pluginCallMap[callbackId] = call
 
-        let options = AddCollectionSnapshotListenerOptions(reference: reference, compositeFilter: compositeFilter, queryConstraints: queryConstraints, includeMetadataChanges: includeMetadataChanges, callbackId: callbackId)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = AddCollectionSnapshotListenerOptions(
+            reference: reference,
+            compositeFilter: compositeFilter,
+            queryConstraints: queryConstraints,
+            includeMetadataChanges: includeMetadataChanges,
+            serverTimestampBehavior: serverTimestampBehavior,
+            callbackId: callbackId,
+            firestore: firestore
+        )
 
         do {
             implementation?.addCollectionSnapshotListener(options, completion: { result, error in
@@ -351,6 +423,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         let compositeFilter = call.getObject("compositeFilter")
         let queryConstraints = call.getArray("queryConstraints", JSObject.self)
         let includeMetadataChanges = call.getBool("includeMetadataChanges", false)
+        let serverTimestampBehavior = call.getString("serverTimestamps")
         guard let callbackId = call.callbackId else {
             call.reject(errorCallbackIdMissing)
             return
@@ -358,7 +431,19 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
         self.pluginCallMap[callbackId] = call
 
-        let options = AddCollectionGroupSnapshotListenerOptions(reference: reference, compositeFilter: compositeFilter, queryConstraints: queryConstraints, includeMetadataChanges: includeMetadataChanges, callbackId: callbackId)
+        guard let firestore = implementation?.getFirestoreInstance() else {
+            call.reject(errorImplementationMissing)
+            return
+        }
+        let options = AddCollectionGroupSnapshotListenerOptions(
+            reference: reference,
+            compositeFilter: compositeFilter,
+            queryConstraints: queryConstraints,
+            includeMetadataChanges: includeMetadataChanges,
+            serverTimestampBehavior: serverTimestampBehavior,
+            callbackId: callbackId,
+            firestore: firestore
+        )
 
         do {
             implementation?.addCollectionGroupSnapshotListener(options, completion: { result, error in
@@ -408,7 +493,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    @objc func getPluginVersion(_ call: CAPPluginCall) {
-        call.resolve(["version": pluginVersion])
+    private func firebaseFirestoreConfig() -> FirebaseFirestoreConfig {
+        var config = FirebaseFirestoreConfig()
+
+        config.databaseId = getConfig().getString("databaseId")
+
+        return config
     }
 }

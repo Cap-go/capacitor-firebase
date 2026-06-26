@@ -1,6 +1,7 @@
 package app.capgo.capacitor.firebase.storage;
 
 import app.capgo.capacitor.firebase.storage.classes.options.DeleteFileOptions;
+import app.capgo.capacitor.firebase.storage.classes.options.DownloadFileOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.GetDownloadUrlOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.GetMetadataOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.ListFilesOptions;
@@ -20,8 +21,6 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseStorage")
 public class FirebaseStoragePlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.4";
-
     public static final String TAG = "FirebaseStorage";
     public static final String ERROR_PATH_MISSING = "path must be provided.";
     public static final String ERROR_URI_MISSING = "uri must be provided.";
@@ -32,6 +31,49 @@ public class FirebaseStoragePlugin extends Plugin {
 
     public void load() {
         implementation = new FirebaseStorage(this);
+    }
+
+    @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+    public void downloadFile(PluginCall call) {
+        try {
+            call.setKeepAlive(true);
+
+            String path = call.getString("path");
+            if (path == null) {
+                call.reject(ERROR_PATH_MISSING);
+                return;
+            }
+            String uri = call.getString("uri");
+            if (uri == null) {
+                call.reject(ERROR_URI_MISSING);
+                return;
+            }
+            String callbackId = call.getCallbackId();
+
+            DownloadFileOptions options = new DownloadFileOptions(path, uri, callbackId);
+            NonEmptyEventCallback callback = new NonEmptyEventCallback() {
+                @Override
+                public void success(Result result) {
+                    call.resolve(result.toJSObject());
+                }
+
+                @Override
+                public void error(Exception exception) {
+                    Logger.error(TAG, exception.getMessage(), exception);
+                    call.reject(exception.getMessage(), FirebaseStorageHelper.createErrorCode(exception));
+                }
+
+                @Override
+                public void release() {
+                    call.release(bridge);
+                }
+            };
+
+            implementation.downloadFile(options, callback);
+        } catch (Exception exception) {
+            Logger.error(TAG, exception.getMessage(), exception);
+            call.reject(exception.getMessage(), FirebaseStorageHelper.createErrorCode(exception));
+        }
     }
 
     @PluginMethod
@@ -250,17 +292,6 @@ public class FirebaseStoragePlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage(), FirebaseStorageHelper.createErrorCode(exception));
-        }
-    }
-
-    @PluginMethod
-    public void getPluginVersion(final PluginCall call) {
-        try {
-            final JSObject ret = new JSObject();
-            ret.put("version", this.pluginVersion);
-            call.resolve(ret);
-        } catch (final Exception e) {
-            call.reject("Could not get plugin version", e);
         }
     }
 }

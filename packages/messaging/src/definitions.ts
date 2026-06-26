@@ -86,7 +86,9 @@ export interface FirebaseMessagingPlugin {
    *
    * @since 0.2.2
    */
-  removeDeliveredNotifications(options: RemoveDeliveredNotificationsOptions): Promise<void>;
+  removeDeliveredNotifications(
+    options: RemoveDeliveredNotificationsOptions,
+  ): Promise<void>;
   /**
    * Remove all notifications from the notifications screen.
    *
@@ -142,7 +144,10 @@ export interface FirebaseMessagingPlugin {
    *
    * @since 0.2.2
    */
-  addListener(eventName: 'tokenReceived', listenerFunc: TokenReceivedListener): Promise<PluginListenerHandle>;
+  addListener(
+    eventName: 'tokenReceived',
+    listenerFunc: TokenReceivedListener,
+  ): Promise<PluginListenerHandle>;
   /**
    * Called when a new push notification is received.
    *
@@ -170,6 +175,17 @@ export interface FirebaseMessagingPlugin {
   addListener(
     eventName: 'notificationActionPerformed',
     listenerFunc: NotificationActionPerformedListener,
+  ): Promise<PluginListenerHandle>;
+  /**
+   * Called when the APNs token is received.
+   *
+   * Only available for iOS.
+   *
+   * @since 8.2.0
+   */
+  addListener(
+    eventName: 'apnsTokenReceived',
+    listenerFunc: ApnsTokenReceivedListener,
   ): Promise<PluginListenerHandle>;
   /**
    * Remove all listeners for this plugin.
@@ -454,14 +470,25 @@ export type TokenReceivedListener = (event: TokenReceivedEvent) => void;
  *
  * @since 0.2.2
  */
-export type NotificationReceivedListener = (event: NotificationReceivedEvent) => void;
+export type NotificationReceivedListener = (
+  event: NotificationReceivedEvent,
+) => void;
 
 /**
  * Callback to receive the notification action performed event.
  *
  * @since 0.2.2
  */
-export type NotificationActionPerformedListener = (event: NotificationActionPerformedEvent) => void;
+export type NotificationActionPerformedListener = (
+  event: NotificationActionPerformedEvent,
+) => void;
+
+/**
+ * Callback to receive the APNs token received event.
+ *
+ * @since 8.2.0
+ */
+export type ApnsTokenReceivedListener = (event: ApnsTokenReceivedEvent) => void;
 
 /**
  * @since 0.2.2
@@ -469,6 +496,18 @@ export type NotificationActionPerformedListener = (event: NotificationActionPerf
 export interface TokenReceivedEvent {
   /**
    * @since 0.2.2
+   */
+  token: string;
+}
+
+/**
+ * @since 8.2.0
+ */
+export interface ApnsTokenReceivedEvent {
+  /**
+   * The native APNs token as an uppercase hex-encoded string.
+   *
+   * @since 8.2.0
    */
   token: string;
 }

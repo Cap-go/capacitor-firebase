@@ -10,6 +10,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,11 +18,10 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseRemoteConfig")
 public class FirebaseRemoteConfigPlugin extends Plugin {
 
-    private final String pluginVersion = "8.0.4";
-
     public static final String TAG = "FirebaseRemoteConfig";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
     public static final String ERROR_CALLBACK_ID_MISSING = "callbackId must be provided.";
+    public static final String ERROR_DEFAULTS_MISSING = "defaults must be provided.";
 
     private static final int DEFAULT_MINIMUM_FETCH_INTERVAL_IN_SECONDS = 43200;
     private static final int DEFAULT_FETCH_TIMEOUT_IN_SECONDS = 60;
@@ -160,6 +160,27 @@ public class FirebaseRemoteConfigPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getAll(PluginCall call) {
+        try {
+            Map<String, FirebaseRemoteConfigValue> all = implementation.getAll();
+            JSObject values = new JSObject();
+            for (Map.Entry<String, FirebaseRemoteConfigValue> entry : all.entrySet()) {
+                FirebaseRemoteConfigValue value = entry.getValue();
+                JSObject valueObject = new JSObject();
+                valueObject.put("value", value.asString());
+                valueObject.put("source", value.getSource());
+                values.put(entry.getKey(), valueObject);
+            }
+            JSObject result = new JSObject();
+            result.put("values", values);
+            call.resolve(result);
+        } catch (Exception exception) {
+            Logger.error(TAG, exception.getMessage(), exception);
+            call.reject(exception.getMessage());
+        }
+    }
+
+    @PluginMethod
     public void getInfo(PluginCall call) {
         try {
             GetInfoResult info = implementation.getInfo();
@@ -176,6 +197,39 @@ public class FirebaseRemoteConfigPlugin extends Plugin {
     @PluginMethod
     public void setMinimumFetchInterval(PluginCall call) {
         call.reject("Not available on Android.");
+    }
+
+    @PluginMethod
+    public void setDefaults(PluginCall call) {
+        try {
+            JSObject defaults = call.getObject("defaults");
+            if (defaults == null) {
+                call.reject(ERROR_DEFAULTS_MISSING);
+                return;
+            }
+
+            Map<String, Object> parsedDefaults = new HashMap<>();
+            Iterator<String> keys = defaults.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                parsedDefaults.put(key, defaults.get(key));
+            }
+
+            implementation
+                .setDefaults(parsedDefaults)
+                .addOnCompleteListener(t -> {
+                    if (t.isSuccessful()) {
+                        call.resolve();
+                    } else {
+                        Exception exception = t.getException();
+                        String errorMessage = exception != null ? exception.getMessage() : "Failed to set defaults.";
+                        call.reject(errorMessage);
+                    }
+                });
+        } catch (Exception exception) {
+            Logger.error(TAG, exception.getMessage(), exception);
+            call.reject(exception.getMessage());
+        }
     }
 
     @PluginMethod
@@ -262,17 +316,6 @@ public class FirebaseRemoteConfigPlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage());
-        }
-    }
-
-    @PluginMethod
-    public void getPluginVersion(final PluginCall call) {
-        try {
-            final JSObject ret = new JSObject();
-            ret.put("version", this.pluginVersion);
-            call.resolve(ret);
-        } catch (final Exception e) {
-            call.reject("Could not get plugin version", e);
         }
     }
 }

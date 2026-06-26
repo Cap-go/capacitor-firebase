@@ -81,12 +81,20 @@ public class FirebaseRemoteConfig {
         return new GetValueResult<String>(value.asString(), value.getSource());
     }
 
+    public Map<String, FirebaseRemoteConfigValue> getAll() {
+        return getFirebaseRemoteConfigInstance().getAll();
+    }
+
     public GetInfoResult getInfo() {
         FirebaseRemoteConfigInfo info = getFirebaseRemoteConfigInstance().getInfo();
         long lastFetchTime = info.getFetchTimeMillis();
         int lastFetchStatus = info.getLastFetchStatus();
 
         return new GetInfoResult(lastFetchTime, lastFetchStatus);
+    }
+
+    public Task<Void> setDefaults(@NonNull Map<String, Object> defaults) {
+        return getFirebaseRemoteConfigInstance().setDefaultsAsync(defaults);
     }
 
     public Task<Void> setSettings(@Nullable Integer fetchTimeoutInSeconds, @Nullable Integer minimumFetchIntervalInSeconds) {

@@ -77,7 +77,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.0.5"
+    private let pluginVersion: String = "8.3.0"
     public let tag = "FirebaseAuthentication"
     public let errorProviderIdMissing = "providerId must be provided."
     public let errorNoUserSignedIn = "No user is signed in."
@@ -332,8 +332,13 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let options = LinkWithPhoneNumberOptions(phoneNumber: phoneNumber)
 
-        implementation?.linkWithPhoneNumber(options)
-        call.resolve()
+        do {
+            try implementation?.linkWithPhoneNumber(options)
+            call.resolve()
+        } catch {
+            CAPLog.print("[", self.tag, "] ", error)
+            call.reject(error.localizedDescription)
+        }
     }
 
     @objc func linkWithPlayGames(_ call: CAPPluginCall) {
@@ -523,8 +528,13 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let options = SignInWithPhoneNumberOptions(skipNativeAuth: skipNativeAuth, phoneNumber: phoneNumber)
 
-        implementation?.signInWithPhoneNumber(options)
-        call.resolve()
+        do {
+            try implementation?.signInWithPhoneNumber(options)
+            call.resolve()
+        } catch {
+            CAPLog.print("[", self.tag, "] ", error)
+            call.reject(error.localizedDescription)
+        }
     }
 
     @objc func signInWithPlayGames(_ call: CAPPluginCall) {

@@ -5,11 +5,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Cap-go/capacitor-firebase.git"
-  },
-  "author": "Capgo Team",
   "scripts": {
     "verify": "bun run verify:android && bun run verify:ios && bun run verify:web",
     "verify:android": "turbo run verify:android --concurrency=1 --no-cache --env-mode=loose",
@@ -35,16 +30,30 @@
     "release": "npm run build && changeset publish",
     "release:preview": "pkg-pr-new publish './packages/*'",
     "postinstall": "patch-package",
+    "prepare": "husky",
     "check:wiring": "node scripts/check-capacitor-plugin-wiring.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.8",
-    "@ionic/prettier-config": "4.0.0",
+    "@ionic/swiftlint-config": "2.0.0",
     "@robingenz/changelog-github": "0.0.1",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.5",
     "patch-package": "8.0.1",
     "pkg-pr-new": "0.0.20",
+    "prettier": "3.4.2",
     "prettier-plugin-java": "2.6.7",
-    "prettier-pretty-check": "0.2.0",
-    "turbo": "^2.8.3"
-  }
+    "turbo": "^2.8.3",
+    "@ionic/prettier-config": "4.0.0",
+    "prettier-pretty-check": "0.2.0"
+  },
+  "lint-staged": {
+    "**/*.{css,html,ts,js}": "prettier --write",
+    "**/*.java": "prettier --write --plugin=prettier-plugin-java"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cap-go/capacitor-firebase.git"
+  },
+  "author": "Capgo Team"
 }

@@ -3,8 +3,10 @@ package app.capgo.capacitor.firebase.storage;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import app.capgo.capacitor.firebase.storage.classes.events.DownloadFileCallbackEvent;
 import app.capgo.capacitor.firebase.storage.classes.events.UploadFileCallbackEvent;
 import app.capgo.capacitor.firebase.storage.classes.options.DeleteFileOptions;
+import app.capgo.capacitor.firebase.storage.classes.options.DownloadFileOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.GetDownloadUrlOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.GetMetadataOptions;
 import app.capgo.capacitor.firebase.storage.classes.options.ListFilesOptions;
@@ -13,6 +15,7 @@ import app.capgo.capacitor.firebase.storage.classes.options.UploadFileOptions;
 import app.capgo.capacitor.firebase.storage.classes.results.GetDownloadUrlResult;
 import app.capgo.capacitor.firebase.storage.classes.results.GetMetadataResult;
 import app.capgo.capacitor.firebase.storage.classes.results.ListFilesResult;
+import app.capgo.capacitor.firebase.storage.enums.DownloadFileState;
 import app.capgo.capacitor.firebase.storage.enums.UploadFileState;
 import app.capgo.capacitor.firebase.storage.interfaces.EmptyResultCallback;
 import app.capgo.capacitor.firebase.storage.interfaces.NonEmptyEventCallback;
@@ -29,6 +32,28 @@ public class FirebaseStorage {
 
     public FirebaseStorage(FirebaseStoragePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void downloadFile(@NonNull DownloadFileOptions options, @NonNull NonEmptyEventCallback callback) {
+        String path = options.getPath();
+        Uri uri = options.getUri();
+
+        StorageReference storageReference = getFirebaseStorageInstance().getReference(path);
+        storageReference
+            .getFile(uri)
+            .addOnProgressListener(taskSnapshot -> {
+                DownloadFileCallbackEvent result = new DownloadFileCallbackEvent(taskSnapshot, DownloadFileState.RUNNING);
+                callback.success(result);
+            })
+            .addOnSuccessListener(taskSnapshot -> {
+                DownloadFileCallbackEvent result = new DownloadFileCallbackEvent(taskSnapshot, DownloadFileState.SUCCESS);
+                callback.success(result);
+                callback.release();
+            })
+            .addOnFailureListener(exception -> {
+                callback.error(exception);
+                callback.release();
+            });
     }
 
     public void deleteFile(@NonNull DeleteFileOptions options, @NonNull EmptyResultCallback callback) {

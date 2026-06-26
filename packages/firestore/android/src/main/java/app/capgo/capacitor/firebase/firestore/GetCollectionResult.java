@@ -1,9 +1,11 @@
 package app.capgo.capacitor.firebase.firestore.classes.results;
 
+import androidx.annotation.NonNull;
 import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
 import app.capgo.capacitor.firebase.firestore.interfaces.Result;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import org.json.JSONObject;
@@ -12,15 +14,23 @@ public class GetCollectionResult implements Result {
 
     private QuerySnapshot querySnapshot;
 
+    @NonNull
+    private DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior;
+
     public GetCollectionResult(QuerySnapshot querySnapshot) {
+        this(querySnapshot, DocumentSnapshot.ServerTimestampBehavior.NONE);
+    }
+
+    public GetCollectionResult(QuerySnapshot querySnapshot, @NonNull DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior) {
         this.querySnapshot = querySnapshot;
+        this.serverTimestampBehavior = serverTimestampBehavior;
     }
 
     @Override
     public JSObject toJSObject() {
         JSArray snapshotsResult = new JSArray();
         for (QueryDocumentSnapshot document : querySnapshot) {
-            JSObject snapshotDataResult = FirebaseFirestoreHelper.createJSObjectFromMap(document.getData());
+            JSObject snapshotDataResult = FirebaseFirestoreHelper.createJSObjectFromMap(document.getData(serverTimestampBehavior));
 
             JSObject snapshotResult = new JSObject();
             snapshotResult.put("id", document.getId());
