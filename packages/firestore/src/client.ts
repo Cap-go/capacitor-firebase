@@ -156,7 +156,7 @@ export class FirebaseFirestoreClient implements FirebaseFirestorePlugin {
   async getCountFromServer(
     options: GetCountFromServerOptions,
   ): Promise<GetCountFromServerResult> {
-    return this.plugin.getCountFromServer(options);
+    return this.plugin.getCountFromServer(serializeData(options));
   }
 
   async getDocument<T extends DocumentData = DocumentData>(

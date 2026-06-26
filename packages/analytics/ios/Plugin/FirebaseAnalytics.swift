@@ -7,7 +7,7 @@ import FirebaseAnalytics
 
 @objc public class FirebaseAnalytics: NSObject {
 
-    private let plugin: FirebaseAnalyticsPlugin
+    private weak var plugin: FirebaseAnalyticsPlugin?
 
     init(plugin: FirebaseAnalyticsPlugin) {
         self.plugin = plugin
@@ -88,7 +88,7 @@ import FirebaseAnalytics
                 }
             }
             guard let transaction = matchedTransaction else {
-                completion(self.plugin.errorTransactionNotFound)
+                completion(self.plugin?.errorTransactionNotFound ?? "Transaction not found.")
                 return
             }
             Analytics.logTransaction(transaction)
