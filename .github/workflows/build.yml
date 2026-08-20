@@ -108,7 +108,7 @@ jobs:
             -f event_type=npm-stage-approve \
             -f "client_payload[repository]=${GITHUB_REPOSITORY}" \
             -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
-            -f "client_payload[package]=$(node -p "require('./package.json').name")"
+            -f "client_payload[package]=$(node -p "require('./packages/${{ steps.extract.outputs.package_name }}/package.json').name")"
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v3
