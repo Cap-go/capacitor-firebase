@@ -470,7 +470,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let savedCall = self.pluginCallMap[callbackId]
         if let savedCall = savedCall {
-            bridge?.releaseCall(savedCall)
+            bridge?.releaseCall(withID: savedCall.callbackId)
         }
         self.pluginCallMap.removeValue(forKey: callbackId)
 
@@ -483,7 +483,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc override public func removeAllListeners(_ call: CAPPluginCall) {
         for (_, savedCall) in self.pluginCallMap {
-            bridge?.releaseCall(savedCall)
+            bridge?.releaseCall(withID: savedCall.callbackId)
         }
         self.pluginCallMap.removeAll()
         self.eventListeners?.removeAllObjects()

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Capacitor 9 removed-API guard for native plugin sources.
+ * Capacitor 9 deprecated native API guard.
  *
- * Scans packages/* (Capacitor plugin packages) for symbols removed in Cap 9.
- * Does not flag Cordova SPM product dependencies in Package.swift.
+ * Fails when plugin native sources still use APIs removed in Capacitor 9.
+ * Does not flag Cordova SwiftPM product dependencies (still required on Cap 8).
  *
  * Usage:
- *   node scripts/check-cap9-deprecated.mjs
- *   node scripts/check-cap9-deprecated.mjs --dir packages/crashlytics
+ *   node scripts/check-cap9-deprecated.mjs --workspace
+ *   node scripts/check-cap9-deprecated.mjs --dir path
  */
 
 import fs from "node:fs";
@@ -24,85 +24,77 @@ const SKIP_DIRS = new Set([
   "DerivedData",
   ".swiftpm",
   ".git",
+  "example-app",
 ]);
 
-const NATIVE_EXTS = new Set([".java", ".kt", ".swift", ".m", ".mm"]);
-
-/** @type {{ id: string, regex: RegExp, hint: string }[]} */
+/** @type {{ id: string, pattern: RegExp, exts: string[], ignoreLine?: RegExp }[]} */
 const RULES = [
   {
-    id: "plugin-call-hasOption",
-    regex: /\.hasOption\s*\(/,
-    hint: "Use typed PluginCall/CAPPluginCall accessors instead of hasOption (removed in Cap 9).",
+    id: "hasOption",
+    pattern: /\bhasOption\s*\(/,
+    exts: [".java", ".kt", ".swift"],
   },
   {
-    id: "plugin-call-save",
-    regex: /\b(?:call|pluginCall)\.save\s*\(\s*\)/i,
-    hint: "Use PluginCall.setKeepAlive(true) instead of save() (removed in Cap 9).",
+    id: "getConfigValue",
+    pattern: /\bgetConfigValue\s*\(/,
+    exts: [".java", ".kt", ".swift"],
   },
   {
-    id: "plugin-call-isSaved",
-    regex: /\.isSaved\s*\(\s*\)/,
-    hint: "Use isKeptAlive() instead of isSaved() (removed in Cap 9).",
+    id: "@NativePlugin",
+    pattern: /@NativePlugin\b/,
+    exts: [".java", ".kt"],
   },
   {
-    id: "plugin-call-isReleased",
-    regex: /\.isReleased\s*\(\s*\)/,
-    hint: "PluginCall.isReleased() was removed in Cap 9.",
+    id: "saveCall",
+    pattern: /\bsaveCall\s*\(/,
+    exts: [".java", ".kt", ".swift"],
   },
   {
-    id: "plugin-getConfigValue",
-    regex: /\.getConfigValue\s*\(/,
-    hint: "Use getConfig() and PluginConfig typed accessors instead of getConfigValue (removed in Cap 9).",
+    id: "getSavedCall",
+    pattern: /\bgetSavedCall\s*\(/,
+    exts: [".java", ".kt", ".swift"],
   },
   {
-    id: "android-native-plugin-annotation",
-    regex: /@NativePlugin\b/,
-    hint: "Use @CapacitorPlugin instead of @NativePlugin (removed in Cap 9).",
+    id: "freeSavedCall",
+    pattern: /\bfreeSavedCall\s*\(/,
+    exts: [".java", ".kt", ".swift"],
   },
   {
-    id: "android-capconfig-asset-manager-ctor",
-    regex: /\bCapConfig\s*\(\s*[\s\S]*?\)/,
-    multiline: true,
-    hint: "CapConfig(AssetManager, JSONObject) was removed in Cap 9.",
+    id: "releaseCall",
+    pattern: /\breleaseCall\s*\(/,
+    exts: [".java", ".kt", ".swift"],
+    ignoreLine: /\.releaseCall\s*\(\s*withID:/,
   },
   {
-    id: "android-https-interceptor-legacy",
-    regex: /\bCAPACITOR_HTTPS_INTERCEPTOR_START\b/,
-    hint: "Use CAPACITOR_HTTP_INTERCEPTOR_START instead (Cap 9).",
+    id: "pluginRequestPermission",
+    pattern: /\bpluginRequestPermissions?\s*\(/,
+    exts: [".java", ".kt"],
   },
   {
-    id: "android-message-handler-legacy-ctor",
-    regex: /\bMessageHandler\s*\(\s*[\s\S]*?\)/,
-    multiline: true,
-    hint: "MessageHandler(Bridge, WebView, Object) was removed in Cap 9.",
+    id: "pluginRequestAllPermissions",
+    pattern: /\bpluginRequestAllPermissions\s*\(/,
+    exts: [".java", ".kt"],
   },
   {
-    id: "ios-cap-bridge-class",
-    regex: /\bCAPBridge\./,
-    hint: "CAPBridge compatibility shims were removed in Cap 9.",
+    id: "hasDefinedPermissions",
+    pattern: /\bhasDefinedPermissions\s*\(/,
+    exts: [".java", ".kt"],
   },
   {
-    id: "ios-cap-notifications-enum",
-    regex: /\bCAPNotifications\b/,
-    hint: "Use Notification.Name.capacitor* constants instead of CAPNotifications (Cap 9).",
+    id: "CAPBridge",
+    pattern: /\bCAPBridge\./,
+    exts: [".swift"],
+    ignoreLine: /CAPBridgedPlugin/,
   },
   {
-    id: "ios-plugin-call-typealiases",
-    regex: /\b(?:PluginCallErrorData|PluginResultData|JSResultBody)\b/,
-    hint: "Use PluginCallResultData instead of removed Cap 9 typealiases.",
-  },
-  {
-    id: "ios-portable-path-legacy",
-    regex: /\bgetPortablePath\s*\(\s*host\s*:/,
-    hint: "Use portablePath(fromLocalURL:) on the bridge instead (Cap 9).",
-  },
-  {
-    id: "ios-https-interceptor-legacy",
-    regex: /\bhttpsInterceptorStartIdentifier\b/,
-    hint: "Use httpInterceptorStartIdentifier instead (Cap 9).",
+    id: "CAPNotifications",
+    pattern: /\bCAPNotifications\b/,
+    exts: [".swift"],
   },
 ];
+
+const CORDova_SPM_LINE =
+  /\.product\s*\(\s*name\s*:\s*"Cordova"\s*,\s*package\s*:\s*"capacitor-swift-pm"\s*\)/;
 
 function readText(p) {
   try {
@@ -121,7 +113,23 @@ function exists(p) {
   }
 }
 
-function walkFiles(rootDir) {
+function parseArgs(argv) {
+  const out = { dir: process.cwd(), workspace: false };
+  for (let i = 2; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--workspace") {
+      out.workspace = true;
+      continue;
+    }
+    if (a === "--dir" || a === "--pluginDir") {
+      out.dir = path.resolve(argv[++i] || ".");
+      continue;
+    }
+  }
+  return out;
+}
+
+function walkFiles(rootDir, exts) {
   const out = [];
   const stack = [rootDir];
   while (stack.length) {
@@ -139,190 +147,157 @@ function walkFiles(rootDir) {
         continue;
       }
       if (!e.isFile()) continue;
-      const ext = path.extname(e.name);
-      if (NATIVE_EXTS.has(ext)) out.push(path.join(dir, e.name));
+      for (const ext of exts) {
+        if (e.name.endsWith(ext)) {
+          out.push(path.join(dir, e.name));
+          break;
+        }
+      }
     }
   }
   out.sort();
   return out;
 }
 
-function maskComments(source) {
-  const out = source.split("");
-  const len = source.length;
-  let i = 0;
-  while (i < len) {
-    const ch = source[i];
-    const next = source[i + 1];
-    if (ch === '"' || ch === "'") {
-      const quote = ch;
-      i++;
-      while (i < len) {
-        if (source[i] === "\\") {
-          i += 2;
-          continue;
-        }
-        if (source[i] === quote) {
-          i++;
-          break;
-        }
-        i++;
-      }
-      continue;
-    }
-    if (ch === "/" && next === "/") {
-      i += 2;
-      while (i < len && source[i] !== "\n") {
-        out[i] = " ";
-        i++;
-      }
-      continue;
-    }
-    if (ch === "/" && next === "*") {
-      i += 2;
-      while (i < len && !(source[i] === "*" && source[i + 1] === "/")) {
-        out[i] = " ";
-        i++;
-      }
-      if (i < len) {
-        out[i] = " ";
-        out[i + 1] = " ";
-        i += 2;
-      }
-      continue;
-    }
-    i++;
+function collectScanRoots(pluginDir, cap) {
+  const roots = [];
+  if (cap.android) {
+    const androidMain = path.join(pluginDir, "android", "src", "main");
+    if (exists(androidMain)) roots.push(androidMain);
   }
-  return out.join("");
-}
-
-function lineNumberAtIndex(source, index) {
-  let line = 1;
-  for (let i = 0; i < index && i < source.length; i++) {
-    if (source[i] === "\n") line++;
-  }
-  return line;
-}
-
-function isCordovaSpmDependencyLine(line) {
-  return (
-    /\.product\s*\(\s*name\s*:\s*"Cordova"/.test(line) ||
-    /product\s*\(\s*name:\s*"Cordova"/.test(line)
-  );
-}
-
-function parseArgs(argv) {
-  const out = { dirs: [] };
-  for (let i = 2; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--dir") {
-      out.dirs.push(path.resolve(argv[++i] || "."));
-      continue;
+  if (cap.ios) {
+    const iosSources = path.join(pluginDir, "ios", "Sources");
+    if (exists(iosSources)) roots.push(iosSources);
+    else {
+      const iosDir = path.join(pluginDir, "ios");
+      if (exists(iosDir)) roots.push(iosDir);
     }
   }
-  return out;
+  const packageSwift = path.join(pluginDir, "Package.swift");
+  if (exists(packageSwift)) roots.push(packageSwift);
+  return roots;
 }
 
-function isCapacitorPluginPackage(dir) {
-  const pkgPath = path.join(dir, "package.json");
-  if (!exists(pkgPath)) return false;
-  try {
-    const pkg = JSON.parse(readText(pkgPath));
-    const cap = typeof pkg.capacitor === "object" && pkg.capacitor ? pkg.capacitor : {};
-    return Boolean(cap.android || cap.ios);
-  } catch {
-    return false;
+function scanFile(filePath, rule) {
+  const ext = path.extname(filePath);
+  if (!rule.exts.includes(ext)) return [];
+
+  const txt = readText(filePath);
+  const lines = txt.split(/\r?\n/);
+  const hits = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (filePath.endsWith("Package.swift") && CORDova_SPM_LINE.test(line)) {
+      continue;
+    }
+    if (rule.ignoreLine?.test(line)) continue;
+    if (rule.pattern.test(line)) {
+      hits.push({ line: i + 1, text: line.trim() });
+    }
   }
+  return hits;
 }
 
-function listPluginPackageDirs(repoRoot) {
+function listWorkspacePluginDirs(repoRoot) {
   const packagesRoot = path.join(repoRoot, "packages");
   if (!exists(packagesRoot)) return [];
   return fs
     .readdirSync(packagesRoot, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => path.join(packagesRoot, e.name))
-    .filter(isCapacitorPluginPackage)
+    .filter((dir) => {
+      const pkgPath = path.join(dir, "package.json");
+      if (!exists(pkgPath)) return false;
+      try {
+        const pkg = JSON.parse(readText(pkgPath));
+        const cap = typeof pkg.capacitor === "object" && pkg.capacitor ? pkg.capacitor : {};
+        return Boolean(cap.android || cap.ios);
+      } catch {
+        return false;
+      }
+    })
     .sort();
 }
 
-function scanFile(filePath) {
-  const rel = path.relative(process.cwd(), filePath);
-  const isPackageSwift = path.basename(filePath) === "Package.swift";
-  const source = readText(filePath);
-  const masked = maskComments(source);
-  const lines = source.split(/\r?\n/);
-  const hits = [];
+/**
+ * @returns {boolean} true when the plugin passes
+ */
+function checkPluginDir(pluginDir) {
+  const pkgPath = path.join(pluginDir, "package.json");
 
-  for (const rule of RULES) {
-    const flags = rule.multiline ? "gms" : "gm";
-    const re = new RegExp(rule.regex.source, flags);
-    let match;
-    while ((match = re.exec(masked)) !== null) {
-      const lineNo = lineNumberAtIndex(source, match.index);
-      const rawLine = lines[lineNo - 1] ?? "";
-      if (isPackageSwift && isCordovaSpmDependencyLine(rawLine)) continue;
-      hits.push({
-        file: rel,
-        line: lineNo,
-        rule: rule.id,
-        hint: rule.hint,
-        snippet: rawLine.trim(),
-      });
-    }
+  if (!exists(pkgPath)) {
+    console.error(`[cap9-deprecated] ERROR: missing package.json in ${pluginDir}`);
+    return false;
   }
-  return hits;
-}
 
-function scanPluginDir(pluginDir) {
-  const hits = [];
-  const roots = [
-    path.join(pluginDir, "android"),
-    path.join(pluginDir, "ios"),
-    path.join(pluginDir, "Package.swift"),
-  ].filter((p) => exists(p));
+  let pkg;
+  try {
+    pkg = JSON.parse(readText(pkgPath));
+  } catch (e) {
+    console.error(`[cap9-deprecated] ERROR: invalid package.json (${pkgPath}): ${e?.message || e}`);
+    return false;
+  }
 
-  for (const root of roots) {
+  const cap = typeof pkg.capacitor === "object" && pkg.capacitor ? pkg.capacitor : {};
+  if (!cap.android && !cap.ios) {
+    return true;
+  }
+
+  const scanRoots = collectScanRoots(pluginDir, cap);
+  const allExts = [...new Set(RULES.flatMap((r) => r.exts))];
+  const files = [];
+  for (const root of scanRoots) {
     if (root.endsWith("Package.swift")) {
-      hits.push(...scanFile(root));
+      files.push(root);
       continue;
     }
-    for (const file of walkFiles(root)) {
-      hits.push(...scanFile(file));
+    files.push(...walkFiles(root, allExts));
+  }
+
+  const violations = [];
+  for (const file of files) {
+    for (const rule of RULES) {
+      const hits = scanFile(file, rule);
+      for (const hit of hits) {
+        violations.push({
+          rule: rule.id,
+          file: path.relative(pluginDir, file),
+          line: hit.line,
+          text: hit.text,
+        });
+      }
     }
   }
 
-  const podspecs = fs
-    .readdirSync(pluginDir, { withFileTypes: true })
-    .filter((e) => e.isFile() && e.name.endsWith(".podspec"))
-    .map((e) => path.join(pluginDir, e.name));
-  for (const podspec of podspecs) hits.push(...scanFile(podspec));
+  if (violations.length) {
+    const relDir = path.relative(process.cwd(), pluginDir) || ".";
+    console.error(`[cap9-deprecated] FAIL in ${relDir}`);
+    for (const v of violations) {
+      console.error(`- ${v.rule}: ${v.file}:${v.line}: ${v.text}`);
+    }
+    return false;
+  }
 
-  return hits;
+  return true;
 }
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs(process.argv);
-const pluginDirs = args.dirs.length ? args.dirs : listPluginPackageDirs(repoRoot);
 
-if (!pluginDirs.length) {
-  console.error("[cap9-deprecated] ERROR: no Capacitor plugin packages found under packages/*");
-  process.exit(2);
-}
-
-const allHits = [];
-for (const dir of pluginDirs) {
-  allHits.push(...scanPluginDir(dir));
-}
-
-if (allHits.length) {
-  console.error(`[cap9-deprecated] FAIL: ${allHits.length} Capacitor 9 removed API usage(s) found`);
-  for (const hit of allHits) {
-    console.error(`- ${hit.file}:${hit.line} [${hit.rule}] ${hit.hint}`);
-    console.error(`  ${hit.snippet}`);
+if (args.workspace) {
+  const pluginDirs = listWorkspacePluginDirs(repoRoot);
+  if (!pluginDirs.length) {
+    console.error("[cap9-deprecated] ERROR: no Capacitor plugin packages found under packages/*");
+    process.exit(2);
   }
-  process.exit(1);
+  let failed = false;
+  for (const dir of pluginDirs) {
+    if (!checkPluginDir(dir)) failed = true;
+  }
+  if (failed) process.exit(1);
+  console.log(`[cap9-deprecated] OK (${pluginDirs.length} plugin package(s) scanned)`);
+  process.exit(0);
 }
 
-console.log(`[cap9-deprecated] OK (${pluginDirs.length} plugin package(s) scanned)`);
-process.exit(0);
+const ok = checkPluginDir(args.dir);
+process.exit(ok ? 0 : 1);

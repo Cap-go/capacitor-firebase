@@ -32,7 +32,7 @@
     "postinstall": "patch-package",
     "prepare": "husky",
     "check:wiring": "node scripts/check-capacitor-plugin-wiring.mjs",
-    "check:cap9-deprecated": "node scripts/check-cap9-deprecated.mjs"
+    "check:cap9-deprecated": "node scripts/check-cap9-deprecated.mjs --workspace"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.8",
