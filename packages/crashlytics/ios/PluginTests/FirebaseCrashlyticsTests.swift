@@ -1,16 +1,47 @@
+import Capacitor
 import XCTest
 @testable import Plugin
 
 class FirebaseCrashlyticsTests: XCTestCase {
 
-    func testEcho() {
-        // This is an example of a functional test case for a plugin.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    private func makeCall(options: [String: Any]) -> CAPPluginCall {
+        CAPPluginCall(
+            callbackId: "test",
+            methodName: "setCustomKey",
+            options: options,
+            success: { _, _ in },
+            error: { _ in }
+        )
+    }
 
-        let implementation = FirebaseCrashlytics()
-        let value = "Hello, World!"
-        let result = implementation.echo(value)
+    func testRejectsMissingValueForStringType() {
+        let call = makeCall(options: ["key": "k"])
+        XCTAssertFalse(CustomKeyValueValidation.hasCustomKeyValue(call, type: "string"))
+    }
 
-        XCTAssertEqual(value, result)
+    func testAcceptsStringValueForStringType() {
+        let call = makeCall(options: ["value": "hello"])
+        XCTAssertTrue(CustomKeyValueValidation.hasCustomKeyValue(call, type: "string"))
+    }
+
+    func testRejectsIncompatibleValueForIntType() {
+        let call = makeCall(options: ["value": "7"])
+        XCTAssertFalse(CustomKeyValueValidation.hasCustomKeyValue(call, type: "int"))
+    }
+
+    func testAcceptsIntegerValueForIntType() {
+        let call = makeCall(options: ["value": 7])
+        XCTAssertTrue(CustomKeyValueValidation.hasCustomKeyValue(call, type: "int"))
+        XCTAssertTrue(CustomKeyValueValidation.hasCustomKeyValue(call, type: "long"))
+    }
+
+    func testAcceptsBooleanValueForBooleanType() {
+        let call = makeCall(options: ["value": true])
+        XCTAssertTrue(CustomKeyValueValidation.hasCustomKeyValue(call, type: "boolean"))
+    }
+
+    func testAcceptsDoubleValueForDoubleType() {
+        let call = makeCall(options: ["value": 2.5])
+        XCTAssertTrue(CustomKeyValueValidation.hasCustomKeyValue(call, type: "double"))
     }
 }
