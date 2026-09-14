@@ -62,7 +62,8 @@ const RULES = [
   },
   {
     id: "android-capconfig-asset-manager-ctor",
-    regex: /\bCapConfig\s*\(\s*[^,]+,\s*[^)]+\)/,
+    regex: /\bCapConfig\s*\(\s*[\s\S]*?\)/,
+    multiline: true,
     hint: "CapConfig(AssetManager, JSONObject) was removed in Cap 9.",
   },
   {
@@ -72,7 +73,8 @@ const RULES = [
   },
   {
     id: "android-message-handler-legacy-ctor",
-    regex: /\bMessageHandler\s*\(\s*[^,]+,\s*[^,]+,\s*[^)]+\)/,
+    regex: /\bMessageHandler\s*\(\s*[\s\S]*?\)/,
+    multiline: true,
     hint: "MessageHandler(Bridge, WebView, Object) was removed in Cap 9.",
   },
   {
@@ -145,13 +147,61 @@ function walkFiles(rootDir) {
   return out;
 }
 
-function stripLineComments(line) {
-  let out = line;
-  const block = out.indexOf("/*");
-  if (block >= 0) out = out.slice(0, block);
-  const slash = out.indexOf("//");
-  if (slash >= 0) out = out.slice(0, slash);
-  return out;
+function maskComments(source) {
+  const out = source.split("");
+  const len = source.length;
+  let i = 0;
+  while (i < len) {
+    const ch = source[i];
+    const next = source[i + 1];
+    if (ch === '"' || ch === "'") {
+      const quote = ch;
+      i++;
+      while (i < len) {
+        if (source[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (source[i] === quote) {
+          i++;
+          break;
+        }
+        i++;
+      }
+      continue;
+    }
+    if (ch === "/" && next === "/") {
+      i += 2;
+      while (i < len && source[i] !== "\n") {
+        out[i] = " ";
+        i++;
+      }
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      i += 2;
+      while (i < len && !(source[i] === "*" && source[i + 1] === "/")) {
+        out[i] = " ";
+        i++;
+      }
+      if (i < len) {
+        out[i] = " ";
+        out[i + 1] = " ";
+        i += 2;
+      }
+      continue;
+    }
+    i++;
+  }
+  return out.join("");
+}
+
+function lineNumberAtIndex(source, index) {
+  let line = 1;
+  for (let i = 0; i < index && i < source.length; i++) {
+    if (source[i] === "\n") line++;
+  }
+  return line;
 }
 
 function isCordovaSpmDependencyLine(line) {
@@ -199,23 +249,26 @@ function listPluginPackageDirs(repoRoot) {
 function scanFile(filePath) {
   const rel = path.relative(process.cwd(), filePath);
   const isPackageSwift = path.basename(filePath) === "Package.swift";
+  const source = readText(filePath);
+  const masked = maskComments(source);
+  const lines = source.split(/\r?\n/);
   const hits = [];
-  const lines = readText(filePath).split(/\r?\n/);
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    if (isPackageSwift && isCordovaSpmDependencyLine(raw)) continue;
-    const line = stripLineComments(raw);
-    if (!line.trim()) continue;
-    for (const rule of RULES) {
-      if (rule.regex.test(line)) {
-        hits.push({
-          file: rel,
-          line: i + 1,
-          rule: rule.id,
-          hint: rule.hint,
-          snippet: raw.trim(),
-        });
-      }
+
+  for (const rule of RULES) {
+    const flags = rule.multiline ? "gms" : "gm";
+    const re = new RegExp(rule.regex.source, flags);
+    let match;
+    while ((match = re.exec(masked)) !== null) {
+      const lineNo = lineNumberAtIndex(source, match.index);
+      const rawLine = lines[lineNo - 1] ?? "";
+      if (isPackageSwift && isCordovaSpmDependencyLine(rawLine)) continue;
+      hits.push({
+        file: rel,
+        line: lineNo,
+        rule: rule.id,
+        hint: rule.hint,
+        snippet: rawLine.trim(),
+      });
     }
   }
   return hits;
