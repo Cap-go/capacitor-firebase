@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-firebase-remote-config",
-  "version": "8.3.0",
+  "version": "8.3.1",
   "description": "Capacitor plugin for Firebase Remote Config.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
