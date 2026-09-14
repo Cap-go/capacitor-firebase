@@ -1,7 +1,6 @@
 package app.capgo.capacitor.firebase.crashlytics;
 
 import com.getcapacitor.PluginCall;
-import org.json.JSONObject;
 
 /**
  * Validates Crashlytics custom key payloads using Capacitor {@link PluginCall} typed accessors.
@@ -18,7 +17,19 @@ final class CustomKeyValueValidation {
      * @return {@code true} when a typed accessor can read {@code value} for {@code type}
      */
     static boolean hasCustomKeyValue(PluginCall call, String type) {
-        return hasCustomKeyValue(call.getData().opt("value"), type);
+        switch (type) {
+            case "long":
+            case "int":
+                return call.getInt("value") != null;
+            case "boolean":
+                return call.getBoolean("value") != null;
+            case "float":
+                return call.getFloat("value") != null;
+            case "double":
+                return call.getDouble("value") != null;
+            default:
+                return call.getString("value") != null;
+        }
     }
 
     /**
@@ -29,7 +40,7 @@ final class CustomKeyValueValidation {
      * @return {@code true} when {@code value} can be read for {@code type}
      */
     static boolean hasCustomKeyValue(Object value, String type) {
-        if (value == null || value == JSONObject.NULL) {
+        if (value == null) {
             return false;
         }
         switch (type) {
