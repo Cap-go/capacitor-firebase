@@ -49,12 +49,11 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorKeyMissing)
             return
         }
-        let hasValue = call.hasOption("value")
-        if hasValue == false {
+        let type = call.getString("type") ?? "string"
+        if !hasCustomKeyValue(call, type: type) {
             call.reject(errorValueMissing)
             return
         }
-        let type = call.getString("type") ?? "string"
         implementation?.setCustomKey(key, type, call)
         call.resolve()
     }
@@ -136,5 +135,20 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func getPluginVersion(_ call: CAPPluginCall) {
         call.resolve(["version": pluginVersion])
+    }
+
+    private func hasCustomKeyValue(_ call: CAPPluginCall, type: String) -> Bool {
+        switch type {
+        case "int", "long":
+            return call.getInt("value") != nil
+        case "boolean":
+            return call.getBool("value") != nil
+        case "float":
+            return call.getFloat("value") != nil
+        case "double":
+            return call.getDouble("value") != nil
+        default:
+            return call.getString("value") != nil
+        }
     }
 }

@@ -45,12 +45,11 @@ public class FirebaseCrashlyticsPlugin extends Plugin {
                 call.reject(ERROR_KEY_MISSING);
                 return;
             }
-            boolean hasValue = call.hasOption("value");
-            if (!hasValue) {
+            String type = call.getString("type", "string");
+            if (!hasCustomKeyValue(call, type)) {
                 call.reject(ERROR_VALUE_MISSING);
                 return;
             }
-            String type = call.getString("type", "string");
             implementation.setCustomKey(key, type, call);
             call.resolve();
         } catch (Exception exception) {
@@ -163,6 +162,22 @@ public class FirebaseCrashlyticsPlugin extends Plugin {
         } catch (Exception exception) {
             Logger.error(TAG, exception.getMessage(), exception);
             call.reject(exception.getMessage());
+        }
+    }
+
+    private boolean hasCustomKeyValue(PluginCall call, String type) {
+        switch (type) {
+            case "long":
+            case "int":
+                return call.getInt("value") != null;
+            case "boolean":
+                return call.getBoolean("value") != null;
+            case "float":
+                return call.getFloat("value") != null;
+            case "double":
+                return call.getDouble("value") != null;
+            default:
+                return call.getString("value") != null;
         }
     }
 
