@@ -76,6 +76,8 @@ jobs:
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
+      - name: Check Cap 9 deprecated APIs
+        run: bun run check:cap9-deprecated
       - name: Build packages affected by changes
         run: bun run affected:verify:android
 
@@ -103,6 +105,8 @@ jobs:
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
+      - name: Check Cap 9 deprecated APIs
+        run: bun run check:cap9-deprecated
       - name: Install CocoaPods dependencies of packages affected by changes
         run: bun run affected:ios:pod:install
       - name: Install SPM dependencies of packages affected by changes
@@ -130,6 +134,8 @@ jobs:
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
+      - name: Check Cap 9 deprecated APIs
+        run: bun run check:cap9-deprecated
       - name: Build packages affected by changes
         run: bun run affected:verify:web
 
@@ -154,5 +160,7 @@ jobs:
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
+      - name: Check Cap 9 deprecated APIs
+        run: bun run check:cap9-deprecated
       - name: Lint packages affected by changes
         run: bun run affected:lint
