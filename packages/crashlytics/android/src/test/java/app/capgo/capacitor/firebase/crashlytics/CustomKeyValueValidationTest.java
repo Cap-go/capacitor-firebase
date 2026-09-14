@@ -9,7 +9,7 @@ public class CustomKeyValueValidationTest {
 
     @Test
     public void rejectsMissingValueForStringType() {
-        assertFalse(CustomKeyValueValidation.hasCustomKeyValue(null, "string"));
+        assertFalse(CustomKeyValueValidation.hasCustomKeyValue((Object) null, "string"));
     }
 
     @Test

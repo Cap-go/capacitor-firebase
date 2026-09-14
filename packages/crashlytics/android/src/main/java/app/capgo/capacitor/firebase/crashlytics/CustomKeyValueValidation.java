@@ -17,6 +17,9 @@ final class CustomKeyValueValidation {
      * @return {@code true} when a typed accessor can read {@code value} for {@code type}
      */
     static boolean hasCustomKeyValue(PluginCall call, String type) {
+        if (call == null) {
+            return false;
+        }
         switch (type) {
             case "long":
             case "int":
