@@ -50,7 +50,7 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let type = call.getString("type") ?? "string"
-        if !hasCustomKeyValue(call, type: type) {
+        if !CustomKeyValueValidation.hasCustomKeyValue(call, type: type) {
             call.reject(errorValueMissing)
             return
         }
@@ -137,18 +137,4 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["version": pluginVersion])
     }
 
-    private func hasCustomKeyValue(_ call: CAPPluginCall, type: String) -> Bool {
-        switch type {
-        case "int", "long":
-            return call.getInt("value") != nil
-        case "boolean":
-            return call.getBool("value") != nil
-        case "float":
-            return call.getFloat("value") != nil
-        case "double":
-            return call.getDouble("value") != nil
-        default:
-            return call.getString("value") != nil
-        }
-    }
 }
