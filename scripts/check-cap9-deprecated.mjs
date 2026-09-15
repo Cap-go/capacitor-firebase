@@ -6,6 +6,7 @@
  * Does not flag Cordova SwiftPM product dependencies (still required on Cap 8).
  *
  * Usage:
+ *   node scripts/check-cap9-deprecated.mjs
  *   node scripts/check-cap9-deprecated.mjs --workspace
  *   node scripts/check-cap9-deprecated.mjs --dir path
  */
