@@ -39,6 +39,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun i
+      - name: Apply dependency patches
+        run: bun run patch
       - name: Git config
         run: |
           git config --local user.name "github-actions[bot]"

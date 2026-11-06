@@ -7,6 +7,8 @@ This file provides guidance to AI agents and contributors working on this Capaci
 ```bash
 # Install dependencies
 bun install
+# Apply patches/ (patch-package; not run automatically on npm 12+ without lifecycle scripts)
+bun run patch
 
 # Build the plugin (TypeScript + Rollup + docgen)
 bun run build
@@ -23,7 +25,7 @@ bun run lint
 
 ## Development Workflow
 
-1. **Install** - `bun install` (never use npm)
+1. **Install** - `bun install` (never use npm), then `bun run patch` so patches under `patches/` apply (npm 12 skips install lifecycle scripts by default)
 2. **Build** - `bun run build` compiles TypeScript, generates docs, and bundles with Rollup
 3. **Verify** - `bun run verify` builds for iOS, Android, and Web. Always run this before submitting work
 4. **Format** - `bun run fmt` auto-fixes ESLint, Prettier, and SwiftLint issues

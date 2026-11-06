@@ -13,6 +13,12 @@ This guide provides instructions for contributing to this Capacitor plugins.
     bun install
     ```
 
+    Then apply `patches/` to `node_modules` (needed for docgen; npm 12 no longer runs install lifecycle scripts such as `postinstall` by default, so this repo runs patches explicitly):
+
+    ```shell
+    bun run patch
+    ```
+
 1. Install SwiftLint if you're on macOS.
 
     ```shell

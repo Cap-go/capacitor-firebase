@@ -202,6 +202,9 @@ jobs:
       - name: Install dependencies
         run: bun i
 
+      - name: Apply dependency patches
+        run: bun run patch
+
       - name: Check plugin wiring
         run: bun run check:wiring
 

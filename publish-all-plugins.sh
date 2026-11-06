@@ -41,6 +41,7 @@ fi
 # Install root dependencies first
 echo -e "${YELLOW}Installing root dependencies...${NC}"
 bun i
+bun run patch
 echo ""
 
 # Counter for successful/failed publishes
