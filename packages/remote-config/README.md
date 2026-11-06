@@ -461,9 +461,9 @@ Get the version of this plugin.
 
 #### GetAllResult
 
-| Prop         | Type                                                                                  | Description              | Since |
-| ------------ | ------------------------------------------------------------------------------------- | ------------------------ | ----- |
-| **`values`** | <code>Record&lt;string, <a href="#getallresultvalue">GetAllResultValue</a>&gt;</code> | The values for all keys. | 8.3.0 |
+| Prop         | Type                                                                                                        | Description              | Since |
+| ------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------ | ----- |
+| **`values`** | <code><a href="#record">Record</a>&lt;string, <a href="#getallresultvalue">GetAllResultValue</a>&gt;</code> | The values for all keys. | 8.3.0 |
 
 
 #### GetAllResultValue
@@ -491,9 +491,9 @@ Get the version of this plugin.
 
 #### SetDefaultsOptions
 
-| Prop           | Type                                                           | Description                                          | Since |
-| -------------- | -------------------------------------------------------------- | ---------------------------------------------------- | ----- |
-| **`defaults`** | <code>Record&lt;string, string \| number \| boolean&gt;</code> | Defines the dictionary of values to set as defaults. | 8.3.0 |
+| Prop           | Type                                                                                 | Description                                          | Since |
+| -------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- | ----- |
+| **`defaults`** | <code><a href="#record">Record</a>&lt;string, string \| number \| boolean&gt;</code> | Defines the dictionary of values to set as defaults. | 8.3.0 |
 
 
 #### SetSettingsOptions
@@ -541,6 +541,13 @@ Get the version of this plugin.
 #### GetStringOptions
 
 <code><a href="#getoptions">GetOptions</a></code>
+
+
+#### Record
+
+Construct a type with a set of properties K of type T
+
+<code>{ [P in K]: T; }</code>
 
 
 #### AddConfigUpdateListenerOptionsCallback

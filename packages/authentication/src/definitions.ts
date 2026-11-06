@@ -1,6 +1,14 @@
 /// <reference types="@capacitor/cli" />
 
-import type { PermissionState, PluginListenerHandle } from '@capacitor/core';
+type PermissionState =
+  | 'prompt'
+  | 'prompt-with-rationale'
+  | 'granted'
+  | 'denied';
+
+interface PluginListenerHandle {
+  remove: () => Promise<void>;
+}
 
 declare module '@capacitor/cli' {
   export interface PluginsConfig {
