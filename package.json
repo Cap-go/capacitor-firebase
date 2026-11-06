@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "patch": "patch-package",
+    "patch": "patch-package --error-on-fail",
     "verify": "bun run verify:android && bun run verify:ios && bun run verify:web",
     "verify:android": "bun run patch && turbo run verify:android --concurrency=1 --no-cache --env-mode=loose",
     "verify:ios": "bun run patch && turbo run verify:ios --concurrency=1 --no-cache --env-mode=loose",
