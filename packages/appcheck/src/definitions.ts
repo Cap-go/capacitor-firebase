@@ -1,4 +1,6 @@
-import type { PluginListenerHandle } from '@capacitor/core';
+interface PluginListenerHandle {
+  remove: () => Promise<void>;
+}
 
 export interface FirebaseAppCheckPlugin {
   /**
