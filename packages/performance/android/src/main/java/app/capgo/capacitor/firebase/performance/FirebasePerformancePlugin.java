@@ -12,7 +12,7 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebasePerformance")
 public class FirebasePerformancePlugin extends Plugin {
 
-    private final String pluginVersion = "8.3.0";
+    private final String pluginVersion = "8.3.1";
 
     public static final String TAG = "FirebasePerformance";
     public static final String ERROR_TRACE_NAME_MISSING = "traceName must be provided.";
