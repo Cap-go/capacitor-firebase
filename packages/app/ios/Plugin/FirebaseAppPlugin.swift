@@ -17,7 +17,7 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.0"
+    private let pluginVersion: String = "8.3.1"
     override public func load() {
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
