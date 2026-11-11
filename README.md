@@ -28,6 +28,18 @@ We are deeply grateful for Robin's pioneering work on these plugins.
 
 > Capawesome bump Firebase SDK usually on major update once a year as stated [here](https://github.com/capawesome-team/capacitor-firebase/issues/899#issuecomment-3138948137), we always bump and recommend you to use fix version when you use our fork, to not get breaking Native SDK changes without wanting it</p>
 
+## Built and maintained with AI
+
+We build, improve and fix our plugins with heavy use of AI, so issues usually get fixed in under a day and pull requests get feedback the same day. A human still reviews and merges 50+ pull requests daily.
+
+- Most plugin issues get a fix pull request the same day, often within a couple of hours, and are usually resolved in one to two days.
+- Every pull request goes through our AI review system, usually within minutes.
+- Our AI pre-checks tests, code review, conventions and security, then a human validates and merges.
+- A human, Martin, reviews and merges 50+ pull requests every day.
+- In the last 90 days, 95% of plugin issues were resolved.
+
+[Learn more about how we build with AI](https://capgo.app/docs/plugins/ai-engineering/)
+
 ## Features
 
 Capacitor Firebase is a collection of Capacitor plugins that make it easier for you to use [Firebase](https://firebase.google.com/) in your Capacitor project.[^1]
