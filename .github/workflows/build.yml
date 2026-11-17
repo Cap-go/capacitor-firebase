@@ -1,8 +1,8 @@
 name: Build and publish
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
-  cancel-in-progress: true
+  group: build-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           filter: blob:none
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
       - uses: oven-sh/setup-bun@v2
       - name: Extract package name from tag
         id: extract
@@ -40,10 +40,22 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
           REF_NAME: ${{ github.ref_name }}
+          WORKFLOW_REF: ${{ github.ref }}
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             TAG="$INPUT_TAG"
+            EXPECTED_REF="refs/tags/$TAG"
+            if [ "$WORKFLOW_REF" != "$EXPECTED_REF" ]; then
+              echo "Refusing branch dispatch: start the run at the tag ref."
+              echo "Example: gh workflow run build.yml --ref \"$TAG\" -f tag=\"$TAG\""
+              exit 1
+            fi
+            TAG_COMMIT="$(git rev-parse -q --verify "refs/tags/$TAG^{commit}")"
+            if [ "$(git rev-parse HEAD)" != "$TAG_COMMIT" ]; then
+              echo "HEAD does not match tag commit for $TAG"
+              exit 1
+            fi
           else
             TAG="$REF_NAME"
           fi
@@ -69,24 +81,6 @@ jobs:
             echo "package_name=$PACKAGE_NAME"
           } >> "$GITHUB_OUTPUT"
           echo "Publishing package: $PACKAGE_NAME at $TAG"
-      - name: Validate release source
-        id: release_source
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          set -euo pipefail
-          TAG_SHA="$(git rev-parse HEAD)"
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            git fetch origin main
-            if ! git merge-base --is-ancestor "$TAG_SHA" "origin/main"; then
-              echo "Refusing to publish: tag commit $TAG_SHA is not contained in origin/main history"
-              exit 1
-            fi
-            echo "use_provenance=false" >> "$GITHUB_OUTPUT"
-            echo "workflow_dispatch: npm publish without --provenance (run SHA on main would not match tag source)"
-          else
-            echo "use_provenance=true" >> "$GITHUB_OUTPUT"
-          fi
       - name: Install dependencies
         run: bun i
       - name: Check plugin wiring
@@ -144,42 +138,35 @@ jobs:
         if: ${{ !contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          USE_PROVENANCE: ${{ steps.release_source.outputs.use_provenance }}
           PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
           set -euo pipefail
           cd "packages/$PACKAGE_NAME"
           npm --version
-          publish_args=(stage publish --access public --ignore-scripts)
-          if [ "$USE_PROVENANCE" = "true" ]; then
-            publish_args+=(--provenance)
-          fi
-          npm "${publish_args[@]}"
+          npm stage publish --provenance --access public --ignore-scripts
       - name: Stage publish to npm (alpha)
         if: ${{ contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          USE_PROVENANCE: ${{ steps.release_source.outputs.use_provenance }}
           PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
           set -euo pipefail
           cd "packages/$PACKAGE_NAME"
           npm --version
-          publish_args=(stage publish --tag next --access public --ignore-scripts)
-          if [ "$USE_PROVENANCE" = "true" ]; then
-            publish_args+=(--provenance)
-          fi
-          npm "${publish_args[@]}"
+          npm stage publish --tag next --provenance --access public --ignore-scripts
       - name: Request stage approval
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.NPM_STAGE_DISPATCH_TOKEN }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
+          set -euo pipefail
+          NPM_PACKAGE_NAME="$(node -p "require('./packages/$PACKAGE_NAME/package.json').name")"
           gh api --method POST repos/Cap-go/automations/dispatches \
             -f event_type=npm-stage-approve \
             -f "client_payload[repository]=${GITHUB_REPOSITORY}" \
             -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
-            -f "client_payload[package]=$(node -p "require('./packages/${{ steps.extract.outputs.package_name }}/package.json').name")"
+            -f "client_payload[package]=${NPM_PACKAGE_NAME}"
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v3

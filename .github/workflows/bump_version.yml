@@ -123,22 +123,39 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Push branch to origin
+        env:
+          GIT_REMOTE: https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
         run: |
           set -euo pipefail
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-          git pull "$remote_repo" "$CURRENT_BRANCH"
-          git push "$remote_repo" "HEAD:$CURRENT_BRANCH"
+          git pull "$GIT_REMOTE" "$CURRENT_BRANCH"
+          git push "$GIT_REMOTE" "HEAD:$CURRENT_BRANCH"
       - name: Push release tags
+        env:
+          NEW_TAGS: ${{ steps.bump.outputs.new_tags }}
+          GIT_REMOTE: https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
         run: |
           set -euo pipefail
-          remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-          mapfile -t tags < <(echo "${{ steps.bump.outputs.new_tags }}" | sed '/^$/d')
+          mapfile -t tags < <(printf '%s\n' "$NEW_TAGS" | sed '/^$/d')
           if [ "${#tags[@]}" -eq 0 ]; then
             echo "No new tags to push"
             exit 0
           fi
+          failed_tags=()
           for tag in "${tags[@]}"; do
             echo "Pushing tag: $tag"
-            git push "$remote_repo" "$tag"
+            if ! git push "$GIT_REMOTE" "$tag"; then
+              failed_tags+=("$tag")
+            fi
           done
+          if [ "${#failed_tags[@]}" -gt 0 ]; then
+            {
+              echo "## Tag push failures"
+              echo
+              for tag in "${failed_tags[@]}"; do
+                echo "- \`$tag\`"
+                echo "  \`git push origin :refs/tags/$tag && git push origin $tag\`"
+              done
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
