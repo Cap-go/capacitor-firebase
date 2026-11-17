@@ -24,6 +24,9 @@ jobs:
     # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
     timeout-minutes: 10
     name: "Bump version and create tags"
+    permissions:
+      contents: write
+      actions: write
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -51,8 +54,10 @@ jobs:
           echo "packages=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
           echo "Changed packages: $CHANGED_PACKAGES"
       - name: Bump versions and create tags
+        id: bump
         run: |
           set -euo pipefail
+          NEW_TAGS=()
           for pkg in ${{ steps.changed.outputs.packages }}; do
             if [ -d "packages/$pkg" ]; then
               cd "packages/$pkg"
@@ -104,14 +109,40 @@ jobs:
               TAG_NAME="$pkg/v$NEW_VERSION"
               if ! git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
                 git tag -a "$TAG_NAME" -m "chore(release): $pkg $NEW_VERSION"
+                NEW_TAGS+=("$TAG_NAME")
               fi
 
               cd ../..
             fi
           done
-      - name: Push to origin
+
+          {
+            echo "new_tags<<EOF"
+            if [ "${#NEW_TAGS[@]}" -gt 0 ]; then
+              printf '%s\n' "${NEW_TAGS[@]}"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Push branch to origin
         run: |
+          set -euo pipefail
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          remote_repo="https://${GITHUB_ACTOR}:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-          git pull $remote_repo $CURRENT_BRANCH
-          git push $remote_repo HEAD:$CURRENT_BRANCH --follow-tags
+          remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+          git pull "$remote_repo" "$CURRENT_BRANCH"
+          git push "$remote_repo" "HEAD:$CURRENT_BRANCH"
+      - name: Push release tags and dispatch publish
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+          mapfile -t tags < <(echo "${{ steps.bump.outputs.new_tags }}" | sed '/^$/d')
+          if [ "${#tags[@]}" -eq 0 ]; then
+            echo "No new tags to push"
+            exit 0
+          fi
+          for tag in "${tags[@]}"; do
+            echo "Pushing tag: $tag"
+            git push "$remote_repo" "refs/tags/$tag:refs/tags/$tag"
+            gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref "$tag"
+          done

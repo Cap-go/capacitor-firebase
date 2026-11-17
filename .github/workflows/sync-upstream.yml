@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          filter: blob:none
+          fetch-tags: true
           token: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
 
       - name: Configure Git
@@ -115,7 +115,8 @@ jobs:
       - name: Push sync branch
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
         run: |
-          git push origin ${{ env.branch_name }}
+          remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+          git push "$remote_repo" "${{ env.branch_name }}"
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'

@@ -8,6 +8,16 @@ on:
   push:
     tags:
       - "*/v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (example: analytics/v8.3.1)"
+        required: false
+        type: string
+      package:
+        description: "Package folder on main if tag is omitted (example: messaging)"
+        required: false
+        type: string
 
 jobs:
   # Tests already passed before tag was created, so just build and deploy
@@ -26,14 +36,48 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           filter: blob:none
+          ref: ${{ github.event_name == 'workflow_dispatch' && (inputs.tag || 'main') || github.ref }}
       - uses: oven-sh/setup-bun@v2
-      - name: Extract package name from tag
+      - name: Resolve release tag and package
         id: extract
         run: |
-          TAG=${{ github.ref_name }}
-          PACKAGE_NAME=$(echo $TAG | sed 's|/.*||')
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
-          echo "Publishing package: $PACKAGE_NAME"
+          set -euo pipefail
+          TAG="${{ inputs.tag }}"
+          PKG="${{ inputs.package }}"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          elif [ -z "$TAG" ]; then
+            if [ -z "$PKG" ]; then
+              echo "workflow_dispatch requires tag or package input"
+              exit 1
+            fi
+            if [ ! -d "packages/$PKG" ]; then
+              echo "Unknown package folder: $PKG"
+              exit 1
+            fi
+            VERSION="$(node -p "require('./packages/$PKG/package.json').version")"
+            TAG="$PKG/v$VERSION"
+          fi
+
+          PACKAGE_NAME="$(echo "$TAG" | sed 's|/.*||')"
+          if [ ! -d "packages/$PACKAGE_NAME" ]; then
+            echo "No packages/$PACKAGE_NAME for tag $TAG"
+            exit 1
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Missing tag $TAG on origin; create it before publishing"
+            exit 1
+          fi
+
+          git checkout "$TAG"
+
+          {
+            echo "release_tag=$TAG"
+            echo "package_name=$PACKAGE_NAME"
+          } >> "$GITHUB_OUTPUT"
+          echo "Publishing package: $PACKAGE_NAME at $TAG"
       - name: Install dependencies
         run: bun i
       - name: Check plugin wiring
@@ -46,7 +90,7 @@ jobs:
         id: changelog
         run: |
           set -euo pipefail
-          CURRENT_TAG="${{ github.ref_name }}"
+          CURRENT_TAG="${{ steps.extract.outputs.release_tag }}"
           PKG="${{ steps.extract.outputs.package_name }}"
 
           # Find the previous tag for this package (same tag namespace), excluding the current tag.
