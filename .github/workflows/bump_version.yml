@@ -124,18 +124,20 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Push branch to origin
         env:
-          GIT_REMOTE: https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+          GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+          GIT_REMOTE="https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git"
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
           git pull "$GIT_REMOTE" "$CURRENT_BRANCH"
           git push "$GIT_REMOTE" "HEAD:$CURRENT_BRANCH"
       - name: Push release tags
         env:
           NEW_TAGS: ${{ steps.bump.outputs.new_tags }}
-          GIT_REMOTE: https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+          GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+          GIT_REMOTE="https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git"
           mapfile -t tags < <(printf '%s\n' "$NEW_TAGS" | sed '/^$/d')
           if [ "${#tags[@]}" -eq 0 ]; then
             echo "No new tags to push"
@@ -153,8 +155,9 @@ jobs:
               echo "## Tag push failures"
               echo
               for tag in "${failed_tags[@]}"; do
-                echo "- \`$tag\`"
-                echo "  \`git push origin :refs/tags/$tag && git push origin $tag\`"
+                tag_sha="$(git rev-list -n1 "$tag")"
+                echo "- \`$tag\` (commit \`$tag_sha\`)"
+                echo "  \`git tag -a $tag $tag_sha -m \"$tag\" && git push origin $tag\`"
               done
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
