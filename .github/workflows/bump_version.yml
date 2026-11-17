@@ -26,7 +26,6 @@ jobs:
     name: "Bump version and create tags"
     permissions:
       contents: write
-      actions: write
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -130,9 +129,7 @@ jobs:
           remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
           git pull "$remote_repo" "$CURRENT_BRANCH"
           git push "$remote_repo" "HEAD:$CURRENT_BRANCH"
-      - name: Push release tags and dispatch publish
-        env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - name: Push release tags
         run: |
           set -euo pipefail
           remote_repo="https://x-access-token:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
@@ -143,6 +140,5 @@ jobs:
           fi
           for tag in "${tags[@]}"; do
             echo "Pushing tag: $tag"
-            git push "$remote_repo" "refs/tags/$tag:refs/tags/$tag"
-            gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref "$tag"
+            git push "$remote_repo" "$tag"
           done
