@@ -1,13 +1,19 @@
 name: Build and publish
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: build-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 on:
   push:
     tags:
       - "*/v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (example: analytics/v8.3.1)"
+        required: true
+        type: string
 
 jobs:
   # Tests already passed before tag was created, so just build and deploy
@@ -26,28 +32,73 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           filter: blob:none
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
       - uses: oven-sh/setup-bun@v2
       - name: Extract package name from tag
         id: extract
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+          REF_NAME: ${{ github.ref_name }}
+          WORKFLOW_REF: ${{ github.ref }}
         run: |
-          TAG=${{ github.ref_name }}
-          PACKAGE_NAME=$(echo $TAG | sed 's|/.*||')
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
-          echo "Publishing package: $PACKAGE_NAME"
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="$INPUT_TAG"
+            EXPECTED_REF="refs/tags/$TAG"
+            if [ "$WORKFLOW_REF" != "$EXPECTED_REF" ]; then
+              echo "Refusing branch dispatch: start the run at the tag ref."
+              echo "Example: gh workflow run build.yml --ref \"$TAG\" -f tag=\"$TAG\""
+              exit 1
+            fi
+            TAG_COMMIT="$(git rev-parse -q --verify "refs/tags/$TAG^{commit}")"
+            if [ "$(git rev-parse HEAD)" != "$TAG_COMMIT" ]; then
+              echo "HEAD does not match tag commit for $TAG"
+              exit 1
+            fi
+          else
+            TAG="$REF_NAME"
+          fi
+
+          if ! [[ "$TAG" =~ ^[a-z-]+/v[0-9]+\.[0-9]+\.[0-9]+(-alpha\.[0-9]+)?$ ]]; then
+            echo "Invalid release tag: $TAG"
+            exit 1
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Missing tag refs/tags/$TAG"
+            exit 1
+          fi
+
+          PACKAGE_NAME="$(echo "$TAG" | sed 's|/.*||')"
+          if [ ! -d "packages/$PACKAGE_NAME" ]; then
+            echo "No packages/$PACKAGE_NAME for tag $TAG"
+            exit 1
+          fi
+
+          {
+            echo "release_tag=$TAG"
+            echo "package_name=$PACKAGE_NAME"
+          } >> "$GITHUB_OUTPUT"
+          echo "Publishing package: $PACKAGE_NAME at $TAG"
       - name: Install dependencies
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
       - name: Build package
+        env:
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           bun run build
       - name: Generate changelog
         id: changelog
+        env:
+          CURRENT_TAG: ${{ steps.extract.outputs.release_tag }}
+          PKG: ${{ steps.extract.outputs.package_name }}
         run: |
           set -euo pipefail
-          CURRENT_TAG="${{ github.ref_name }}"
-          PKG="${{ steps.extract.outputs.package_name }}"
 
           # Find the previous tag for this package (same tag namespace), excluding the current tag.
           PREV_TAG="$(git tag --list "$PKG/v*" --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n 1 || true)"
@@ -84,35 +135,43 @@ jobs:
       - name: Install npm CLI for staged publishing
         run: npm install -g npm@^11.15.0
       - name: Stage publish to npm
-        if: ${{ !contains(github.ref, '-alpha.') }}
+        if: ${{ !contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           npm --version
           npm stage publish --provenance --access public --ignore-scripts
       - name: Stage publish to npm (alpha)
-        if: ${{ contains(github.ref, '-alpha.') }}
+        if: ${{ contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           npm --version
           npm stage publish --tag next --provenance --access public --ignore-scripts
       - name: Request stage approval
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.NPM_STAGE_DISPATCH_TOKEN }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
+          set -euo pipefail
+          NPM_PACKAGE_NAME="$(node -p "require('./packages/$PACKAGE_NAME/package.json').name")"
           gh api --method POST repos/Cap-go/automations/dispatches \
             -f event_type=npm-stage-approve \
             -f "client_payload[repository]=${GITHUB_REPOSITORY}" \
             -f "client_payload[run_id]=${GITHUB_RUN_ID}" \
-            -f "client_payload[package]=$(node -p "require('./packages/${{ steps.extract.outputs.package_name }}/package.json').name")"
+            -f "client_payload[package]=${NPM_PACKAGE_NAME}"
       - name: Create GitHub release
         id: create_release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.extract.outputs.release_tag }}
           body: |
             ## 🆕 Changelog
 
@@ -121,6 +180,6 @@ jobs:
             ---
 
             🔗 **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.from_tag }}...${{ steps.changelog.outputs.to_tag }}
-          make_latest: true
+          make_latest: ${{ !contains(steps.extract.outputs.release_tag, '-alpha.') }}
           token: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
-          prerelease: ${{ contains(github.ref, '-alpha.') }}
+          prerelease: ${{ contains(steps.extract.outputs.release_tag, '-alpha.') }}

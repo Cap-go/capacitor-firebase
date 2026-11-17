@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          filter: blob:none
+          fetch-tags: true
           token: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
 
       - name: Configure Git
@@ -43,15 +43,20 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Add upstream remote
+        env:
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
         run: |
-          git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git || true
+          set -euo pipefail
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git" || true
           git fetch upstream
 
       - name: Check for upstream changes
         id: check_changes
+        env:
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
         run: |
-          UPSTREAM_BRANCH="${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}"
-          git fetch upstream $UPSTREAM_BRANCH
+          set -euo pipefail
+          git fetch upstream "$UPSTREAM_BRANCH"
 
           # Check if there are new commits
           LOCAL_COMMIT=$(git rev-parse HEAD)
@@ -84,11 +89,13 @@ jobs:
       - name: Merge upstream changes
         if: steps.check_changes.outputs.has_changes == 'true'
         id: merge
+        env:
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
         run: |
           set -euo pipefail
 
-          UPSTREAM_BRANCH="${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}"
-          MERGE_MESSAGE="chore: sync from upstream ${{ env.UPSTREAM_REPO }}"
+          MERGE_MESSAGE="chore: sync from upstream ${UPSTREAM_REPO}"
 
           if git merge "upstream/$UPSTREAM_BRANCH" --no-edit -m "$MERGE_MESSAGE"; then
             echo "merge_status=success" >> $GITHUB_OUTPUT
@@ -114,14 +121,23 @@ jobs:
 
       - name: Push sync branch
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
+        env:
+          GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          BRANCH_NAME: ${{ env.branch_name }}
         run: |
-          git push origin ${{ env.branch_name }}
+          set -euo pipefail
+          remote_repo="https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git push "$remote_repo" "$BRANCH_NAME"
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
         id: create_pr
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          BRANCH_NAME: ${{ env.branch_name }}
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+          UPSTREAM_COMMIT: ${{ steps.check_changes.outputs.upstream_commit }}
         run: |
           set -euo pipefail
 
@@ -136,11 +152,11 @@ jobs:
           PR_BODY=$(cat <<EOF
           ## 🔄 Upstream Sync
 
-          This PR syncs changes from the upstream repository [${{ env.UPSTREAM_REPO }}](https://github.com/${{ env.UPSTREAM_REPO }}).
+          This PR syncs changes from the upstream repository [${UPSTREAM_REPO}](https://github.com/${UPSTREAM_REPO}).
 
           ### Changes Included
-          - Latest commits from upstream \`${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}\` branch
-          - Upstream commit: \`${{ steps.check_changes.outputs.upstream_commit }}\`
+          - Latest commits from upstream \`${UPSTREAM_BRANCH}\` branch
+          - Upstream commit: \`${UPSTREAM_COMMIT}\`
 
           ${RESOLUTION_NOTES}
 
@@ -154,13 +170,13 @@ jobs:
           EOF
           )
 
-          PR_NUMBER="$(create_pr_and_capture_number "${GITHUB_REPOSITORY}" "main" "${{ env.branch_name }}" "chore: sync from upstream ${{ env.UPSTREAM_REPO }}" "$PR_BODY" || true)"
+          PR_NUMBER="$(create_pr_and_capture_number "${GITHUB_REPOSITORY}" "main" "$BRANCH_NAME" "chore: sync from upstream ${UPSTREAM_REPO}" "$PR_BODY" || true)"
 
           if [ -z "$PR_NUMBER" ]; then
             {
               echo "## ⚠️ Pull request creation needs manual follow-up"
               echo
-              echo "The sync branch \`${{ env.branch_name }}\` was pushed successfully, but the workflow could not create or find a pull request."
+              echo "The sync branch \`$BRANCH_NAME\` was pushed successfully, but the workflow could not create or find a pull request."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
@@ -170,18 +186,24 @@ jobs:
 
       - name: Enable auto-merge
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success' && steps.create_pr.outputs.pull_request_number
-        run: |
-          gh pr merge ${{ steps.create_pr.outputs.pull_request_number }} --auto --squash || {
-            echo "Auto-merge could not be enabled for PR #${{ steps.create_pr.outputs.pull_request_number }}" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          }
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          PR_NUMBER: ${{ steps.create_pr.outputs.pull_request_number }}
+        run: |
+          gh pr merge "$PR_NUMBER" --auto --squash || {
+            echo "Auto-merge could not be enabled for PR #${PR_NUMBER}" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
 
       - name: Report unresolved conflicts
         if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'conflict'
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+          UPSTREAM_COMMIT: ${{ steps.check_changes.outputs.upstream_commit }}
+          BRANCH_NAME: ${{ env.branch_name }}
+          MERGE_CONFLICTS: ${{ steps.merge.outputs.conflicts }}
         run: |
           set -euo pipefail
 
@@ -191,20 +213,20 @@ jobs:
           ISSUE_BODY=$(cat <<EOF_BODY
           ## ⚠️ Upstream sync needs manual conflict resolution
 
-          An automatic sync from [${{ env.UPSTREAM_REPO }}](https://github.com/${{ env.UPSTREAM_REPO }}) encountered merge conflicts.
+          An automatic sync from [${UPSTREAM_REPO}](https://github.com/${UPSTREAM_REPO}) encountered merge conflicts.
 
           ### Conflicting Files
           \`\`\`
-          ${{ steps.merge.outputs.conflicts }}
+          ${MERGE_CONFLICTS}
           \`\`\`
 
           ### Automatic Merge Result
           - Git could not merge the upstream changes automatically, so no sync branch was pushed.
 
           ### Sync Details
-          - Upstream branch: \`${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}\`
-          - Upstream commit: \`${{ steps.check_changes.outputs.upstream_commit }}\`
-          - Attempted branch name: \`${{ env.branch_name }}\`
+          - Upstream branch: \`${UPSTREAM_BRANCH}\`
+          - Upstream commit: \`${UPSTREAM_COMMIT}\`
+          - Attempted branch name: \`${BRANCH_NAME}\`
 
           ### Action Required
           1. Check out \`main\` locally

@@ -24,6 +24,8 @@ jobs:
     # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
     timeout-minutes: 10
     name: "Bump version and create tags"
+    permissions:
+      contents: write
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -51,8 +53,10 @@ jobs:
           echo "packages=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
           echo "Changed packages: $CHANGED_PACKAGES"
       - name: Bump versions and create tags
+        id: bump
         run: |
           set -euo pipefail
+          NEW_TAGS=()
           for pkg in ${{ steps.changed.outputs.packages }}; do
             if [ -d "packages/$pkg" ]; then
               cd "packages/$pkg"
@@ -104,14 +108,57 @@ jobs:
               TAG_NAME="$pkg/v$NEW_VERSION"
               if ! git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
                 git tag -a "$TAG_NAME" -m "chore(release): $pkg $NEW_VERSION"
+                NEW_TAGS+=("$TAG_NAME")
               fi
 
               cd ../..
             fi
           done
-      - name: Push to origin
+
+          {
+            echo "new_tags<<EOF"
+            if [ "${#NEW_TAGS[@]}" -gt 0 ]; then
+              printf '%s\n' "${NEW_TAGS[@]}"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Push branch to origin
+        env:
+          GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
+          set -euo pipefail
+          GIT_REMOTE="https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git"
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          remote_repo="https://${GITHUB_ACTOR}:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-          git pull $remote_repo $CURRENT_BRANCH
-          git push $remote_repo HEAD:$CURRENT_BRANCH --follow-tags
+          git pull "$GIT_REMOTE" "$CURRENT_BRANCH"
+          git push "$GIT_REMOTE" "HEAD:$CURRENT_BRANCH"
+      - name: Push release tags
+        env:
+          NEW_TAGS: ${{ steps.bump.outputs.new_tags }}
+          GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          GIT_REMOTE="https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          mapfile -t tags < <(printf '%s\n' "$NEW_TAGS" | sed '/^$/d')
+          if [ "${#tags[@]}" -eq 0 ]; then
+            echo "No new tags to push"
+            exit 0
+          fi
+          failed_tags=()
+          for tag in "${tags[@]}"; do
+            echo "Pushing tag: $tag"
+            if ! git push "$GIT_REMOTE" "$tag"; then
+              failed_tags+=("$tag")
+            fi
+          done
+          if [ "${#failed_tags[@]}" -gt 0 ]; then
+            {
+              echo "## Tag push failures"
+              echo
+              for tag in "${failed_tags[@]}"; do
+                tag_sha="$(git rev-list -n1 "$tag")"
+                echo "- \`$tag\` (commit \`$tag_sha\`)"
+                echo "  \`git tag -a $tag $tag_sha -m \"$tag\" && git push origin $tag\`"
+              done
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
