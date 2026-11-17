@@ -69,20 +69,42 @@ jobs:
             echo "package_name=$PACKAGE_NAME"
           } >> "$GITHUB_OUTPUT"
           echo "Publishing package: $PACKAGE_NAME at $TAG"
+      - name: Validate release source
+        id: release_source
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          TAG_SHA="$(git rev-parse HEAD)"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            git fetch origin main
+            if ! git merge-base --is-ancestor "$TAG_SHA" "origin/main"; then
+              echo "Refusing to publish: tag commit $TAG_SHA is not contained in origin/main history"
+              exit 1
+            fi
+            echo "use_provenance=false" >> "$GITHUB_OUTPUT"
+            echo "workflow_dispatch: npm publish without --provenance (run SHA on main would not match tag source)"
+          else
+            echo "use_provenance=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install dependencies
         run: bun i
       - name: Check plugin wiring
         run: bun run check:wiring
       - name: Build package
+        env:
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           bun run build
       - name: Generate changelog
         id: changelog
+        env:
+          CURRENT_TAG: ${{ steps.extract.outputs.release_tag }}
+          PKG: ${{ steps.extract.outputs.package_name }}
         run: |
           set -euo pipefail
-          CURRENT_TAG="${{ steps.extract.outputs.release_tag }}"
-          PKG="${{ steps.extract.outputs.package_name }}"
 
           # Find the previous tag for this package (same tag namespace), excluding the current tag.
           PREV_TAG="$(git tag --list "$PKG/v*" --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n 1 || true)"
@@ -122,18 +144,32 @@ jobs:
         if: ${{ !contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          USE_PROVENANCE: ${{ steps.release_source.outputs.use_provenance }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           npm --version
-          npm stage publish --provenance --access public --ignore-scripts
+          publish_args=(stage publish --access public --ignore-scripts)
+          if [ "$USE_PROVENANCE" = "true" ]; then
+            publish_args+=(--provenance)
+          fi
+          npm "${publish_args[@]}"
       - name: Stage publish to npm (alpha)
         if: ${{ contains(steps.extract.outputs.release_tag, '-alpha.') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          USE_PROVENANCE: ${{ steps.release_source.outputs.use_provenance }}
+          PACKAGE_NAME: ${{ steps.extract.outputs.package_name }}
         run: |
-          cd packages/${{ steps.extract.outputs.package_name }}
+          set -euo pipefail
+          cd "packages/$PACKAGE_NAME"
           npm --version
-          npm stage publish --tag next --provenance --access public --ignore-scripts
+          publish_args=(stage publish --tag next --access public --ignore-scripts)
+          if [ "$USE_PROVENANCE" = "true" ]; then
+            publish_args+=(--provenance)
+          fi
+          npm "${publish_args[@]}"
       - name: Request stage approval
         continue-on-error: true
         env:
