@@ -3,7 +3,6 @@ package app.capgo.capacitor.firebase.firestore.classes.options;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
-import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
 import com.getcapacitor.JSObject;
 import java.util.HashMap;
 import java.util.Map;

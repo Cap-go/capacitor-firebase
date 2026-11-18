@@ -1,6 +1,7 @@
 package app.capgo.capacitor.firebase.firestore.classes.options;
 
 import androidx.annotation.NonNull;
+import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
 import com.getcapacitor.JSObject;
 import java.util.Map;
 import org.json.JSONException;
