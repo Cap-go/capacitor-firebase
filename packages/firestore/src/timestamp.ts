@@ -14,13 +14,13 @@ export class Timestamp {
   static fromDate(date: Date): Timestamp {
     const ms = date.getTime();
     const seconds = Math.floor(ms / 1000);
-    const nanoseconds = (ms % 1000) * 1_000_000;
+    const nanoseconds = (ms - seconds * 1000) * 1_000_000;
     return new Timestamp(seconds, nanoseconds);
   }
 
   static fromMillis(ms: number): Timestamp {
     const seconds = Math.floor(ms / 1000);
-    const nanoseconds = (ms % 1000) * 1_000_000;
+    const nanoseconds = (ms - seconds * 1000) * 1_000_000;
     return new Timestamp(seconds, nanoseconds);
   }
 

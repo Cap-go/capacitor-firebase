@@ -57,7 +57,10 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
         let data = call.getValue("data")
         let timeout = call.getInt("timeout")
 
-        let options = CallByUrlOptions(url: url, data: data, timeout: timeout)
+        guard let options = CallByUrlOptions(url: url, data: data, timeout: timeout) else {
+            call.reject("Invalid URL.")
+            return
+        }
 
         implementation?.callByUrl(options, completion: { result, error in
             if let error = error {
