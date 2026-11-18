@@ -205,8 +205,4 @@ export class FirebaseStorageWeb
   private generateCallbackId(): string {
     return (++this.lastCallbackId).toString();
   }
-
-  async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.3.0' };
-  }
 }

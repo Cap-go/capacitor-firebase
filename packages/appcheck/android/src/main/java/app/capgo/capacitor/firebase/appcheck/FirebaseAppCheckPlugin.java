@@ -95,14 +95,9 @@ public class FirebaseAppCheckPlugin extends Plugin {
         notifyListeners(TOKEN_CHANGED_EVENT, result, true);
     }
 
-    @PluginMethod
-    public void getPluginVersion(final PluginCall call) {
-        try {
-            final JSObject ret = new JSObject();
-            ret.put("version", this.pluginVersion);
-            call.resolve(ret);
-        } catch (final Exception e) {
-            call.reject("Could not get plugin version", e);
-        }
+    @Override
+    protected void handleOnDestroy() {
+        implementation.destroy();
+        super.handleOnDestroy();
     }
 }

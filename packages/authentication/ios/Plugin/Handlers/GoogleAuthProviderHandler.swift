@@ -7,6 +7,7 @@ import GoogleSignIn
 #endif
 
 class GoogleAuthProviderHandler: NSObject {
+    let errorSdkNotIncluded = "The Google Sign-In SDK is not included in this build. Add the required CocoaPods subspec or Swift package trait."
     var pluginImplementation: FirebaseAuthentication
 
     init(_ pluginImplementation: FirebaseAuthentication) {
@@ -37,7 +38,7 @@ class GoogleAuthProviderHandler: NSObject {
         let scopes = call.getArray("scopes", String.self) ?? []
 
         DispatchQueue.main.async {
-            GIDSignIn.sharedInstance.signIn(withPresenting: controller, hint: nil, additionalScopes: scopes) { [unowned self] result, error in
+            GIDSignIn.sharedInstance.signIn(withPresenting: controller, hint: nil, additionalScopes: scopes) { result, error in
                 if let error = error {
                     if isLink == true {
                         self.pluginImplementation.handleFailedLink(message: nil, error: error)
@@ -63,6 +64,12 @@ class GoogleAuthProviderHandler: NSObject {
                                                                      accessToken: accessToken, displayName: nil, authorizationCode: nil, serverAuthCode: serverAuthCode)
                 }
             }
+        }
+        #else
+        if isLink == true {
+            pluginImplementation.handleFailedLink(message: errorSdkNotIncluded, error: nil)
+        } else {
+            pluginImplementation.handleFailedSignIn(message: errorSdkNotIncluded, error: nil)
         }
         #endif
     }

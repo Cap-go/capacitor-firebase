@@ -18,9 +18,27 @@ Unofficial Capacitor plugin for [Firebase Analytics](https://firebase.google.com
 | 5.x.x          | 5.x.x             | Deprecated     |
 | 1.x.x          | 4.x.x             | Deprecated     |
 
+## Guides
+
+- [Track App Events with Firebase Analytics in Capacitor](https://capawesome.io/blog/capacitor-firebase-analytics-guide/): Log events, track screens, and set up audience segmentation with this plugin.
+- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): Where Analytics sits among the other Firebase plugins, and what teams usually add alongside it.
+
 ## Installation
 
-You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
+You can use our **AI-Assisted Setup** to install the plugin.
+Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
+
+```bash
+npx skills add capawesome-team/skills --skill capacitor-plugins
+```
+
+Then use the following prompt:
+
+```
+Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-analytics` plugin in my project.
+```
+
+If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -61,6 +79,28 @@ This can be useful if you encounter dependency conflicts with other plugins in y
 
 ### iOS
 
+#### Swift Package Manager
+
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capgo/capacitor-firebase-analytics": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
+
 If you are using **CocoaPods** for your iOS project, you need to add the `CapacitorFirebaseAnalytics/Analytics` pod to your `Podfile` (usually `ios/App/Podfile`):
 
 ```diff
@@ -90,6 +130,25 @@ capacitor_pods
 end
 ```
 
+If you are using **Swift Package Manager** for your iOS project and you want to disable IDFA collection, you can enable the `AnalyticsWithoutAdIdSupport` trait in your `capacitor.config.json` (or `capacitor.config.ts`):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "swiftToolsVersion": "6.1",
+        "packageTraits": {
+          "@capgo/capacitor-firebase-analytics": ["AnalyticsWithoutAdIdSupport"]
+        }
+      }
+    }
+  }
+}
+```
+
+**Note**: SPM trait support requires Capacitor CLI **8.3.0+** and Xcode **16.3+** (Swift 6.1+).
+
 ## Configuration
 
 No configuration required for this plugin.
@@ -99,6 +158,42 @@ No configuration required for this plugin.
 A working example can be found here: [robingenz/capacitor-firebase-plugin-demo](https://github.com/robingenz/capacitor-firebase-plugin-demo)
 
 ## Usage
+
+The following examples show how to log events, track screens, identify users, manage data collection, configure the session timeout, and initiate on-device conversion measurement.
+
+### Log events
+
+Log an app event with a name and optional parameters:
+
+```typescript
+import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
+
+const logEvent = async () => {
+  await FirebaseAnalytics.logEvent({
+    name: 'sign_up',
+    params: { method: 'password' },
+  });
+};
+```
+
+### Track screens
+
+Set the current screen name to record which screens users visit. The `screenClassOverride` option is only available on Android and iOS:
+
+```typescript
+import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
+
+const setCurrentScreen = async () => {
+  await FirebaseAnalytics.setCurrentScreen({
+    screenName: 'Login',
+    screenClassOverride: 'LoginPage',
+  });
+};
+```
+
+### Identify users
+
+Set the user ID property and custom user properties to segment your users:
 
 ```typescript
 import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
@@ -115,26 +210,14 @@ const setUserProperty = async () => {
     value: 'en',
   });
 };
+```
 
-const setCurrentScreen = async () => {
-  await FirebaseAnalytics.setCurrentScreen({
-    screenName: 'Login',
-    screenClassOverride: 'LoginPage',
-  });
-};
+### Manage data collection
 
-const logEvent = async () => {
-  await FirebaseAnalytics.logEvent({
-    name: 'sign_up',
-    params: { method: 'password' },
-  });
-};
+Enable or disable automatic data collection (the value does not apply until the next run of the app), check whether it is enabled (only available on Web), or clear all analytics data from the device (only available on Android and iOS):
 
-const setSessionTimeoutDuration = async () => {
-  await FirebaseAnalytics.setSessionTimeoutDuration({
-    duration: '120',
-  });
-};
+```typescript
+import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
 
 const setEnabled = async () => {
   await FirebaseAnalytics.setEnabled({
@@ -150,6 +233,28 @@ const isEnabled = async () => {
 const resetAnalyticsData = async () => {
   await FirebaseAnalytics.resetAnalyticsData();
 };
+```
+
+### Configure the session timeout
+
+Set the duration of inactivity that terminates the current session. Only available on Android and iOS:
+
+```typescript
+import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
+
+const setSessionTimeoutDuration = async () => {
+  await FirebaseAnalytics.setSessionTimeoutDuration({
+    duration: '120',
+  });
+};
+```
+
+### Initiate on-device conversion measurement
+
+Initiate on-device conversion measurement with a plain or hashed email address or phone number. Only available on iOS:
+
+```typescript
+import { FirebaseAnalytics } from '@capgo/capacitor-firebase-analytics';
 
 const initiateOnDeviceConversionMeasurementWithEmailAddress = async () => {
   await FirebaseAnalytics.initiateOnDeviceConversionMeasurementWithEmailAddress({
@@ -650,6 +755,43 @@ Get the version of this plugin.
 ## Test your implementation
 
 [Here](https://firebase.google.com/docs/analytics/debugview) you can find more information on how to test the Firebase Analytics implementation using the **DebugView**.
+
+## FAQ
+
+### How can I verify that my events are being logged?
+
+Use the **DebugView** in the Firebase console to inspect events as they are logged by your app. See the [DebugView documentation](https://firebase.google.com/docs/analytics/debugview) for more information on how to test your Firebase Analytics implementation.
+
+### How can I disable analytics data collection?
+
+You can enable or disable automatic data collection at runtime using the `setEnabled(...)` method; note that the value does not apply until the next run of the app. To disable data collection by default, follow the platform-specific instructions linked in the [Installation](#installation) section for Android and iOS.
+
+### How do I set the user's consent mode?
+
+Call the `setConsent(...)` method with a consent type (for example analytics storage or ad storage) and a consent status (granted or denied). This allows you to manage what data is collected based on the user's consent.
+
+### Why is the app instance ID not defined?
+
+The `appInstanceId` returned by `getAppInstanceId()` is not defined if the analytics storage consent type has been set to denied via `setConsent(...)`. Also note that `getAppInstanceId()` is only available on Android and iOS.
+
+### How do I disable Advertising ID or IDFA collection?
+
+On Android, follow the [Disable Advertising ID collection](https://firebase.google.com/docs/analytics/configure-data-collection?platform=android#disable_advertising_id_collection) guide. On iOS, use the `CapacitorFirebaseAnalytics/AnalyticsWithoutAdIdSupport` pod instead of the `CapacitorFirebaseAnalytics/Analytics` pod if you are using CocoaPods, or enable the `AnalyticsWithoutAdIdSupport` package trait if you are using Swift Package Manager. See the [Installation](#installation) section for details.
+
+### Can I use this plugin with Ionic, React, Vue or Angular?
+
+Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
+
+## Related Plugins
+
+- [Firebase App](https://capawesome.io/docs/sdks/capacitor/firebase/app/): Access the core Firebase app configuration.
+- [Firebase Crashlytics](https://capawesome.io/docs/sdks/capacitor/firebase/crashlytics/): Track and report app crashes with Firebase Crashlytics.
+- [Firebase Performance Monitoring](https://capawesome.io/docs/sdks/capacitor/firebase/performance-monitoring/): Measure the performance of your app with Firebase Performance Monitoring.
+- [Firebase Remote Config](https://capawesome.io/docs/sdks/capacitor/firebase/remote-config/): Change the behavior and appearance of your app without publishing an app update.
+
+## Newsletter
+
+Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

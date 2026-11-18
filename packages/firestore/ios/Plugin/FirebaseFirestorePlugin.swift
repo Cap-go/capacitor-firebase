@@ -19,6 +19,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getCollection", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCollectionGroup", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getCountFromServer", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearPersistence", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disableNetwork", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "disablePersistence", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "enableNetwork", returnType: CAPPluginReturnPromise),
@@ -396,21 +397,16 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             firestore: firestore
         )
 
-        do {
-            implementation?.addCollectionSnapshotListener(options, completion: { result, error in
-                if let error = error {
-                    CAPLog.print("[", self.tag, "] ", error)
-                    call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
-                    return
-                }
-                if let result = result?.toJSObject() as? JSObject {
-                    call.resolve(result)
-                }
-            })
-        } catch {
-            CAPLog.print("[", self.tag, "] ", error)
-            call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
-        }
+        implementation?.addCollectionSnapshotListener(options, completion: { result, error in
+            if let error = error {
+                CAPLog.print("[", self.tag, "] ", error)
+                call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
+                return
+            }
+            if let result = result?.toJSObject() as? JSObject {
+                call.resolve(result)
+            }
+        })
     }
 
     @objc func addCollectionGroupSnapshotListener(_ call: CAPPluginCall) {
@@ -445,21 +441,16 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             firestore: firestore
         )
 
-        do {
-            implementation?.addCollectionGroupSnapshotListener(options, completion: { result, error in
-                if let error = error {
-                    CAPLog.print("[", self.tag, "] ", error)
-                    call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
-                    return
-                }
-                if let result = result?.toJSObject() as? JSObject {
-                    call.resolve(result)
-                }
-            })
-        } catch {
-            CAPLog.print("[", self.tag, "] ", error)
-            call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
-        }
+        implementation?.addCollectionGroupSnapshotListener(options, completion: { result, error in
+            if let error = error {
+                CAPLog.print("[", self.tag, "] ", error)
+                call.reject(error.localizedDescription, FirebaseFirestoreHelper.createErrorCode(error: error))
+                return
+            }
+            if let result = result?.toJSObject() as? JSObject {
+                call.resolve(result)
+            }
+        })
     }
 
     @objc func removeSnapshotListener(_ call: CAPPluginCall) {

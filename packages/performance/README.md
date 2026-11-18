@@ -18,9 +18,27 @@ Unofficial Capacitor plugin for [Firebase Performance Monitoring](https://fireba
 | 5.x.x          | 5.x.x             | Deprecated     |
 | 1.x.x          | 4.x.x             | Deprecated     |
 
+## Guides
+
+- [Monitor App Performance in Capacitor with Firebase](https://capawesome.io/blog/capacitor-firebase-performance-monitoring-guide/): Automatic and custom traces for app start, rendering, and network calls with this plugin.
+- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): The whole plugin family in one guide, with performance monitoring as one half of app health.
+
 ## Installation
 
-You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
+You can use our **AI-Assisted Setup** to install the plugin.
+Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
+
+```bash
+npx skills add capawesome-team/skills --skill capacitor-plugins
+```
+
+Then use the following prompt:
+
+```
+Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-performance` plugin in my project.
+```
+
+If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -53,6 +71,30 @@ If needed, you can define the following project variable in your app’s `variab
 
 This can be useful if you encounter dependency conflicts with other plugins in your project.
 
+### iOS
+
+#### Swift Package Manager
+
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capgo/capacitor-firebase-performance": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
+
 ## Configuration
 
 No configuration required for this plugin.
@@ -62,6 +104,12 @@ No configuration required for this plugin.
 A working example can be found here: [robingenz/capacitor-firebase-plugin-demo](https://github.com/robingenz/capacitor-firebase-plugin-demo)
 
 ## Usage
+
+The following examples show how to start and stop traces, record custom metrics, add custom attributes, toggle performance monitoring, and record a trace manually.
+
+### Start and stop a trace
+
+Start a custom code trace to measure how long a specific task in your app takes and stop it as soon as the task is completed:
 
 ```typescript
 import { FirebasePerformance } from '@capgo/capacitor-firebase-performance';
@@ -73,6 +121,22 @@ const startTrace = async () => {
 const stopTrace = async () => {
   await FirebasePerformance.stopTrace({ traceName: 'test_trace' });
 };
+```
+
+### Record custom metrics
+
+Set the value of a custom metric for a trace, increment it atomically, or read its current value. Note that metric values are floored down to the nearest integer:
+
+```typescript
+import { FirebasePerformance } from '@capgo/capacitor-firebase-performance';
+
+const putMetric = async () => {
+  await FirebasePerformance.putMetric({
+    traceName: 'test_trace',
+    metricName: 'item_cache_hit',
+    num: 1,
+  });
+};
 
 const incrementMetric = async () => {
   await FirebasePerformance.incrementMetric({
@@ -82,14 +146,21 @@ const incrementMetric = async () => {
   });
 };
 
-const setEnabled = async () => {
-  await FirebasePerformance.setEnabled({ enabled: true });
+const getMetric = async () => {
+  const result = await FirebasePerformance.getMetric({
+    traceName: 'test_trace',
+    metricName: 'item_cache_hit',
+  });
+  return result.value;
 };
+```
 
-const isEnabled = async () => {
-  const result = await FirebasePerformance.isEnabled();
-  return result.enabled;
-};
+### Add custom attributes to a trace
+
+Set custom attributes on a trace, for example a user id, to segment your performance data. You can also read or remove them again:
+
+```typescript
+import { FirebasePerformance } from '@capgo/capacitor-firebase-performance';
 
 const putAttribute = async () => {
   await FirebasePerformance.putAttribute({
@@ -118,22 +189,31 @@ const removeAttribute = async () => {
     attribute: 'user_id',
   });
 };
+```
 
-const putMetric = async () => {
-  await FirebasePerformance.putMetric({
-    traceName: 'test_trace',
-    metricName: 'item_cache_hit',
-    num: 1,
-  });
+### Enable or disable performance monitoring
+
+Enable or disable performance monitoring at runtime, for example based on the user's consent. The setting is applied with the next start of the app:
+
+```typescript
+import { FirebasePerformance } from '@capgo/capacitor-firebase-performance';
+
+const setEnabled = async () => {
+  await FirebasePerformance.setEnabled({ enabled: true });
 };
 
-const getMetric = async () => {
-  const result = await FirebasePerformance.getMetric({
-    traceName: 'test_trace',
-    metricName: 'item_cache_hit',
-  });
-  return result.value;
+const isEnabled = async () => {
+  const result = await FirebasePerformance.isEnabled();
+  return result.enabled;
 };
+```
+
+### Record a trace manually
+
+Record a trace for a task that has already been completed by providing its start time and duration. Only available on Web:
+
+```typescript
+import { FirebasePerformance } from '@capgo/capacitor-firebase-performance';
 
 const record = async () => {
   await FirebasePerformance.record({
@@ -530,6 +610,37 @@ Get the version of this plugin.
 <code><a href="#getattributeoptions">GetAttributeOptions</a></code>
 
 </docgen-api>
+
+## FAQ
+
+### How do I measure the duration of a specific task in my app?
+
+Start a custom code trace with `startTrace(...)` before the task begins and stop it with `stopTrace(...)` as soon as the task is completed, as shown in the [usage example](#start-and-stop-a-trace) above. You can enrich the trace with custom metrics and attributes before stopping it.
+
+### What are the requirements for custom trace names?
+
+Names for custom code traces must not contain leading or trailing whitespace, must not start with an underscore (`_`), and may have a maximum length of 100 characters.
+
+### What is the difference between a metric and an attribute?
+
+A metric is a numeric value of a trace, for example a counter for cache hits, which is set with `putMetric(...)` or incremented with `incrementMetric(...)`. Note that metric values are floored down to the nearest integer. An attribute is a string value of a trace, for example a user id, which is set with `putAttribute(...)` and can be used to segment your performance data.
+
+### Can users disable performance monitoring at runtime?
+
+Yes, call `setEnabled(...)` to enable or disable performance monitoring, for example based on the user's consent. The setting is applied with the next start of the app. Use `isEnabled()` to determine whether performance monitoring is currently enabled or disabled.
+
+### Why does the `record` method not work on Android and iOS?
+
+The `record(...)` method is only available on Web. On Android and iOS, use `startTrace(...)` and `stopTrace(...)` to measure the duration of a task instead.
+
+## Related Plugins
+
+- [Firebase Analytics](https://capawesome.io/docs/sdks/capacitor/firebase/analytics/): Log events and user properties with Firebase Analytics.
+- [Firebase Crashlytics](https://capawesome.io/docs/sdks/capacitor/firebase/crashlytics/): Track and analyze app crashes with Firebase Crashlytics.
+
+## Newsletter
+
+Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

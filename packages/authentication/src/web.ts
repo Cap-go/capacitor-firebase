@@ -413,6 +413,7 @@ export class FirebaseAuthenticationWeb
     } catch (error) {
       const event: PhoneVerificationFailedEvent = {
         message: this.getErrorMessage(error),
+        code: this.getErrorCode(error),
       };
       this.notifyListeners(
         FirebaseAuthenticationWeb.PHONE_VERIFICATION_FAILED_EVENT,
@@ -681,6 +682,7 @@ export class FirebaseAuthenticationWeb
     } catch (error) {
       const event: PhoneVerificationFailedEvent = {
         message: this.getErrorMessage(error),
+        code: this.getErrorCode(error),
       };
       this.notifyListeners(
         FirebaseAuthenticationWeb.PHONE_VERIFICATION_FAILED_EVENT,
@@ -781,10 +783,18 @@ export class FirebaseAuthenticationWeb
     const auth = getAuth();
     const port = options.port || 9099;
     const scheme = options.scheme || 'http';
+    const connectOptions =
+      options.disableWarnings === undefined
+        ? undefined
+        : { disableWarnings: options.disableWarnings };
     if (options.host.includes('://')) {
-      connectAuthEmulator(auth, `${options.host}:${port}`);
+      connectAuthEmulator(auth, `${options.host}:${port}`, connectOptions);
     } else {
-      connectAuthEmulator(auth, `${scheme}://${options.host}:${port}`);
+      connectAuthEmulator(
+        auth,
+        `${scheme}://${options.host}:${port}`,
+        connectOptions,
+      );
     }
   }
 
@@ -996,6 +1006,17 @@ export class FirebaseAuthenticationWeb
       result.username = username;
     }
     return result;
+  }
+
+  private getErrorCode(error: unknown): string | undefined {
+    if (
+      error instanceof Object &&
+      'code' in error &&
+      typeof error['code'] === 'string'
+    ) {
+      return error['code'];
+    }
+    return undefined;
   }
 
   private getErrorMessage(error: unknown): string {

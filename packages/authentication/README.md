@@ -9,6 +9,16 @@
 Unofficial Capacitor plugin for [Firebase Authentication](https://firebase.google.com/docs/auth).[^1]
 
 
+## Use Cases
+
+The Firebase Authentication plugin is typically used to handle the entire sign-in flow of an app, for example:
+
+- **Social logins**: Sign in users natively with Apple, Google, Facebook, Microsoft, GitHub, Twitter, Yahoo, Play Games, or Game Center.
+- **Email-based authentication**: Register and sign in users with email and password, or send them a passwordless sign-in link.
+- **Phone number sign-in**: Verify users with an SMS code sent to their phone number.
+- **Guest access**: Let users try your app with anonymous sign-in and link a permanent account later.
+- **Custom backends**: Sign in with custom tokens or OpenID Connect and retrieve ID tokens to authenticate requests to your own backend.
+
 ## Compatibility
 
 | Plugin Version | Capacitor Version | Status         |
@@ -19,9 +29,27 @@ Unofficial Capacitor plugin for [Firebase Authentication](https://firebase.googl
 | 5.x.x          | 5.x.x             | Deprecated     |
 | 1.x.x          | 4.x.x             | Deprecated     |
 
+## Guides
+
+- [Firebase Authentication in Capacitor: Setup & Best Practices](https://capawesome.io/blog/capacitor-firebase-authentication-guide/): Setup and best practices for sign-in flows with this plugin.
+- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): Why sign-in is usually the first Firebase piece to wire up, and what builds on the user ID it produces.
+
 ## Installation
 
-You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
+You can use our **AI-Assisted Setup** to install the plugin.
+Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
+
+```bash
+npx skills add capawesome-team/skills --skill capacitor-plugins
+```
+
+Then use the following prompt:
+
+```
+Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-authentication` plugin in my project.
+```
+
+If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -85,6 +113,70 @@ The further installation steps depend on the selected authentication method:
 These SDKs can initialize on their own and collect various data.
 For more information, see [Third-Party SDKs](https://github.com/cap-go/capacitor-firebase/blob/main/packages/authentication/docs/third-party-sdks.md).
 
+### iOS
+
+#### Swift Package Manager
+
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capgo/capacitor-firebase-authentication": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
+
+##### Package traits
+
+The GoogleSignIn and Facebook SDKs are optional and are included by default via the `Google` and `Facebook` package traits. If you do not use these providers, disable the corresponding trait so that the SDK is not linked into your app:
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "swiftToolsVersion": "6.1",
+        "packageTraits": {
+          "@capgo/capacitor-firebase-authentication": ["Google"]
+        }
+      }
+    }
+  }
+}
+```
+
+Listing traits explicitly replaces the defaults, so only the traits you list are enabled. The example above keeps GoogleSignIn and excludes the Facebook SDK. Use the `Lite` trait to exclude both:
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "swiftToolsVersion": "6.1",
+        "packageTraits": {
+          "@capgo/capacitor-firebase-authentication": ["Lite"]
+        }
+      }
+    }
+  }
+}
+```
+
+These traits are the Swift Package Manager equivalent of the `CapacitorFirebaseAuthentication/Google`, `CapacitorFirebaseAuthentication/Facebook` and `CapacitorFirebaseAuthentication/Lite` CocoaPods subspecs. Calling a sign-in method of a provider whose SDK is excluded rejects with an error.
+
+**Attention**: SPM trait support requires Capacitor CLI **8.3.0+** and Xcode **16.3+** (Swift 6.1+).
+
 ## Configuration
 
 <docgen-config>
@@ -136,23 +228,6 @@ export default config;
 
 </docgen-config>
 
-## FAQ
-
-1. **What does this plugin do?**  
-   This plugin enables the use of [Firebase Authentication](https://firebase.google.com/docs/auth) in a Capacitor app.
-   It uses the Firebase SDK for [Java](https://firebase.google.com/docs/reference/android) (Android), [Swift](https://firebase.google.com/docs/reference/swift) (iOS) and [JavaScript](https://firebase.google.com/docs/reference/js).
-1. **What is the difference between the web implementation of this plugin and the Firebase JS SDK?**  
-   The web implementation of this plugin encapsulates the Firebase JS SDK and enables a consistent interface across all platforms.
-   You can decide if you prefer to use the web implementation or the Firebase JS SDK.
-1. **What is the difference between the native and web authentication?**  
-   For web authentication, the Firebase JS SDK is used. This only works to a limited extent on Android and iOS in the WebViews (see [here](https://developers.googleblog.com/2016/08/modernizing-oauth-interactions-in-native-apps.html)).
-   For native authentication, the native SDKs from Firebase, Google, etc. are used.
-   These offer all the functionalities that the Firebase JS SDK also offers on the web.
-   However, after a login with the native SDK, the user is only logged in on the native layer of the app.
-   If the user should also be logged in on the web layer (for example to access Cloud Firestore via Firebase JS SDK), additional steps are required (see [here](https://github.com/cap-go/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md)).
-1. **How can I use this plugin with the Firebase JavaScript SDK?**  
-   See [here](https://github.com/cap-go/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md).
-
 ## Firebase JavaScript SDK
 
 [Here](https://github.com/cap-go/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md) you can find information on how to use the plugin with the Firebase JS SDK.
@@ -169,121 +244,19 @@ The following starter templates are available:
 
 ## Usage
 
+The following examples show how to sign in with email and password, social providers, a phone number, an email link, anonymously, and custom tokens, as well as how to manage the current user, reset passwords, verify and update email addresses, set the language, sign out, delete the user, and use the Firebase Emulator.
+
+### Sign up and sign in with email and password
+
+Create a new user account with email and password and sign the user in with those credentials:
+
 ```typescript
 import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
 
-const applyActionCode = async () => {
-  await FirebaseAuthentication.applyActionCode({ oobCode: '1234' });
-};
-
 const createUserWithEmailAndPassword = async () => {
   const result = await FirebaseAuthentication.createUserWithEmailAndPassword({
-    email: 'mail@exmaple.com',
-    password: '1234',
-  });
-  return result.user;
-};
-
-const confirmPasswordReset = async () => {
-  await FirebaseAuthentication.confirmPasswordReset({
-    oobCode: '1234',
-    newPassword: '4321',
-  });
-};
-
-const deleteUser = async () => {
-  await FirebaseAuthentication.deleteUser();
-};
-
-const fetchSignInMethodsForEmail = async () => {
-  const result = await FirebaseAuthentication.fetchSignInMethodsForEmail({
-    email: 'mail@example.tld',
-  });
-  return result.signInMethods;
-};
-
-const getCurrentUser = async () => {
-  const result = await FirebaseAuthentication.getCurrentUser();
-  return result.user;
-};
-
-const getPendingAuthResult = async () => {
-  const result = await FirebaseAuthentication.getPendingAuthResult();
-  return result.user;
-};
-
-const getIdToken = async () => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return;
-  }
-  const result = await FirebaseAuthentication.getIdToken();
-  return result.token;
-};
-
-const getPendingAuthResult = async () => {
-  const result = await FirebaseAuthentication.getPendingAuthResult();
-  return result.user;
-};
-
-const sendEmailVerification = async () => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return;
-  }
-  await FirebaseAuthentication.sendEmailVerification();
-};
-
-const sendPasswordResetEmail = async () => {
-  await FirebaseAuthentication.sendPasswordResetEmail({
     email: 'mail@example.com',
-  });
-};
-
-const sendSignInLinkToEmail = async () => {
-  const email = 'mail@example.com';
-  await FirebaseAuthentication.sendSignInLinkToEmail({
-    email,
-    actionCodeSettings: {
-      // URL you want to redirect back to. The domain (www.example.com) for this
-      // URL must be in the authorized domains list in the Firebase Console.
-      url: 'https://www.example.com/finishSignUp?cartId=1234',
-      // This must be true.
-      handleCodeInApp: true,
-      iOS: {
-        bundleId: 'com.example.ios',
-      },
-      android: {
-        packageName: 'com.example.android',
-        installApp: true,
-        minimumVersion: '12',
-      },
-      dynamicLinkDomain: 'example.page.link',
-    },
-  });
-  // The link was successfully sent. Inform the user.
-  // Save the email locally so you don't need to ask the user for it again
-  // if they open the link on the same device.
-  window.localStorage.setItem('emailForSignIn', email);
-};
-
-const setLanguageCode = async () => {
-  await FirebaseAuthentication.setLanguageCode({ languageCode: 'en-US' });
-};
-
-const signInAnonymously = async () => {
-  const result = await FirebaseAuthentication.signInAnonymously();
-  return result.user;
-};
-
-const signInWithApple = async () => {
-  const result = await FirebaseAuthentication.signInWithApple();
-  return result.user;
-};
-
-const signInWithCustomToken = async () => {
-  const result = await FirebaseAuthentication.signInWithCustomToken({
-    token: '1234',
+    password: '1234',
   });
   return result.user;
 };
@@ -295,32 +268,17 @@ const signInWithEmailAndPassword = async () => {
   });
   return result.user;
 };
+```
 
-const signInWithEmailLink = async () => {
-  // Get the email if available. This should be available if the user completes
-  // the flow on the same device where they started it.
-  const emailLink = window.location.href;
-  // Confirm the link is a sign-in with email link.
-  const { isSignInWithEmailLink } =
-    await FirebaseAuthentication.isSignInWithEmailLink({
-      emailLink,
-    });
-  if (!isSignInWithEmailLink) {
-    return;
-  }
-  let email = window.localStorage.getItem('emailForSignIn');
-  if (!email) {
-    // User opened the link on a different device. To prevent session fixation
-    // attacks, ask the user to provide the associated email again.
-    email = window.prompt('Please provide your email for confirmation.');
-  }
-  // The client SDK will parse the code from the link for you.
-  const result = await FirebaseAuthentication.signInWithEmailLink({
-    email,
-    emailLink,
-  });
-  // Clear email from storage.
-  window.localStorage.removeItem('emailForSignIn');
+### Sign in with a social provider
+
+Sign in users natively with providers such as Apple, Google, Facebook, GitHub, Microsoft, Twitter or Yahoo. Each provider requires the setup steps linked in the [Installation](#installation) section. Game Center sign-in is only available on iOS and Play Games sign-in is only available on Android:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const signInWithApple = async () => {
+  const result = await FirebaseAuthentication.signInWithApple();
   return result.user;
 };
 
@@ -349,17 +307,28 @@ const signInWithMicrosoft = async () => {
   return result.user;
 };
 
-const signInWithOpenIdConnect = async () => {
-  const result = await FirebaseAuthentication.signInWithOpenIdConnect({
-    providerId: 'oidc.example.com',
-  });
-  return result.user;
-};
-
 const signInWithPlayGames = async () => {
   const result = await FirebaseAuthentication.signInWithPlayGames();
   return result.user;
 };
+
+const signInWithTwitter = async () => {
+  const result = await FirebaseAuthentication.signInWithTwitter();
+  return result.user;
+};
+
+const signInWithYahoo = async () => {
+  const result = await FirebaseAuthentication.signInWithYahoo();
+  return result.user;
+};
+```
+
+### Sign in with a phone number
+
+Start the phone number sign-in flow, which sends an SMS code to the user, and confirm the code with `confirmVerificationCode(...)`. Only available on Android and iOS:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
 
 const signInWithPhoneNumber = async () => {
   return new Promise(async resolve => {
@@ -389,20 +358,180 @@ const signInWithPhoneNumber = async () => {
     });
   });
 };
+```
 
-const signInWithTwitter = async () => {
-  const result = await FirebaseAuthentication.signInWithTwitter();
+### Sign in with an email link
+
+Send a passwordless sign-in link to the user's email address and complete the sign-in once the link is opened:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const sendSignInLinkToEmail = async () => {
+  const email = 'mail@example.com';
+  await FirebaseAuthentication.sendSignInLinkToEmail({
+    email,
+    actionCodeSettings: {
+      // URL you want to redirect back to. The domain (www.example.com) for this
+      // URL must be in the authorized domains list in the Firebase Console.
+      url: 'https://www.example.com/finishSignUp?cartId=1234',
+      // This must be true.
+      handleCodeInApp: true,
+      iOS: {
+        bundleId: 'com.example.ios',
+      },
+      android: {
+        packageName: 'com.example.android',
+        installApp: true,
+        minimumVersion: '12',
+      },
+      dynamicLinkDomain: 'example.page.link',
+    },
+  });
+  // The link was successfully sent. Inform the user.
+  // Save the email locally so you don't need to ask the user for it again
+  // if they open the link on the same device.
+  window.localStorage.setItem('emailForSignIn', email);
+};
+
+const signInWithEmailLink = async () => {
+  // Get the email if available. This should be available if the user completes
+  // the flow on the same device where they started it.
+  const emailLink = window.location.href;
+  // Confirm the link is a sign-in with email link.
+  const { isSignInWithEmailLink } =
+    await FirebaseAuthentication.isSignInWithEmailLink({
+      emailLink,
+    });
+  if (!isSignInWithEmailLink) {
+    return;
+  }
+  let email = window.localStorage.getItem('emailForSignIn');
+  if (!email) {
+    // User opened the link on a different device. To prevent session fixation
+    // attacks, ask the user to provide the associated email again.
+    email = window.prompt('Please provide your email for confirmation.');
+  }
+  // The client SDK will parse the code from the link for you.
+  const result = await FirebaseAuthentication.signInWithEmailLink({
+    email,
+    emailLink,
+  });
+  // Clear email from storage.
+  window.localStorage.removeItem('emailForSignIn');
+  return result.user;
+};
+```
+
+### Sign in anonymously
+
+Sign in a user anonymously, for example to let users try your app before creating an account:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const signInAnonymously = async () => {
+  const result = await FirebaseAuthentication.signInAnonymously();
+  return result.user;
+};
+```
+
+### Sign in with a custom token or OpenID Connect
+
+Authenticate against your own backend with a custom token or use any OpenID Connect provider:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const signInWithCustomToken = async () => {
+  const result = await FirebaseAuthentication.signInWithCustomToken({
+    token: '1234',
+  });
   return result.user;
 };
 
-const signInWithYahoo = async () => {
-  const result = await FirebaseAuthentication.signInWithYahoo();
+const signInWithOpenIdConnect = async () => {
+  const result = await FirebaseAuthentication.signInWithOpenIdConnect({
+    providerId: 'oidc.example.com',
+  });
+  return result.user;
+};
+```
+
+### Get the current user and ID token
+
+Retrieve the currently signed-in user, their ID token, or the result of a pending authentication operation. The `getPendingAuthResult()` method is only available on Android:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const getCurrentUser = async () => {
+  const result = await FirebaseAuthentication.getCurrentUser();
   return result.user;
 };
 
-const signOut = async () => {
-  await FirebaseAuthentication.signOut();
+const getIdToken = async () => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return;
+  }
+  const result = await FirebaseAuthentication.getIdToken();
+  return result.token;
 };
+
+const getPendingAuthResult = async () => {
+  const result = await FirebaseAuthentication.getPendingAuthResult();
+  return result.user;
+};
+```
+
+### Send and confirm a password reset
+
+Send a password reset email to the user and confirm the password reset with the received out-of-band code:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const sendPasswordResetEmail = async () => {
+  await FirebaseAuthentication.sendPasswordResetEmail({
+    email: 'mail@example.com',
+  });
+};
+
+const confirmPasswordReset = async () => {
+  await FirebaseAuthentication.confirmPasswordReset({
+    oobCode: '1234',
+    newPassword: '4321',
+  });
+};
+```
+
+### Verify the user's email address
+
+Send a verification email to the currently signed-in user and apply the received out-of-band code:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const sendEmailVerification = async () => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return;
+  }
+  await FirebaseAuthentication.sendEmailVerification();
+};
+
+const applyActionCode = async () => {
+  await FirebaseAuthentication.applyActionCode({ oobCode: '1234' });
+};
+```
+
+### Update the user's email or password
+
+Update the email address or password of the currently signed-in user. With `verifyBeforeUpdateEmail(...)`, the new email address is verified before it is updated:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
 
 const updateEmail = async () => {
   const currentUser = await getCurrentUser();
@@ -411,27 +540,6 @@ const updateEmail = async () => {
   }
   await FirebaseAuthentication.updateEmail({
     newEmail: 'new.mail@example.com',
-  });
-};
-
-const updatePassword = async () => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return;
-  }
-  await FirebaseAuthentication.updatePassword({
-    newPassword: '4321',
-  });
-};
-
-const useAppLanguage = async () => {
-  await FirebaseAuthentication.useAppLanguage();
-};
-
-const useEmulator = async () => {
-  await FirebaseAuthentication.useEmulator({
-    host: '10.0.2.2',
-    port: 9099,
   });
 };
 
@@ -454,6 +562,78 @@ const verifyBeforeUpdateEmail = async () => {
       },
       handleCodeInApp: true
     }
+  });
+};
+
+const updatePassword = async () => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return;
+  }
+  await FirebaseAuthentication.updatePassword({
+    newPassword: '4321',
+  });
+};
+```
+
+### Look up sign-in methods for an email
+
+Fetch the sign-in methods that are available for an email address:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const fetchSignInMethodsForEmail = async () => {
+  const result = await FirebaseAuthentication.fetchSignInMethodsForEmail({
+    email: 'mail@example.tld',
+  });
+  return result.signInMethods;
+};
+```
+
+### Set the language
+
+Set the language code to use, or apply the current app language:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const setLanguageCode = async () => {
+  await FirebaseAuthentication.setLanguageCode({ languageCode: 'en-US' });
+};
+
+const useAppLanguage = async () => {
+  await FirebaseAuthentication.useAppLanguage();
+};
+```
+
+### Sign out and delete the user
+
+Sign out the current user or permanently delete the user account:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const signOut = async () => {
+  await FirebaseAuthentication.signOut();
+};
+
+const deleteUser = async () => {
+  await FirebaseAuthentication.deleteUser();
+};
+```
+
+### Use the Firebase Emulator
+
+Connect the plugin to a local [Firebase Emulator](https://firebase.google.com/docs/emulator-suite) instance during development:
+
+```typescript
+import { FirebaseAuthentication } from '@capgo/capacitor-firebase-authentication';
+
+const useEmulator = async () => {
+  await FirebaseAuthentication.useEmulator({
+    host: '10.0.2.2',
+    port: 9099,
   });
 };
 ```
@@ -2165,11 +2345,12 @@ bundle identifiers.
 
 #### UseEmulatorOptions
 
-| Prop         | Type                | Description                                   | Default             | Since |
-| ------------ | ------------------- | --------------------------------------------- | ------------------- | ----- |
-| **`host`**   | <code>string</code> | The emulator host without any port or scheme. |                     | 0.2.0 |
-| **`port`**   | <code>number</code> | The emulator port.                            | <code>9099</code>   | 0.2.0 |
-| **`scheme`** | <code>string</code> | The emulator scheme. Only available for Web.  | <code>"http"</code> | 5.2.0 |
+| Prop                  | Type                 | Description                                                                           | Default             | Since |
+| --------------------- | -------------------- | ------------------------------------------------------------------------------------- | ------------------- | ----- |
+| **`host`**            | <code>string</code>  | The emulator host without any port or scheme.                                         |                     | 0.2.0 |
+| **`port`**            | <code>number</code>  | The emulator port.                                                                    | <code>9099</code>   | 0.2.0 |
+| **`scheme`**          | <code>string</code>  | The emulator scheme. Only available for Web.                                          | <code>"http"</code> | 5.2.0 |
+| **`disableWarnings`** | <code>boolean</code> | Whether to disable the Firebase Auth emulator warning banner. Only available for Web. |                     | 8.6.0 |
 
 
 #### VerifyBeforeUpdateEmailOptions
@@ -2210,9 +2391,10 @@ bundle identifiers.
 
 #### PhoneVerificationFailedEvent
 
-| Prop          | Type                | Description        | Since |
-| ------------- | ------------------- | ------------------ | ----- |
-| **`message`** | <code>string</code> | The error message. | 1.3.0 |
+| Prop          | Type                | Description                                                                     | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------- | ----- |
+| **`message`** | <code>string</code> | The error message.                                                              | 1.3.0 |
+| **`code`**    | <code>string</code> | The error code. Only available if the error is a Firebase Authentication error. | 8.6.0 |
 
 
 #### PhoneCodeSentEvent
@@ -2340,7 +2522,49 @@ Callback to receive the verification ID.
 
 </docgen-api>
 
-## Changelog/cap-go/capacitor-firebase
+## FAQ
+
+### What does this plugin do?
+
+This plugin enables the use of [Firebase Authentication](https://firebase.google.com/docs/auth) in a Capacitor app.
+It uses the Firebase SDK for [Java](https://firebase.google.com/docs/reference/android) (Android), [Swift](https://firebase.google.com/docs/reference/swift) (iOS) and [JavaScript](https://firebase.google.com/docs/reference/js).
+
+### What is the difference between the web implementation of this plugin and the Firebase JS SDK?
+
+The web implementation of this plugin encapsulates the Firebase JS SDK and enables a consistent interface across all platforms.
+You can decide if you prefer to use the web implementation or the Firebase JS SDK.
+
+### What is the difference between the native and web authentication?
+
+For web authentication, the Firebase JS SDK is used. This only works to a limited extent on Android and iOS in the WebViews (see [here](https://developers.googleblog.com/2016/08/modernizing-oauth-interactions-in-native-apps.html)).
+For native authentication, the native SDKs from Firebase, Google, etc. are used.
+These offer all the functionalities that the Firebase JS SDK also offers on the web.
+However, after a login with the native SDK, the user is only logged in on the native layer of the app.
+If the user should also be logged in on the web layer (for example to access Cloud Firestore via Firebase JS SDK), additional steps are required (see [here](https://github.com/Cap-go/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md)).
+
+### How can I use this plugin with the Firebase JavaScript SDK?
+
+See [here](https://github.com/Cap-go/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md).
+
+### Which sign-in methods are supported?
+
+The plugin supports native sign-in with Apple, Facebook, Game Center, GitHub, Google, Microsoft, OpenID Connect, Play Games, Twitter, and Yahoo, as well as anonymous sign-in, email link sign-in, email and password authentication, phone number sign-in, and custom token sign-in. The required setup steps for each sign-in method are linked in the [Installation](#installation) section.
+
+### Can I use this plugin with Ionic, React, Vue or Angular?
+
+Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
+
+## Related Plugins
+
+- [Firebase App Check](https://capawesome.io/docs/sdks/capacitor/firebase/app-check/): Unofficial Capacitor plugin for Firebase App Check.
+- [Firebase Cloud Firestore](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-firestore/): Unofficial Capacitor plugin for Firebase Cloud Firestore.
+- [Firebase Cloud Messaging](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-messaging/): Unofficial Capacitor plugin for Firebase Cloud Messaging.
+
+## Newsletter
+
+Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
+
+## Changelog
 
 See [CHANGELOG.md](https://github.com/cap-go/capacitor-firebase/blob/main/packages/authentication/CHANGELOG.md).
 

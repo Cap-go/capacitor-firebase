@@ -3,7 +3,9 @@ package app.capgo.capacitor.firebase.firestore.classes.options;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
+import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
 import com.getcapacitor.JSObject;
+import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONException;
 
@@ -20,7 +22,8 @@ public class WriteBatchOperation {
         throws JSONException {
         this.type = operation.getString("type");
         this.reference = operation.getString("reference");
-        this.data = FirebaseFirestoreHelper.createHashMapFromJSONObject(operation.getJSObject("data"), firestore);
+        JSObject data = operation.getJSObject("data");
+        this.data = data == null ? new HashMap<>() : FirebaseFirestoreHelper.createHashMapFromJSONObject(data, firestore);
 
         if (operation.has("options") && operation.getJSObject("options") != null) {
             JSObject optsObj = operation.getJSObject("options");

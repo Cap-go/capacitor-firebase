@@ -46,20 +46,22 @@ public class FirebaseMessagingPlugin extends Plugin {
     public static final String ERROR_ID_OR_NAME_MISSING = "id and name must be provided.";
     public static Bridge staticBridge = null;
     public static String lastToken = null;
-    public static RemoteMessage lastRemoteMessage = null;
+    private static final List<RemoteMessage> pendingRemoteMessages = new ArrayList<>();
     private FirebaseMessaging implementation;
 
     public void load() {
         implementation = new FirebaseMessaging(this);
-        staticBridge = this.bridge;
+        synchronized (pendingRemoteMessages) {
+            staticBridge = this.bridge;
+            for (RemoteMessage remoteMessage : pendingRemoteMessages) {
+                handleNotificationReceived(remoteMessage);
+            }
+            pendingRemoteMessages.clear();
+        }
 
         if (lastToken != null) {
             handleTokenReceived(lastToken);
             lastToken = null;
-        }
-        if (lastRemoteMessage != null) {
-            handleNotificationReceived(lastRemoteMessage);
-            lastRemoteMessage = null;
         }
     }
 
@@ -82,11 +84,13 @@ public class FirebaseMessagingPlugin extends Plugin {
     }
 
     public static void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-        FirebaseMessagingPlugin plugin = FirebaseMessagingPlugin.getFirebaseMessagingPluginInstance();
-        if (plugin != null) {
-            plugin.handleNotificationReceived(remoteMessage);
-        } else {
-            lastRemoteMessage = remoteMessage;
+        synchronized (pendingRemoteMessages) {
+            FirebaseMessagingPlugin plugin = FirebaseMessagingPlugin.getFirebaseMessagingPluginInstance();
+            if (plugin != null) {
+                plugin.handleNotificationReceived(remoteMessage);
+            } else {
+                pendingRemoteMessages.add(remoteMessage);
+            }
         }
     }
 

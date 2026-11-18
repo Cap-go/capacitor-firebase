@@ -1383,6 +1383,15 @@ export interface UseEmulatorOptions {
    * @example "https"
    */
   scheme?: string;
+  /**
+   * Whether to disable the Firebase Auth emulator warning banner.
+   *
+   * Only available for Web.
+   *
+   * @since 8.6.0
+   * @see https://firebase.google.com/docs/reference/js/auth.md#connectauthemulator
+   */
+  disableWarnings?: boolean;
 }
 
 /**
@@ -1655,6 +1664,15 @@ export interface PhoneVerificationFailedEvent {
    * @since 1.3.0
    */
   message: string;
+  /**
+   * The error code.
+   *
+   * Only available if the error is a Firebase Authentication error.
+   *
+   * @since 8.6.0
+   * @example 'auth/invalid-phone-number'
+   */
+  code?: string;
 }
 
 /**

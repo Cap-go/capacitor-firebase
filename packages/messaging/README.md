@@ -22,9 +22,27 @@ Unofficial Capacitor plugin for [Firebase Cloud Messaging](https://firebase.goog
 | 5.x.x          | 5.x.x             | Deprecated     |
 | 1.x.x          | 4.x.x             | Deprecated     |
 
+## Guides
+
+- [The Push Notifications Guide for Capacitor](https://capawesome.io/blog/capacitor-push-notifications-guide/)
+- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): From push notifications to analytics and crash reporting — every Firebase plugin in one guide.
+
 ## Installation
 
-You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
+You can use our **AI-Assisted Setup** to install the plugin.
+Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
+
+```bash
+npx skills add capawesome-team/skills --skill capacitor-plugins
+```
+
+Then use the following prompt:
+
+```
+Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-messaging` plugin in my project.
+```
+
+If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -81,7 +99,31 @@ If you prefer to prevent token autogeneration, disable Analytics collection and 
 
 ### iOS
 
-> **Important**: Make sure that no other Capacitor Push Notification plugin is installed (see [here](https://github.com/cap-go/capacitor-firebase/pull/267#issuecomment-1328885820)).
+#### Swift Package Manager
+
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/Cap-go/capacitor-firebase/issues/959):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capgo/capacitor-firebase-messaging": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
+
+#### Setup
+
+> **Important**: Make sure that no other Capacitor Push Notification plugin is installed (see [here](https://github.com/Cap-go/capacitor-firebase/pull/267#issuecomment-1328885820)).
 
 See [Prerequisites](https://capacitorjs.com/docs/guides/push-notifications-firebase#prerequisites) and complete the prerequisites first.
 
@@ -136,9 +178,9 @@ If you prefer to prevent token autogeneration, disable FCM auto initialization b
 
 On iOS you can configure the way the push notifications are displayed when the app is in foreground.
 
-| Prop                      | Type                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Default                                  | Since |
-| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----- |
-| **`presentationOptions`** | <code>PresentationOption[]</code> | This is an array of strings you can combine. Possible values in the array are: - `badge`: badge count on the app icon is updated (default value) - `sound`: the device will ring/vibrate when the push notification is received - `alert`: the push notification is displayed in a native dialog - `criticalAlert`: the push notification is displayed in a native dialog and bypasses the mute switch An empty array can be provided if none of the options are desired. Only available for iOS. | <code>["alert", "badge", "sound"]</code> | 0.2.2 |
+| Prop                      | Type                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Default                                  | Since |
+| ------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----- |
+| **`presentationOptions`** | <code>PresentationOption[]</code> | This is an array of strings you can combine. Possible values in the array are: - `badge`: badge count on the app icon is updated (default value) - `sound`: the device will ring/vibrate when the push notification is received - `alert`: the push notification is displayed as a banner and in the notification list - `criticalAlert`: the push notification is displayed in a native dialog and bypasses the mute switch An empty array can be provided if none of the options are desired. Only available for iOS. | <code>["alert", "badge", "sound"]</code> | 0.2.2 |
 
 ### Examples
 
@@ -186,6 +228,12 @@ The following starter templates are available:
 
 ## Usage
 
+The following examples show how to check and request notification permissions, manage the FCM token, listen for incoming notifications and their actions, subscribe to topics, and manage delivered notifications.
+
+### Check and request permissions
+
+Check and request the permission to receive push notifications. On Android, these methods only need to be called on Android 13+:
+
 ```typescript
 import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
 
@@ -198,6 +246,14 @@ const requestPermissions = async () => {
   const result = await FirebaseMessaging.requestPermissions();
   return result.receive;
 };
+```
+
+### Retrieve or delete the FCM token
+
+Register the app to receive push notifications and retrieve the FCM token that can be used to send push messages to the device. Delete the token, for example when a user signs out, to stop receiving push notifications. You can also be notified when a new token is received using the `tokenReceived` event, which is only available on Android and iOS:
+
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
 
 const getToken = async () => {
   const result = await FirebaseMessaging.getToken();
@@ -207,6 +263,64 @@ const getToken = async () => {
 const deleteToken = async () => {
   await FirebaseMessaging.deleteToken();
 };
+
+const addTokenReceivedListener = async () => {
+  await FirebaseMessaging.addListener('tokenReceived', event => {
+    console.log('tokenReceived', { event });
+  });
+};
+```
+
+### Listen for incoming push notifications
+
+Be notified when a push notification is received. If the app is in the background, this listener is only called for data push notifications on Android and for silent push notifications on iOS:
+
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
+
+const addNotificationReceivedListener = async () => {
+  await FirebaseMessaging.addListener('notificationReceived', event => {
+    console.log('notificationReceived', { event });
+  });
+};
+```
+
+### React to notification actions
+
+Be notified when an action is performed on a push notification, for example when the user taps on it. Only available on Android and iOS:
+
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
+
+const addNotificationActionPerformedListener = async () => {
+  await FirebaseMessaging.addListener('notificationActionPerformed', event => {
+    console.log('notificationActionPerformed', { event });
+  });
+};
+```
+
+### Subscribe to topics
+
+Subscribe to or unsubscribe from a topic to receive push messages that are sent to that topic. Only available on Android and iOS:
+
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
+
+const subscribeToTopic = async () => {
+  await FirebaseMessaging.subscribeToTopic({ topic: 'news' });
+};
+
+const unsubscribeFromTopic = async () => {
+  await FirebaseMessaging.unsubscribeFromTopic({ topic: 'news' });
+};
+```
+
+### Manage delivered notifications
+
+Get, remove, or clear the notifications that are currently visible on the notifications screen:
+
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
 
 const getDeliveredNotifications = async () => {
   const result = await FirebaseMessaging.getDeliveredNotifications();
@@ -226,32 +340,14 @@ const removeDeliveredNotifications = async () => {
 const removeAllDeliveredNotifications = async () => {
   await FirebaseMessaging.removeAllDeliveredNotifications();
 };
+```
 
-const subscribeToTopic = async () => {
-  await FirebaseMessaging.subscribeToTopic({ topic: 'news' });
-};
+### Remove all listeners
 
-const unsubscribeFromTopic = async () => {
-  await FirebaseMessaging.unsubscribeFromTopic({ topic: 'news' });
-};
+Remove all listeners that have been added for this plugin:
 
-const addTokenReceivedListener = async () => {
-  await FirebaseMessaging.addListener('tokenReceived', event => {
-    console.log('tokenReceived', { event });
-  });
-};
-
-const addNotificationReceivedListener = async () => {
-  await FirebaseMessaging.addListener('notificationReceived', event => {
-    console.log('notificationReceived', { event });
-  });
-};
-
-const addNotificationActionPerformedListener = async () => {
-  await FirebaseMessaging.addListener('notificationActionPerformed', event => {
-    console.log('notificationActionPerformed', { event });
-  });
-};
+```typescript
+import { FirebaseMessaging } from '@capgo/capacitor-firebase-messaging';
 
 const removeAllListeners = async () => {
   await FirebaseMessaging.removeAllListeners();
@@ -784,13 +880,6 @@ Get the version of this plugin.
 | **`token`** | <code>string</code> | The native APNs token as an uppercase hex-encoded string. | 8.2.0 |
 
 
-#### GetPluginVersionResult
-
-| Prop          | Type                | Description                          | Since |
-| ------------- | ------------------- | ------------------------------------ | ----- |
-| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
-
-
 ### Type Aliases
 
 
@@ -855,6 +944,34 @@ Callback to receive the APNs token received event.
 | **`Public`**  | <code>1</code>  | 1.4.0 |
 
 </docgen-api>
+
+## FAQ
+
+### What is the difference between the Capacitor Firebase Cloud Messaging plugin and the Capacitor Push Notifications plugin?
+
+The [Capacitor Push Notifications](https://capacitorjs.com/docs/apis/push-notifications) plugin supports Android (FCM) and iOS (APNs). The Capacitor Firebase Cloud Messaging plugin, on the other hand, uses the Firebase SDK for [Android](https://firebase.google.com/docs/cloud-messaging/android/client), [iOS](https://firebase.google.com/docs/cloud-messaging/ios/client) and [Web](https://firebase.google.com/docs/cloud-messaging/js/client) and provides additional features such as topic subscriptions and the ability to receive notifications in the foreground.
+
+### Why is the `notificationReceived` listener not called when the app is in the background?
+
+This is the expected behavior of the underlying platforms. On Android, the listener is called for every push notification only while the app is in the foreground. If the app is in the background, it is only called for data push notifications. On iOS, the listener is only called in the background for silent push notifications, which are messages with the `content-available` key.
+
+### Why is my push notification icon on Android displayed as a white square?
+
+Android expects the push notification icon to consist of white pixels on a transparent background. If no dedicated icon is specified, Android falls back to the application icon, which usually does not meet this requirement and is therefore displayed as a white square or circle. Provide a separate push notification icon as described in the [Installation](#installation) section.
+
+### Do I need to request permissions before receiving push notifications?
+
+Yes, use the `checkPermissions()` and `requestPermissions()` methods to check and request the permission to receive push notifications, as shown in the [usage example](#check-and-request-permissions) above. On Android, these methods only need to be called on Android 13+.
+
+## Related Plugins
+
+- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Sign in users with Firebase Authentication.
+- [Firebase Analytics](https://capawesome.io/docs/sdks/capacitor/firebase/analytics/): Log events and user properties with Firebase Analytics.
+- [Badge](https://capawesome.io/docs/sdks/capacitor/badge/): Access and update the badge number of the app icon.
+
+## Newsletter
+
+Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 
