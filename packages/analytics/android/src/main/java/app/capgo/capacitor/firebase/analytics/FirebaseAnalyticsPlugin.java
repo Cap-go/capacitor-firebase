@@ -12,7 +12,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseAnalytics")
 public class FirebaseAnalyticsPlugin extends Plugin {
 
-    private final String pluginVersion = "8.3.1";
+    private final String pluginVersion = "9.0.0-beta.0";
 
     public static final String TAG = "FirebaseAnalytics";
     public static final String ERROR_KEY_MISSING = "key must be provided.";
