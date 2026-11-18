@@ -12,7 +12,6 @@ import app.capgo.capacitor.firebase.authentication.classes.options.FetchSignInMe
 import app.capgo.capacitor.firebase.authentication.classes.options.RevokeAccessTokenOptions;
 import app.capgo.capacitor.firebase.authentication.classes.options.SendEmailVerificationOptions;
 import app.capgo.capacitor.firebase.authentication.classes.options.SendPasswordResetEmailOptions;
-import app.capgo.capacitor.firebase.authentication.handlers.FacebookAuthProviderHandler;
 import app.capgo.capacitor.firebase.authentication.interfaces.EmptyResultCallback;
 import app.capgo.capacitor.firebase.authentication.interfaces.NonEmptyResultCallback;
 import app.capgo.capacitor.firebase.authentication.interfaces.Result;
@@ -27,7 +26,7 @@ import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.FirebaseUser;
 import org.json.JSONObject;
 
-@CapacitorPlugin(name = "FirebaseAuthentication", requestCodes = { FacebookAuthProviderHandler.RC_FACEBOOK_AUTH })
+@CapacitorPlugin(name = "FirebaseAuthentication")
 public class FirebaseAuthenticationPlugin extends Plugin {
 
     private final String pluginVersion = "8.3.1";
