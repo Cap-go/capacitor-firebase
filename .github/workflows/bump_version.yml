@@ -9,6 +9,7 @@ on:
     paths-ignore:
       - '**.md'
       - '.github/**'
+  workflow_dispatch:
 
 jobs:
   # Run all tests first before creating any tags
@@ -134,12 +135,21 @@ jobs:
         run: |
           set -euo pipefail
           BEFORE="${{ github.event.before }}"
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            # New v9 branch: bump every package.
-            PKGS=$(ls -d packages/*/ | xargs -n1 basename)
-          else
-            PKGS=$(git diff --name-only "$BEFORE" "${{ github.sha }}" | grep '^packages/' | cut -d'/' -f2 | sort -u || true)
+          CHANGED=""
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}" | grep '^packages/' | cut -d'/' -f2 | sort -u || true)
           fi
+          # Every package still below 9.x gets its first 9.0.0-beta.0 too, even when this push did not
+          # touch it. Otherwise a cancelled or failed first bump leaves those packages on 8.x forever.
+          BEHIND=""
+          for dir in packages/*/; do
+            [ -f "${dir}package.json" ] || continue
+            major="$(node -p "require('./${dir}package.json').version.split('.')[0]")"
+            if [ "$major" -lt 9 ]; then
+              BEHIND="$BEHIND $(basename "$dir")"
+            fi
+          done
+          PKGS=$(printf '%s\n' $CHANGED $BEHIND | sed '/^$/d' | sort -u)
           echo "Packages: $PKGS"
           : > "$RUNNER_TEMP/v9-new-tags.txt"
           for pkg in $PKGS; do
