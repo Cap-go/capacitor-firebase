@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - v9
     paths-ignore:
       - '**.md'
       - '.github/**'
@@ -38,6 +39,9 @@ jobs:
           fetch-tags: true
           filter: blob:none
           token: '${{ secrets.PERSONAL_ACCESS_TOKEN }}'
+      - name: Snapshot tags before bump
+        run: |
+          git tag -l | sort > "$RUNNER_TEMP/tags-before.txt"
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun i
@@ -46,6 +50,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
       - name: Get changed packages
+        if: github.ref != 'refs/heads/v9'
         id: changed
         run: |
           # Get list of changed packages
@@ -53,6 +58,7 @@ jobs:
           echo "packages=$CHANGED_PACKAGES" >> $GITHUB_OUTPUT
           echo "Changed packages: $CHANGED_PACKAGES"
       - name: Bump versions and create tags
+        if: github.ref != 'refs/heads/v9'
         id: bump
         run: |
           set -euo pipefail
@@ -122,6 +128,57 @@ jobs:
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+      - name: Bump versions and create tags (v9)
+        id: bump_v9
+        if: github.ref == 'refs/heads/v9'
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            # New v9 branch: bump every package.
+            PKGS=$(ls -d packages/*/ | xargs -n1 basename)
+          else
+            PKGS=$(git diff --name-only "$BEFORE" "${{ github.sha }}" | grep '^packages/' | cut -d'/' -f2 | sort -u || true)
+          fi
+          echo "Packages: $PKGS"
+          : > "$RUNNER_TEMP/v9-new-tags.txt"
+          for pkg in $PKGS; do
+            [ -f "packages/$pkg/package.json" ] || continue
+            (
+              cd "packages/$pkg"
+              bun run docgen || true
+              git add README.md || true
+              git commit -m "docs: update documentation for $pkg" || true
+              CURRENT_MAJOR="$(node -p "require('./package.json').version.split('.')[0]")"
+              args=(
+                --skip.changelog
+                --skip.tag
+                --releaseCommitMessageFormat "chore(release): $pkg {{currentTag}}"
+                --tag-prefix "$pkg/v"
+                --path .
+                --prerelease beta
+              )
+              if [ "$CURRENT_MAJOR" -lt 9 ]; then
+                args+=(--release-as 9.0.0)
+              fi
+              bunx capacitor-plugin-standard-version@2.0.19 "${args[@]}"
+              NEW_VERSION="$(node -p "require('./package.json').version")"
+              case "$NEW_VERSION" in
+                9.0.0-beta.*) ;;
+                *) echo "Refusing to tag $pkg $NEW_VERSION on v9: only 9.0.0-beta.* is allowed"; exit 1 ;;
+              esac
+              TAG_NAME="$pkg/v$NEW_VERSION"
+              if ! git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+                git tag -a "$TAG_NAME" -m "chore(release): $pkg $NEW_VERSION"
+                echo "$TAG_NAME" >> "$RUNNER_TEMP/v9-new-tags.txt"
+              fi
+            )
+          done
+          {
+            echo "new_tags<<EOF"
+            cat "$RUNNER_TEMP/v9-new-tags.txt"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Push branch to origin
         env:
           GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -133,7 +190,7 @@ jobs:
           git push "$GIT_REMOTE" "HEAD:$CURRENT_BRANCH"
       - name: Push release tags
         env:
-          NEW_TAGS: ${{ steps.bump.outputs.new_tags }}
+          NEW_TAGS: ${{ steps.bump.outputs.new_tags || steps.bump_v9.outputs.new_tags }}
           GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           set -euo pipefail

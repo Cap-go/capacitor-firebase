@@ -3,22 +3,21 @@ import PackageDescription
 
 let package = Package(
     name: "CapgoCapacitorFirebaseFunctions",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v16)],
     products: [
         .library(
             name: "CapgoCapacitorFirebaseFunctions",
             targets: ["CapgoFirebaseFunctionsPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
+        .package(url: "https://github.com/ionic-team/capacitor.git", from: "9.0.0-beta.0"),
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "12.9.0"))
     ],
     targets: [
         .target(
             name: "CapgoFirebaseFunctionsPlugin",
             dependencies: [
-                .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                .product(name: "Cordova", package: "capacitor-swift-pm"),
+                .product(name: "Capacitor", package: "capacitor"),
                 .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseFunctions", package: "firebase-ios-sdk")
             ],

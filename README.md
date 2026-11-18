@@ -80,6 +80,7 @@ We maintain full compatibility with the original plugins while ensuring you're a
 
 | Plugin version | Capacitor compatibility | Maintained |
 | -------------- | ----------------------- | ---------- |
+| v9.\*.\*       | v9.\*.\* (beta)         | Prerelease |
 | v8.\*.\*       | v8.\*.\*                | ✅          |
 | v7.\*.\*       | v7.\*.\*                | On demand   |
 | v6.\*.\*       | v6.\*.\*                | ❌          |
