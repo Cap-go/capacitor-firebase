@@ -15,27 +15,9 @@ Unofficial Capacitor plugin for [Firebase Cloud Functions](https://firebase.goog
 | 8.x.x          | >=8.x.x           | Active support |
 | 7.x.x          | 7.x.x             | Deprecated     |
 
-## Guides
-
-- [Call Firebase Cloud Functions from a Capacitor App](https://capawesome.io/blog/capacitor-firebase-cloud-functions-guide/): Call serverless backend logic by name or URL, including local emulator testing, with this plugin.
-- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): Which plugins pair naturally with your backend logic, from sign-in to the database it reads.
-
 ## Installation
 
-You can use our **AI-Assisted Setup** to install the plugin.
-Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
-
-```bash
-npx skills add capawesome-team/skills --skill capacitor-plugins
-```
-
-Then use the following prompt:
-
-```
-Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-functions` plugin in my project.
-```
-
-If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
+You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -66,30 +48,6 @@ If needed, you can define the following project variable in your app’s `variab
 
 This can be useful if you encounter dependency conflicts with other plugins in your project.
 
-### iOS
-
-#### Swift Package Manager
-
-Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
-
-```json
-{
-  "experimental": {
-    "ios": {
-      "spm": {
-        "packageOptions": {
-          "@capgo/capacitor-firebase-functions": {
-            "symlink": true
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
-
 ## Configuration
 
 No configuration required for this plugin.
@@ -99,12 +57,6 @@ No configuration required for this plugin.
 A working example can be found here: [robingenz/capacitor-firebase-plugin-demo](https://github.com/robingenz/capacitor-firebase-plugin-demo)
 
 ## Usage
-
-The following examples show how to call Cloud Functions by name or by URL and how to connect to the Cloud Functions emulator.
-
-### Call a function by name
-
-Call a callable Cloud Function by its name. You can pass strings, numbers, booleans, arrays, and objects as data and receive the result of the function in the `data` property. Use the `region` option if your function is not deployed in the default region:
 
 ```typescript
 import { FirebaseFunctions } from '@capgo/capacitor-firebase-functions';
@@ -124,14 +76,6 @@ const callByName = async () => {
     });
     return data;
 };
-```
-
-### Call a function by URL
-
-If your callable function is hosted on a custom domain or you prefer to address it directly, call it by its URL:
-
-```typescript
-import { FirebaseFunctions } from '@capgo/capacitor-firebase-functions';
 
 const callByUrl = async () => {
     const { data } = await FirebaseFunctions.callByUrl({
@@ -148,14 +92,6 @@ const callByUrl = async () => {
     });
     return data;
 };
-```
-
-### Use the Cloud Functions emulator
-
-During development, you can instrument your app to talk to the local Cloud Functions emulator. When using an Android emulator device, `10.0.2.2` is the special IP address to connect to the `localhost` of the host computer. Note that on Android, the cleartext traffic must be allowed, which is not intended for use in production:
-
-```typescript
-import { FirebaseFunctions } from '@capgo/capacitor-firebase-functions';
 
 const useEmulator = async () => {
   await FirebaseFunctions.useEmulator({
@@ -315,38 +251,6 @@ Get the version of this plugin.
 <code><a href="#callresult">CallResult</a>&lt;ResponseData&gt;</code>
 
 </docgen-api>
-
-## FAQ
-
-### What is the difference between `callByName` and `callByUrl`?
-
-The `callByName(...)` method calls a callable function by its name and, optionally, its region. The `callByUrl(...)` method calls a callable function by its full URL instead, which is useful if the function is hosted on a custom domain.
-
-### What data types can I pass to a callable function?
-
-You can pass strings, numbers, booleans, arrays, and nested objects as data to a callable function. The result of the function is returned in the `data` property of the call result.
-
-### How do I test my functions locally?
-
-Use the `useEmulator(...)` method to instrument your app to talk to the local Cloud Functions emulator, as shown in the [usage example](#use-the-cloud-functions-emulator) above. When testing on an Android emulator device, use `10.0.2.2` as the host to reach the `localhost` of the host computer. Keep in mind that on Android, the cleartext traffic must be allowed for this, which is not intended for use in production.
-
-### Why do I get a SwiftPM package identity collision on iOS?
-
-This is a known issue when using the plugin with Swift Package Manager. Add the `symlink` package option for `@capgo/capacitor-firebase-functions` to your Capacitor configuration as described in the [Installation](#installation) section. Note that SPM `packageOptions` support requires Capacitor CLI 8.4.0 or later.
-
-### Can I use this plugin with Ionic, React, Vue or Angular?
-
-Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
-
-## Related Plugins
-
-- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Sign in users with Firebase Authentication.
-- [Firebase Cloud Firestore](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-firestore/): Store and sync app data in Cloud Firestore.
-- [Firebase Cloud Storage](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-storage/): Upload and download files with Firebase Cloud Storage.
-
-## Newsletter
-
-Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

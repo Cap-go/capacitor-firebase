@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 5.9
 import PackageDescription
 
 let package = Package(
@@ -8,21 +8,6 @@ let package = Package(
         .library(
             name: "CapgoCapacitorFirebaseAuthentication",
             targets: ["CapgoFirebaseAuthenticationPlugin"])
-    ],
-    traits: [
-        .default(enabledTraits: ["Google", "Facebook"]),
-        .trait(
-            name: "Lite",
-            description: "Excludes all optional third party SDKs."
-        ),
-        .trait(
-            name: "Google",
-            description: "Includes the Google Sign-In SDK."
-        ),
-        .trait(
-            name: "Facebook",
-            description: "Includes the Facebook SDK."
-        )
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
@@ -38,12 +23,9 @@ let package = Package(
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
-                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS",
-                         condition: .when(traits: ["Google"])),
-                .product(name: "FacebookCore", package: "facebook-ios-sdk",
-                         condition: .when(traits: ["Facebook"])),
-                .product(name: "FacebookLogin", package: "facebook-ios-sdk",
-                         condition: .when(traits: ["Facebook"]))
+                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+                .product(name: "FacebookCore", package: "facebook-ios-sdk"),
+                .product(name: "FacebookLogin", package: "facebook-ios-sdk")
             ],
             path: "ios/Plugin",
             swiftSettings: [

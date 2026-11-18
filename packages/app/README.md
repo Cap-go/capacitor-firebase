@@ -18,26 +18,9 @@ Unofficial Capacitor plugin for [Firebase App](https://firebase.google.com/docs)
 | 5.x.x          | 5.x.x             | Deprecated     |
 | 1.x.x          | 4.x.x             | Deprecated     |
 
-## Guides
-
-- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): The starting point for the whole plugin family and the setup every Firebase plugin shares.
-
 ## Installation
 
-You can use our **AI-Assisted Setup** to install the plugin.
-Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
-
-```bash
-npx skills add capawesome-team/skills --skill capacitor-plugins
-```
-
-Then use the following prompt:
-
-```
-Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-app` plugin in my project.
-```
-
-If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
+You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -68,30 +51,6 @@ If needed, you can define the following project variable in your app’s `variab
 
 This can be useful if you encounter dependency conflicts with other plugins in your project.
 
-### iOS
-
-#### Swift Package Manager
-
-Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
-
-```json
-{
-  "experimental": {
-    "ios": {
-      "spm": {
-        "packageOptions": {
-          "@capgo/capacitor-firebase-app": {
-            "symlink": true
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
-
 ## Configuration
 
 No configuration required for this plugin.
@@ -102,26 +61,12 @@ A working example can be found here: [robingenz/capacitor-firebase-plugin-demo](
 
 ## Usage
 
-The following examples show how to get the Firebase app name and its configuration options.
-
-### Get the app name
-
-Retrieve the unique name of the Firebase app:
-
 ```typescript
 import { FirebaseApp } from '@capgo/capacitor-firebase-app';
 
 const getName = async () => {
   const result = await FirebaseApp.getName();
 };
-```
-
-### Get the Firebase configuration options
-
-Retrieve the configuration options of the Firebase app, such as the API key, application ID, and project ID:
-
-```typescript
-import { FirebaseApp } from '@capgo/capacitor-firebase-app';
 
 const getOptions = async () => {
   const result = await FirebaseApp.getOptions();
@@ -216,43 +161,6 @@ Get the version of this plugin.
 | **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 </docgen-api>
-
-## FAQ
-
-### Which platforms does this plugin support?
-
-The plugin supports Android, iOS, and Web. Both `getName()` and `getOptions()` are available on all three platforms.
-
-### Do I need to configure anything before using this plugin?
-
-No plugin-specific configuration is required. However, you must add Firebase to your project first. The [Installation](#installation) section links to the Firebase setup instructions for Android, iOS, and Web.
-
-### What information does `getOptions` return?
-
-The `getOptions()` method returns the configuration options of the Firebase app: the API key used for authenticating requests, the Google App ID, the database root URL, the project number, the Google Cloud project ID, and the Google Cloud Storage bucket name.
-
-### How do I fix the SwiftPM package identity collision on iOS?
-
-If you are using Swift Package Manager, add the `symlink` package option for `@capgo/capacitor-firebase-app` to your Capacitor configuration as described in the [Installation](#installation) section. Note that SPM `packageOptions` support requires Capacitor CLI 8.4.0 or later.
-
-### Is this an official Firebase plugin?
-
-No, this is an unofficial Capacitor plugin for the Firebase App SDK. The project is not affiliated with, endorsed by, sponsored by, or approved by Google LLC or any of their affiliates or subsidiaries.
-
-### Can I use this plugin with Ionic, React, Vue or Angular?
-
-Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
-
-## Related Plugins
-
-- [Firebase Analytics](https://capawesome.io/docs/sdks/capacitor/firebase/analytics/): Log events and track user interactions with Firebase Analytics.
-- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Authenticate users with Firebase Authentication.
-- [Firebase Crashlytics](https://capawesome.io/docs/sdks/capacitor/firebase/crashlytics/): Track and report app crashes with Firebase Crashlytics.
-- [Firebase Cloud Messaging](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-messaging/): Receive push notifications with Firebase Cloud Messaging.
-
-## Newsletter
-
-Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

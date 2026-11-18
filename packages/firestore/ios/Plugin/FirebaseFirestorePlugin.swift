@@ -39,7 +39,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorCallbackIdMissing = "callbackId must be provided."
     public let errorImplementationMissing = "implementation is not initialized."
     private var implementation: FirebaseFirestore?
-    private let pluginVersion: String = "8.3.2"
+    private let pluginVersion: String = "8.6.0"
     private var pluginCallMap: [String: CAPPluginCall] = [:]
 
     @objc func getPluginVersion(_ call: CAPPluginCall) {

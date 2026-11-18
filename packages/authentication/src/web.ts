@@ -413,7 +413,6 @@ export class FirebaseAuthenticationWeb
     } catch (error) {
       const event: PhoneVerificationFailedEvent = {
         message: this.getErrorMessage(error),
-        code: this.getErrorCode(error),
       };
       this.notifyListeners(
         FirebaseAuthenticationWeb.PHONE_VERIFICATION_FAILED_EVENT,
@@ -682,7 +681,6 @@ export class FirebaseAuthenticationWeb
     } catch (error) {
       const event: PhoneVerificationFailedEvent = {
         message: this.getErrorMessage(error),
-        code: this.getErrorCode(error),
       };
       this.notifyListeners(
         FirebaseAuthenticationWeb.PHONE_VERIFICATION_FAILED_EVENT,
@@ -783,18 +781,10 @@ export class FirebaseAuthenticationWeb
     const auth = getAuth();
     const port = options.port || 9099;
     const scheme = options.scheme || 'http';
-    const connectOptions =
-      options.disableWarnings === undefined
-        ? undefined
-        : { disableWarnings: options.disableWarnings };
     if (options.host.includes('://')) {
-      connectAuthEmulator(auth, `${options.host}:${port}`, connectOptions);
+      connectAuthEmulator(auth, `${options.host}:${port}`);
     } else {
-      connectAuthEmulator(
-        auth,
-        `${scheme}://${options.host}:${port}`,
-        connectOptions,
-      );
+      connectAuthEmulator(auth, `${scheme}://${options.host}:${port}`);
     }
   }
 
@@ -1008,17 +998,6 @@ export class FirebaseAuthenticationWeb
     return result;
   }
 
-  private getErrorCode(error: unknown): string | undefined {
-    if (
-      error instanceof Object &&
-      'code' in error &&
-      typeof error['code'] === 'string'
-    ) {
-      return error['code'];
-    }
-    return undefined;
-  }
-
   private getErrorMessage(error: unknown): string {
     if (
       error instanceof Object &&
@@ -1031,6 +1010,6 @@ export class FirebaseAuthenticationWeb
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.0.3' };
+    return { version: '8.6.0' };
   }
 }

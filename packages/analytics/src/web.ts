@@ -145,6 +145,6 @@ export class FirebaseAnalyticsWeb
     throw this.unimplemented('Not implemented on web.');
   }
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.3.0' };
+    return { version: '8.6.0' };
   }
 }

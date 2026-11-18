@@ -17,27 +17,9 @@ Unofficial Capacitor plugin for [Firebase Remote Config](https://firebase.google
 | 6.x.x          | 6.x.x             | Deprecated     |
 | 5.x.x          | 5.x.x             | Deprecated     |
 
-## Guides
-
-- [Feature Flags in a Capacitor App with Remote Config](https://capawesome.io/blog/capacitor-firebase-remote-config-guide/): Feature flags, staged rollouts, and real-time config updates with this plugin.
-- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): How feature flags plug into the rest of the family, including the Analytics audiences they target.
-
 ## Installation
 
-You can use our **AI-Assisted Setup** to install the plugin.
-Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
-
-```bash
-npx skills add capawesome-team/skills --skill capacitor-plugins
-```
-
-Then use the following prompt:
-
-```
-Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-remote-config` plugin in my project.
-```
-
-If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
+You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -70,30 +52,6 @@ If needed, you can define the following project variable in your app’s `variab
 
 This can be useful if you encounter dependency conflicts with other plugins in your project.
 
-### iOS
-
-#### Swift Package Manager
-
-Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
-
-```json
-{
-  "experimental": {
-    "ios": {
-      "spm": {
-        "packageOptions": {
-          "@capgo/capacitor-firebase-remote-config": {
-            "symlink": true
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
-
 ## Configuration
 
 No configuration required for this plugin.
@@ -110,20 +68,8 @@ The following starter templates are available:
 
 ## Usage
 
-The following examples show how to fetch and activate the configuration, read configuration values, configure the fetch behavior, set custom signals, and listen for configuration updates in real time.
-
-### Fetch and activate the configuration
-
-Fetch the latest configuration from the Remote Config service and activate it to make it available to the getters. Use `fetchAndActivate()` to perform both operations at once. On Android and iOS, you can pass a minimum fetch interval to `fetchConfig(...)`:
-
 ```typescript
 import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
-
-const fetchConfig = async () => {
-  await FirebaseRemoteConfig.fetchConfig({
-    minimumFetchIntervalInSeconds: 1200,
-  });
-};
 
 const activate = async () => {
   await FirebaseRemoteConfig.activate();
@@ -132,14 +78,12 @@ const activate = async () => {
 const fetchAndActivate = async () => {
   await FirebaseRemoteConfig.fetchAndActivate();
 };
-```
 
-### Read configuration values
-
-Read the value for a given key as a boolean, number, or string:
-
-```typescript
-import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
+const fetchConfig = async () => {
+  await FirebaseRemoteConfig.fetchConfig({
+    minimumFetchIntervalInSeconds: 1200,
+  });
+};
 
 const getBoolean = async () => {
   const { value } = await FirebaseRemoteConfig.getBoolean({
@@ -161,14 +105,6 @@ const getString = async () => {
   });
   return value;
 };
-```
-
-### Configure the fetch behavior
-
-Set the fetch timeout and the minimum fetch interval. During development, it's recommended to set a relatively low minimum fetch interval:
-
-```typescript
-import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
 
 const setSettings = async () => {
   await FirebaseRemoteConfig.setSettings({
@@ -176,31 +112,6 @@ const setSettings = async () => {
     minimumFetchIntervalInSeconds: 0,
   });
 };
-```
-
-### Set custom signals
-
-Set custom signals for the app instance that can be used for targeting in Remote Config conditions. Signals with a `null` value will be removed:
-
-```typescript
-import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
-
-const setCustomSignals = async () => {
-  await FirebaseRemoteConfig.setCustomSignals({
-    customSignals: {
-      city: 'Berlin',
-      preferred_event_category: 'concerts',
-    },
-  });
-};
-```
-
-### Listen for configuration updates in real time
-
-Add a listener for the config update event to be notified as soon as parameter values change. Only available on Android and iOS:
-
-```typescript
-import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
 
 const addConfigUpdateListener = async () => {
   const callbackId = await FirebaseRemoteConfig.addConfigUpdateListener(
@@ -220,14 +131,6 @@ const removeConfigUpdateListener = async (callbackId: string) => {
     callbackId,
   });
 };
-```
-
-### Remove all listeners
-
-Remove all listeners that have been added for this plugin:
-
-```typescript
-import { FirebaseRemoteConfig } from '@capgo/capacitor-firebase-remote-config';
 
 const removeAllListeners = async () => {
   await FirebaseRemoteConfig.removeAllListeners();
@@ -247,7 +150,6 @@ const removeAllListeners = async () => {
 * [`getAll()`](#getall)
 * [`getInfo()`](#getinfo)
 * [`setMinimumFetchInterval(...)`](#setminimumfetchinterval)
-* [`setCustomSignals(...)`](#setcustomsignals)
 * [`setDefaults(...)`](#setdefaults)
 * [`setSettings(...)`](#setsettings)
 * [`addConfigUpdateListener(...)`](#addconfigupdatelistener)
@@ -408,23 +310,6 @@ Only available for Web.
 | **`options`** | <code><a href="#setminimumfetchintervaloptions">SetMinimumFetchIntervalOptions</a></code> |
 
 **Since:** 1.3.0
-
---------------------
-
-
-### setCustomSignals(...)
-
-```typescript
-setCustomSignals(options: SetCustomSignalsOptions) => Promise<void>
-```
-
-Set custom signals for the app instance that can be used for targeting in Remote Config conditions.
-
-| Param         | Type                                                                        |
-| ------------- | --------------------------------------------------------------------------- |
-| **`options`** | <code><a href="#setcustomsignalsoptions">SetCustomSignalsOptions</a></code> |
-
-**Since:** 8.4.0
 
 --------------------
 
@@ -604,13 +489,6 @@ Get the version of this plugin.
 | **`minimumFetchIntervalInSeconds`** | <code>number</code> | Define the maximum age in seconds of an entry in the config cache before it is considered stale. During development, it's recommended to set a relatively low minimum fetch interval. | <code>43200</code> | 1.3.0 |
 
 
-#### SetCustomSignalsOptions
-
-| Prop                | Type                                                                              | Description                                                                                  | Since |
-| ------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----- |
-| **`customSignals`** | <code><a href="#record">Record</a>&lt;string, string \| number \| null&gt;</code> | The custom signals to set for the app instance. Signals with a `null` value will be removed. | 8.4.0 |
-
-
 #### SetDefaultsOptions
 
 | Prop           | Type                                                                                 | Description                                          | Since |
@@ -704,37 +582,6 @@ Construct a type with a set of properties K of type T
 | **`Throttled`**  | <code>3</code> |
 
 </docgen-api>
-
-## FAQ
-
-### Why do the getters return default values instead of the remote ones?
-
-Fetched configuration values must be activated before they are available to the getters. Call `fetchConfig(...)` followed by `activate()`, or use `fetchAndActivate()` to perform both operations at once, as shown in the [usage example](#fetch-and-activate-the-configuration) above.
-
-### How often does the plugin fetch new configuration values?
-
-Fetched configuration values are cached. The minimum fetch interval defines the maximum age in seconds of an entry in the config cache before it is considered stale, with a default of 43200 seconds (12 hours). During development, it's recommended to set a relatively low minimum fetch interval using `setSettings(...)` on Android and iOS or `setMinimumFetchInterval(...)` on Web.
-
-### How can I react to configuration changes in real time?
-
-Use `addConfigUpdateListener(...)` to be notified as soon as parameter values change, including the keys whose values have been updated. This method is only available on Android and iOS. You can remove the listener again with `removeConfigUpdateListener(...)` or `removeAllListeners()`.
-
-### Do I need the Firebase Analytics plugin to use Remote Config?
-
-Google Analytics is only required for the conditional targeting of app instances to user properties and audiences. If you want to use conditions, make sure to also install the [Capacitor Firebase Analytics](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/analytics) plugin in your project.
-
-### How can I tell where a configuration value came from?
-
-The getters return a `source` property in addition to the value. It indicates whether the value is the static default value, was retrieved from the defaults set by the client, or was retrieved from the Firebase Remote Config server.
-
-## Related Plugins
-
-- [Firebase Analytics](https://capawesome.io/docs/sdks/capacitor/firebase/analytics/): Log events and user properties with Firebase Analytics.
-- [Live Update](https://capawesome.io/docs/sdks/capacitor/live-update/): Update your app remotely in real-time without requiring users to download a new version from the app store.
-
-## Newsletter
-
-Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

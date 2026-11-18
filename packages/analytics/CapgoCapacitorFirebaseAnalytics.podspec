@@ -22,11 +22,11 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'Analytics' do |analytics|
-    analytics.dependency 'FirebaseAnalytics/Core', '~> 12.7'
-    analytics.dependency 'FirebaseAnalytics/IdentitySupport', '~> 12.7'
+    analytics.dependency 'FirebaseAnalytics/Core', '~> 12.9'
+    analytics.dependency 'FirebaseAnalytics/IdentitySupport', '~> 12.9'
   end
 
   s.subspec 'AnalyticsWithoutAdIdSupport' do |analyticsWithoutAdIdSupport|
-    analyticsWithoutAdIdSupport.dependency 'FirebaseAnalytics/Core', '~> 12.7'
+    analyticsWithoutAdIdSupport.dependency 'FirebaseAnalytics/Core', '~> 12.9'
   end
 end

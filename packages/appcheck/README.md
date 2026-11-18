@@ -17,27 +17,9 @@ Unofficial Capacitor plugin for [Firebase App Check](https://firebase.google.com
 | 6.x.x          | 6.x.x             | Deprecated     |
 | 5.x.x          | 5.x.x             | Deprecated     |
 
-## Guides
-
-- [Firebase App Check in a Capacitor App](https://capawesome.io/blog/capacitor-firebase-app-check-guide/): Set up the Play Integrity, App Attest, and reCAPTCHA providers and verify tokens server-side with this plugin.
-- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): A tour of the Firebase services App Check ends up protecting once enforcement is on.
-
 ## Installation
 
-You can use our **AI-Assisted Setup** to install the plugin.
-Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
-
-```bash
-npx skills add capawesome-team/skills --skill capacitor-plugins
-```
-
-Then use the following prompt:
-
-```
-Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-app-check` plugin in my project.
-```
-
-If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
+You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
 
 ```bash
 npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
@@ -79,28 +61,6 @@ On **iOS 13**, see [Set up your Firebase project](https://firebase.google.com/do
 
 Make sure that the private key (\*.p8) you upload to Firebase has `DeviceCheck` selected as a service.
 
-#### Swift Package Manager
-
-Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
-
-```json
-{
-  "experimental": {
-    "ios": {
-      "spm": {
-        "packageOptions": {
-          "@capgo/capacitor-firebase-appcheck": {
-            "symlink": true
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
-
 ### Web
 
 See [Set up your Firebase project](https://firebase.google.com/docs/app-check/web/recaptcha-provider#project-setup) and follow the instructions to set up your app correctly.
@@ -119,12 +79,6 @@ A working example can be found here: [robingenz/capacitor-firebase-plugin-demo](
 
 ## Usage
 
-The following examples show how to initialize App Check, get the current token, enable automatic token refresh, and listen for token changes.
-
-### Initialize App Check
-
-Activate App Check for your app. This can be called only once per app. On the Web, pass a provider such as `ReCaptchaV3Provider`; on Android and iOS, the native attestation providers are used:
-
 ```typescript
 import { FirebaseAppCheck } from '@capgo/capacitor-firebase-app-check';
 import { ReCaptchaV3Provider } from '@capgo/capacitor-firebase-app-check';
@@ -135,55 +89,23 @@ const initialize = async () => {
     provider: Capacitor.getPlatform() === 'web' ? new ReCaptchaV3Provider('myKey') : undefined,
   });
 };
-```
-
-### Get the current App Check token
-
-Retrieve the current App Check token, for example to send it to your own backend. Set `forceRefresh` to `true` if you always want to fetch a fresh token instead of a cached one:
-
-```typescript
-import { FirebaseAppCheck } from '@capgo/capacitor-firebase-appcheck';
 
 const getToken = async () => {
-  const { token } = await FirebaseAppCheck.getToken({
+  const { token } = FirebaseAppCheck.getToken({
     forceRefresh: false,
   });
   return token;
 };
-```
-
-### Enable automatic token refresh
-
-Set whether the App Check token should be refreshed automatically as needed:
-
-```typescript
-import { FirebaseAppCheck } from '@capgo/capacitor-firebase-appcheck';
 
 const setTokenAutoRefreshEnabled = async () => {
   await FirebaseAppCheck.setTokenAutoRefreshEnabled({ enabled: true });
 };
-```
-
-### Listen for token changes
-
-Get notified whenever the App Check token changes:
-
-```typescript
-import { FirebaseAppCheck } from '@capgo/capacitor-firebase-appcheck';
 
 const addTokenChangedListener = async () => {
   await FirebaseAppCheck.addListener('tokenChanged', event => {
     console.log('tokenChanged', { event });
   });
 };
-```
-
-### Remove all listeners
-
-Remove all listeners for this plugin. Only available on Web:
-
-```typescript
-import { FirebaseAppCheck } from '@capgo/capacitor-firebase-appcheck';
 
 const removeAllListeners = async () => {
   await FirebaseAppCheck.removeAllListeners();
@@ -401,39 +323,6 @@ the Firebase Console for your project: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
 
 1. Next, open the [App Check project](https://console.firebase.google.com/u/0/project/_/appcheck/apps) in the Firebase Console and select Manage debug tokens from the overflow menu of your app. Then, register the debug secret from the output.
-
-## FAQ
-
-### Which attestation providers does this plugin use?
-
-On Android, the plugin uses the [Play Integrity](https://firebase.google.com/docs/app-check/android/play-integrity-provider#project-setup) provider. On iOS, it uses [App Attest](https://firebase.google.com/docs/app-check/ios/app-attest-provider#project-setup) on iOS 14 and later and [DeviceCheck](https://firebase.google.com/docs/app-check/ios/devicecheck-provider#project-setup) on iOS 13. On the Web, it uses [reCAPTCHA v3](https://firebase.google.com/docs/app-check/web/recaptcha-provider#project-setup) by default, but you can also pass a `ReCaptchaEnterpriseProvider` or `CustomProvider` instance via the `provider` option.
-
-### How can I test App Check on emulators and other unverified devices?
-
-Use the debug provider by setting the `debugToken` option of the `initialize(...)` method. On Android, you can grab the temporary debug secret from the device logs and register it in the Firebase Console (see [Testing](#testing)). Never use the debug provider in production builds of your app and never share your debug builds with untrusted parties, as it allows access to your Firebase resources from unverified devices.
-
-### How do I protect my own backend with App Check?
-
-Call the `getToken(...)` method to retrieve the current App Check token in JWT format and send it along with requests to your backend, where you can verify it server-side. Use the `tokenChanged` listener to get notified whenever the token changes.
-
-### Why is my App Check token not refreshed automatically?
-
-Automatic token refresh is disabled by default. You can enable it with the `isTokenAutoRefreshEnabled` option of the `initialize(...)` method or at any time with the `setTokenAutoRefreshEnabled(...)` method.
-
-### Can I use this plugin with Ionic, React, Vue or Angular?
-
-Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
-
-## Related Plugins
-
-- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Unofficial Capacitor plugin for Firebase Authentication.
-- [Firebase Cloud Firestore](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-firestore/): Unofficial Capacitor plugin for Firebase Cloud Firestore.
-- [Firebase Cloud Functions](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-functions/): Unofficial Capacitor plugin for Firebase Cloud Functions.
-- [Firebase Cloud Storage](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-storage/): Unofficial Capacitor plugin for Firebase Cloud Storage.
-
-## Newsletter
-
-Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 

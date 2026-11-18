@@ -6,7 +6,6 @@ import {
   getAll,
   getRemoteConfig,
   getValue,
-  setCustomSignals,
 } from 'firebase/remote-config';
 import type { Value } from 'firebase/remote-config';
 
@@ -21,7 +20,6 @@ import type {
   GetOptions,
   GetStringResult,
   RemoveConfigUpdateListenerOptions,
-  SetCustomSignalsOptions,
   SetMinimumFetchIntervalOptions,
   SetDefaultsOptions,
   SetSettingsOptions,
@@ -112,13 +110,6 @@ export class FirebaseRemoteConfigWeb
       options.minimumFetchIntervalInSeconds * 1000;
   }
 
-  public async setCustomSignals(
-    options: SetCustomSignalsOptions,
-  ): Promise<void> {
-    const remoteConfig = getRemoteConfig();
-    await setCustomSignals(remoteConfig, options.customSignals);
-  }
-
   public async setDefaults(options: SetDefaultsOptions): Promise<void> {
     const remoteConfig = getRemoteConfig();
     remoteConfig.defaultConfig = options.defaults;
@@ -167,6 +158,6 @@ export class FirebaseRemoteConfigWeb
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.0.2' };
+    return { version: '8.6.0' };
   }
 }

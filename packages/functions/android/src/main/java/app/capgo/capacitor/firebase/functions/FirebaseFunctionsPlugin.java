@@ -14,7 +14,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseFunctions")
 public class FirebaseFunctionsPlugin extends Plugin {
 
-    private final String pluginVersion = "8.3.1";
+    private final String pluginVersion = "8.6.0";
 
     public static final String TAG = "FirebaseFunctions";
     public static final String ERROR_NAME_MISSING = "name must be provided.";
