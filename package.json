@@ -34,7 +34,7 @@
     "check:cap9-deprecated": "node scripts/check-cap9-deprecated.mjs --workspace"
   },
   "devDependencies": {
-    "@changesets/cli": "3.0.1",
+    "@changesets/cli": "2.29.8",
     "@ionic/swiftlint-config": "2.0.0",
     "@robingenz/changelog-github": "0.0.1",
     "husky": "9.1.7",

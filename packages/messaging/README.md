@@ -880,6 +880,13 @@ Get the version of this plugin.
 | **`token`** | <code>string</code> | The native APNs token as an uppercase hex-encoded string. | 8.2.0 |
 
 
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
+
+
 ### Type Aliases
 
 
