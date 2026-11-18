@@ -40,6 +40,7 @@ public class FirebaseRemoteConfigPlugin: CAPPlugin, CAPBridgedPlugin {
 
     override public func load() {
         implementation = FirebaseRemoteConfig(plugin: self)
+        installRemoveAllListenersHook()
     }
 
     @objc func activate(_ call: CAPPluginCall) {
@@ -204,14 +205,36 @@ public class FirebaseRemoteConfigPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
-    @objc override public func removeAllListeners(_ call: CAPPluginCall) {
+    private func cleanUpAllListeners(completion: @escaping () -> Void) {
         for (_, savedCall) in self.pluginCallMap {
             bridge?.releaseCall(withID: savedCall.callbackId)
         }
         self.pluginCallMap.removeAll()
 
         implementation?.removeAllListeners()
-        super.removeAllListeners(call)
+        completion()
+    }
+
+    /// Capacitor 9 declares `removeAllListeners(_:)` in a public (not open) extension, so plugins can no
+    /// longer override it. The bridge still dispatches it through the Objective-C runtime (JS
+    /// `removeAllListeners()` and bridge reset), so wrap the inherited implementation on this plugin class.
+    private func installRemoveAllListenersHook() {
+        let selector = NSSelectorFromString("removeAllListeners:")
+        let pluginClass: AnyClass = type(of: self)
+        guard let inherited = class_getInstanceMethod(pluginClass, selector) else { return }
+        let originalImp = method_getImplementation(inherited)
+        typealias OriginalFn = @convention(c) (AnyObject, Selector, CAPPluginCall?) -> Void
+        let block: @convention(block) (AnyObject, CAPPluginCall?) -> Void = { obj, call in
+            guard let plugin = obj as? FirebaseRemoteConfigPlugin else {
+                unsafeBitCast(originalImp, to: OriginalFn.self)(obj, selector, call)
+                return
+            }
+            plugin.cleanUpAllListeners {
+                unsafeBitCast(originalImp, to: OriginalFn.self)(obj, selector, call)
+            }
+        }
+        // Returns false when this class already carries the hook, which is fine.
+        _ = class_addMethod(pluginClass, selector, imp_implementationWithBlock(block), method_getTypeEncoding(inherited))
     }
 
     @objc func getPluginVersion(_ call: CAPPluginCall) {
