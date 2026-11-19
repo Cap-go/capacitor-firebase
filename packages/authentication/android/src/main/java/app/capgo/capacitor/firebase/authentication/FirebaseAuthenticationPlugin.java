@@ -29,7 +29,7 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "FirebaseAuthentication")
 public class FirebaseAuthenticationPlugin extends Plugin {
 
-    private final String pluginVersion = "8.6.0";
+    private final String pluginVersion = "8.6.1";
 
     public static final String TAG = "FirebaseAuthentication";
     public static final String ERROR_CODE_PREFIX = "auth";
