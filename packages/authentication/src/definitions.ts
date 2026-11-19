@@ -1655,15 +1655,6 @@ export interface PhoneVerificationFailedEvent {
    * @since 1.3.0
    */
   message: string;
-  /**
-   * The error code.
-   *
-   * Only available if the error is a Firebase Authentication error.
-   *
-   * @since 8.6.0
-   * @example 'auth/invalid-phone-number'
-   */
-  code?: string;
 }
 
 /**
