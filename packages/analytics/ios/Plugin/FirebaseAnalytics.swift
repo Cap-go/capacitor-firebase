@@ -8,11 +8,17 @@ import FirebaseAnalytics
 @objc public class FirebaseAnalytics: NSObject {
 
     private weak var plugin: FirebaseAnalyticsPlugin?
+    private(set) var isConfigured = true
 
     init(plugin: FirebaseAnalyticsPlugin) {
         self.plugin = plugin
         super.init()
         if FirebaseApp.app() == nil {
+            guard FirebaseOptions.defaultOptions() != nil else {
+                CAPLog.print("[FirebaseAnalytics] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
+                return
+            }
             FirebaseApp.configure()
         }
     }
@@ -88,7 +94,7 @@ import FirebaseAnalytics
                 }
             }
             guard let transaction = matchedTransaction else {
-                completion(self.plugin?.errorTransactionNotFound ?? "Transaction not found.")
+                completion(self.plugin?.errorTransactionNotFound)
                 return
             }
             Analytics.logTransaction(transaction)

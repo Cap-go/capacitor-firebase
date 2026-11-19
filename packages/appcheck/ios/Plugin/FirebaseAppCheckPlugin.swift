@@ -17,19 +17,25 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.1"
+    private let pluginVersion: String = "8.6.0"
     public let tag = "FirebaseAppCheck"
     public let errorEnabledMissing = "enabled must be provided."
     public let errorGetTokenFailed = "Failed to get token."
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     public let tokenChangedEvent = "tokenChanged"
     private var implementation: FirebaseAppCheck?
 
     override public func load() {
-        implementation = FirebaseAppCheck()
+        let createdImplementation = FirebaseAppCheck()
+        implementation = createdImplementation.isConfigured ? createdImplementation : nil
         NotificationCenter.default.addObserver(self, selector: #selector(handleTokenChanged), name: Notification.Name.AppCheckTokenDidChange, object: nil)
     }
 
     @objc func getToken(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         let forceRefresh = call.getBool("forceRefresh") ?? false
         implementation?.getToken(forceRefresh: forceRefresh, completion: { token, expireTimeMillis, error in
             if let error = error {

@@ -25,7 +25,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.1"
+    private let pluginVersion: String = "8.6.0"
     public let errorTraceNameMissing = "traceName must be provided."
     public let errorMetricNameMissing = "metricName must be provided."
     public let errorEnabledMissing = "enabled must be provided."
@@ -36,13 +36,19 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorNumMissing = "num must be provided."
     public let errorStartTimeMissing = "startTime must be provided."
     public let errorDurationMissing = "duration must be provided."
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private var implementation: FirebasePerformance?
 
     override public func load() {
-        implementation = FirebasePerformance()
+        let createdImplementation = FirebasePerformance()
+        implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func startTrace(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return

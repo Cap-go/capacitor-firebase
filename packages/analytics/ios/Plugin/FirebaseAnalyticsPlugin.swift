@@ -31,7 +31,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.1"
+    private let pluginVersion: String = "8.6.0"
     public let errorUserIdMissing = "userId must be provided."
     public let errorKeyMissing = "key must be provided."
     public let errorValueMissing = "value must be provided."
@@ -51,7 +51,8 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAnalytics?
 
     override public func load() {
-        implementation = FirebaseAnalytics(plugin: self)
+        let createdImplementation = FirebaseAnalytics(plugin: self)
+        implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func getAppInstanceId(_ call: CAPPluginCall) {

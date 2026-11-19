@@ -1,13 +1,21 @@
 import Foundation
 
+import Capacitor
 import FirebaseCore
 import FirebasePerformance
 
 @objc public class FirebasePerformance: NSObject {
     var traces: [String: Trace] = [:]
+    private(set) var isConfigured = true
 
     override init() {
+        super.init()
         if FirebaseApp.app() == nil {
+            guard FirebaseOptions.defaultOptions() != nil else {
+                CAPLog.print("[FirebasePerformance] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
+                return
+            }
             FirebaseApp.configure()
         }
     }

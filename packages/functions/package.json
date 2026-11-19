@@ -1,7 +1,7 @@
 {
   "name": "@capgo/capacitor-firebase-functions",
-  "version": "8.3.1",
-  "description": "Capacitor plugin for Firebase Cloud Functions.",
+  "version": "8.6.0",
+  "description": "Capacitor plugin for Firebase Cloud Functions on Android, iOS, and Web.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -27,7 +27,14 @@
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "capacitor-plugin",
+    "firebase",
+    "firebase functions",
+    "firebase cloud functions",
+    "cloud functions",
+    "callable functions",
+    "serverless"
   ],
   "scripts": {
     "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",

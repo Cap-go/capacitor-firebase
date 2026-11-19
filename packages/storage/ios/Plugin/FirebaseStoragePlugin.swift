@@ -21,7 +21,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.2"
+    private let pluginVersion: String = "8.6.0"
     public let tag = "FirebaseStorage"
     public let errorPathMissing = "path must be provided."
     public let errorUriMissing = "uri must be provided."
@@ -29,15 +29,21 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorCallbackIdMissing = "callbackId must be provided."
     public let errorFileNotExist = "File does not exist."
     public let errorHostMissing = "host must be provided."
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private var implementation: FirebaseStorage?
 
     override public func load() {
-        self.implementation = FirebaseStorage(plugin: self)
+        let createdImplementation = FirebaseStorage(plugin: self)
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func downloadFile(_ call: CAPPluginCall) {
         call.keepAlive = true
 
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return

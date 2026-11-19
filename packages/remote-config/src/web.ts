@@ -158,6 +158,6 @@ export class FirebaseRemoteConfigWeb
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.0.2' };
+    return { version: '8.6.0' };
   }
 }

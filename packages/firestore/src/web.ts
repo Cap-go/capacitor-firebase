@@ -717,7 +717,8 @@ export class FirebaseFirestoreWeb
   private generateListenerId(): string {
     return (++this.lastListenerId).toString();
   }
+
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.3.0' };
+    return { version: '8.6.0' };
   }
 }

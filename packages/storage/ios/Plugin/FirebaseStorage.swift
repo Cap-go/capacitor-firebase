@@ -1,14 +1,21 @@
 import Foundation
+import Capacitor
 import FirebaseCore
 import FirebaseStorage
 
 @objc public class FirebaseStorage: NSObject {
     private let plugin: FirebaseStoragePlugin
+    private(set) var isConfigured = true
 
     init(plugin: FirebaseStoragePlugin) {
         self.plugin = plugin
         super.init()
         if FirebaseApp.app() == nil {
+            guard FirebaseOptions.defaultOptions() != nil else {
+                CAPLog.print("[FirebaseStorage] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
+                return
+            }
             FirebaseApp.configure()
         }
     }

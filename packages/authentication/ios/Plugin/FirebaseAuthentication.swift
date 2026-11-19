@@ -17,16 +17,25 @@ public typealias AuthStateChangedObserver = () -> Void
     private var oAuthProviderHandler: OAuthProviderHandler?
     private var phoneAuthProviderHandler: PhoneAuthProviderHandler?
     private var savedCall: CAPPluginCall?
+    private(set) var isConfigured = true
 
     init(plugin: FirebaseAuthenticationPlugin, config: FirebaseAuthenticationConfig) {
         self.plugin = plugin
         self.config = config
         super.init()
         if FirebaseApp.app() == nil {
+            guard FirebaseOptions.defaultOptions() != nil else {
+                CAPLog.print("[FirebaseAuthentication] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
+                return
+            }
             FirebaseApp.configure()
         }
+        guard isConfigured else {
+            return
+        }
         self.initAuthProviderHandlers(config: config)
-        Auth.auth().addStateDidChangeListener {_, _ in
+        _ = Auth.auth().addStateDidChangeListener {_, _ in
             self.plugin.handleAuthStateChange()
         }
         _ = Auth.auth().addIDTokenDidChangeListener {_, _ in

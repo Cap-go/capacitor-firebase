@@ -58,6 +58,6 @@ export class FirebaseCrashlyticsWeb
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.0.3' };
+    return { version: '8.6.0' };
   }
 }

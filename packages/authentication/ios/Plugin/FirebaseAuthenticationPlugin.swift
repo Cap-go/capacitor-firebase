@@ -77,7 +77,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.3.1"
+    private let pluginVersion: String = "8.6.0"
     public let tag = "FirebaseAuthentication"
     public let errorProviderIdMissing = "providerId must be provided."
     public let errorNoUserSignedIn = "No user is signed in."
@@ -110,7 +110,8 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAuthentication?
 
     override public func load() {
-        self.implementation = FirebaseAuthentication(plugin: self, config: firebaseAuthenticationConfig())
+        let createdImplementation = FirebaseAuthentication(plugin: self, config: firebaseAuthenticationConfig())
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func applyActionCode(_ call: CAPPluginCall) {
