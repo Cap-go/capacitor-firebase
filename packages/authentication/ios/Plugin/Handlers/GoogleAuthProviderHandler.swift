@@ -7,7 +7,7 @@ import GoogleSignIn
 #endif
 
 class GoogleAuthProviderHandler: NSObject {
-    let errorSdkNotIncluded = "The Google Sign-In SDK is not included in this build. Add the required CocoaPods subspec or Swift package trait."
+    let errorSdkNotIncluded = "The Google Sign-In SDK is not included in this build. Add the CapgoCapacitorFirebaseAuthentication/Google CocoaPods subspec to your iOS app target."
     var pluginImplementation: FirebaseAuthentication
 
     init(_ pluginImplementation: FirebaseAuthentication) {

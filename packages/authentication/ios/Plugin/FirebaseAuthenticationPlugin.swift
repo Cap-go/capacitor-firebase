@@ -110,7 +110,8 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAuthentication?
 
     override public func load() {
-        self.implementation = FirebaseAuthentication(plugin: self, config: firebaseAuthenticationConfig())
+        let createdImplementation = FirebaseAuthentication(plugin: self, config: firebaseAuthenticationConfig())
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func applyActionCode(_ call: CAPPluginCall) {

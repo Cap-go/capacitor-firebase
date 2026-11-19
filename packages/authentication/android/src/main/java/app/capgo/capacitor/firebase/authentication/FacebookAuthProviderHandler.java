@@ -132,6 +132,10 @@ public class FacebookAuthProviderHandler {
     }
 
     private void logIn(PluginCall call, boolean isLink) {
+        if (savedCall != null) {
+            call.reject("A Facebook sign-in request is already in progress.");
+            return;
+        }
         this.savedCall = call;
         this.isLink = isLink;
         getLoginManager().logIn(pluginImplementation.getPlugin().getActivity(), callbackManager, getPermissions(call), null);

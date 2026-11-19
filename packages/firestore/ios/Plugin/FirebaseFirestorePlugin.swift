@@ -47,7 +47,8 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     override public func load() {
-        self.implementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
+        let createdImplementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func addDocument(_ call: CAPPluginCall) {
@@ -254,6 +255,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func clearPersistence(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorImplementationMissing)
+            return
+        }
         implementation?.clearPersistence(completion: { error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)

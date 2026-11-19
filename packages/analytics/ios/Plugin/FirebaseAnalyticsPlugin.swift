@@ -51,7 +51,8 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAnalytics?
 
     override public func load() {
-        implementation = FirebaseAnalytics(plugin: self)
+        let createdImplementation = FirebaseAnalytics(plugin: self)
+        implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func getAppInstanceId(_ call: CAPPluginCall) {

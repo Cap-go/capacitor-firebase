@@ -5,11 +5,14 @@ import FirebaseCore
 import FirebaseAppCheck
 
 @objc public class FirebaseAppCheck: NSObject {
+    private(set) var isConfigured = true
 
     override public init() {
+        super.init()
         if FirebaseApp.app() == nil {
             guard FirebaseOptions.defaultOptions() != nil else {
                 CAPLog.print("[FirebaseAppCheck] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
                 return
             }
             FirebaseApp.configure()
@@ -17,6 +20,10 @@ import FirebaseAppCheck
     }
 
     @objc public func getToken(forceRefresh: Bool, completion: @escaping (String?, Int, Error?) -> Void) {
+        guard isConfigured, FirebaseApp.app() != nil else {
+            completion(nil, 0, NSError(domain: "FirebaseAppCheck", code: 0, userInfo: [NSLocalizedDescriptionKey: "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."]))
+            return
+        }
         AppCheck.appCheck().token(forcingRefresh: forceRefresh, completion: { result, error in
             if let error = error {
                 completion(nil, 0, error)

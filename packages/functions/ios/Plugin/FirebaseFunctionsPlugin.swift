@@ -20,13 +20,19 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let tag = "FirebaseFunctions"
     public let errorNameMissing = "name must be provided."
     public let errorHostMissing = "host must be provided."
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private var implementation: FirebaseFunctions?
 
     override public func load() {
-        self.implementation = FirebaseFunctions(plugin: self)
+        let createdImplementation = FirebaseFunctions(plugin: self)
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc func callByName(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         guard let name = call.getString("name") else {
             call.reject(errorNameMissing)
             return
@@ -50,6 +56,10 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByUrl(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         guard let url = call.getString("url") else {
             call.reject("url must be provided.")
             return
