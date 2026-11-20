@@ -102,6 +102,61 @@ issue_reports_upstream_sha() {
   return 1
 }
 
+pr_reports_upstream_sha() {
+  local repo="$1"
+  local pr_number="$2"
+  local upstream_sha="$3"
+
+  if [ -z "$upstream_sha" ] || [ -z "$pr_number" ]; then
+    return 1
+  fi
+
+  local body
+  body="$(gh pr view "$pr_number" --repo "$repo" --json body -q '.body' 2>/dev/null || true)"
+  if [ -z "$body" ]; then
+    return 1
+  fi
+
+  if printf '%s' "$body" | grep -Fq "$upstream_sha"; then
+    return 0
+  fi
+
+  return 1
+}
+
+find_open_sync_pr_for_upstream_sha() {
+  local repo="$1"
+  local upstream_sha="$2"
+
+  if [ -z "$upstream_sha" ]; then
+    return 1
+  fi
+
+  local pr_numbers
+  pr_numbers=$(
+    gh pr list \
+      --repo "$repo" \
+      --state open \
+      --label upstream-sync \
+      --json number \
+      -q '.[].number' 2>/dev/null || true
+  )
+
+  if [ -z "$pr_numbers" ]; then
+    return 1
+  fi
+
+  local pr_number
+  for pr_number in $pr_numbers; do
+    if pr_reports_upstream_sha "$repo" "$pr_number" "$upstream_sha"; then
+      echo "$pr_number"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 find_open_conflict_issue_for_upstream_sha() {
   local repo="$1"
   local upstream_sha="$2"
