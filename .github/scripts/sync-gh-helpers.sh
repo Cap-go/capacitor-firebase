@@ -77,6 +77,31 @@ add_labels_to_pr() {
   }
 }
 
+issue_reports_upstream_sha() {
+  local repo="$1"
+  local issue_number="$2"
+  local upstream_sha="$3"
+
+  if [ -z "$upstream_sha" ] || [ -z "$issue_number" ]; then
+    return 1
+  fi
+
+  local payload
+  payload="$(gh issue view "$issue_number" --repo "$repo" --json body,comments 2>/dev/null || true)"
+  if [ -z "$payload" ]; then
+    return 1
+  fi
+
+  if printf '%s' "$payload" | jq -e --arg sha "$upstream_sha" '
+      (.body | contains($sha))
+      or ((.comments // []) | any(.body; contains($sha)))
+    ' >/dev/null 2>&1; then
+    return 0
+  fi
+
+  return 1
+}
+
 find_open_conflict_issue_for_upstream_sha() {
   local repo="$1"
   local upstream_sha="$2"
@@ -85,12 +110,29 @@ find_open_conflict_issue_for_upstream_sha() {
     return 1
   fi
 
-  gh issue list \
-    --repo "$repo" \
-    --state open \
-    --label merge-conflict \
-    --json number,body \
-    -q ".[] | select(.body | contains(\"${upstream_sha}\")) | .number" 2>/dev/null | head -n 1
+  local issue_numbers
+  issue_numbers=$(
+    gh issue list \
+      --repo "$repo" \
+      --state open \
+      --label merge-conflict \
+      --json number \
+      -q '.[].number' 2>/dev/null || true
+  )
+
+  if [ -z "$issue_numbers" ]; then
+    return 1
+  fi
+
+  local issue_number
+  for issue_number in $issue_numbers; do
+    if issue_reports_upstream_sha "$repo" "$issue_number" "$upstream_sha"; then
+      echo "$issue_number"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 create_or_update_conflict_issue() {
@@ -122,7 +164,7 @@ create_or_update_conflict_issue() {
 
   if [ -n "$existing_issue" ]; then
     if [ -n "$upstream_sha" ]; then
-      if gh issue view "$existing_issue" --repo "$repo" --json body -q '.body' 2>/dev/null | grep -q "$upstream_sha"; then
+      if issue_reports_upstream_sha "$repo" "$existing_issue" "$upstream_sha"; then
         echo "Open conflict issue #${existing_issue} already covers upstream ${upstream_sha}"
         echo "$existing_issue"
         return 0
