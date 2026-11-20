@@ -77,27 +77,57 @@ add_labels_to_pr() {
   }
 }
 
+find_open_conflict_issue_for_upstream_sha() {
+  local repo="$1"
+  local upstream_sha="$2"
+
+  if [ -z "$upstream_sha" ]; then
+    return 1
+  fi
+
+  gh issue list \
+    --repo "$repo" \
+    --state open \
+    --label merge-conflict \
+    --json number,body \
+    -q ".[] | select(.body | contains(\"${upstream_sha}\")) | .number" 2>/dev/null | head -n 1
+}
+
 create_or_update_conflict_issue() {
   local repo="$1"
   local title="$2"
   local body="$3"
+  local upstream_sha="${4:-}"
   local search_text="Upstream sync requires manual conflict resolution in:title"
 
   if [ "$(repo_has_issues "$repo")" != "true" ]; then
     return 1
   fi
 
-  local existing_issue
-  existing_issue=$(
-    gh issue list \
-      --repo "$repo" \
-      --state open \
-      --search "$search_text" \
-      --json number \
-      -q '.[0].number' 2>/dev/null || true
-  )
+  local existing_issue=""
+  if [ -n "$upstream_sha" ]; then
+    existing_issue="$(find_open_conflict_issue_for_upstream_sha "$repo" "$upstream_sha" || true)"
+  fi
+
+  if [ -z "$existing_issue" ]; then
+    existing_issue=$(
+      gh issue list \
+        --repo "$repo" \
+        --state open \
+        --search "$search_text" \
+        --json number \
+        -q '.[0].number' 2>/dev/null || true
+    )
+  fi
 
   if [ -n "$existing_issue" ]; then
+    if [ -n "$upstream_sha" ]; then
+      if gh issue view "$existing_issue" --repo "$repo" --json body -q '.body' 2>/dev/null | grep -q "$upstream_sha"; then
+        echo "Open conflict issue #${existing_issue} already covers upstream ${upstream_sha}"
+        echo "$existing_issue"
+        return 0
+      fi
+    fi
     gh issue comment "$existing_issue" --repo "$repo" --body "$body" >/dev/null 2>&1 || return 1
     echo "$existing_issue"
     return 0
