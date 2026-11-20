@@ -136,6 +136,8 @@ jobs:
         run: bun run check:wiring
       - name: Check Cap 9 deprecated APIs
         run: bun run check:cap9-deprecated
+      - name: Upstream sync decision tests
+        run: bun run test:upstream-sync
       - name: Build packages affected by changes
         run: bun run affected:verify:web
 
