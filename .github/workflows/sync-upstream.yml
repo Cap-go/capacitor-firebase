@@ -3,6 +3,7 @@ name: Sync from Upstream
 env:
   UPSTREAM_REPO: capawesome-team/capacitor-firebase
   DEFAULT_UPSTREAM_BRANCH: main
+  UPSTREAM_MARKER_FILE: .github/upstream-sync.json
 
 on:
   schedule:
@@ -14,6 +15,11 @@ on:
         description: 'Upstream branch to sync from'
         required: false
         default: 'main'
+      dry_run:
+        description: 'Only evaluate the marker skip decision (no branch, PR, or issue)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   sync:
@@ -31,7 +37,7 @@ jobs:
         with:
           node-version: 24.x
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -50,36 +56,79 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM_REPO}.git" || true
           git fetch upstream
 
-      - name: Check for upstream changes
-        id: check_changes
+      - name: Evaluate upstream sync decision
+        id: evaluate
         env:
           UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+          UPSTREAM_MARKER_FILE: ${{ env.UPSTREAM_MARKER_FILE }}
         run: |
           set -euo pipefail
           git fetch upstream "$UPSTREAM_BRANCH"
+          UPSTREAM_COMMIT="$(git rev-parse "upstream/${UPSTREAM_BRANCH}")"
 
-          # Check if there are new commits
-          LOCAL_COMMIT=$(git rev-parse HEAD)
-          UPSTREAM_COMMIT=$(git rev-parse upstream/$UPSTREAM_BRANCH)
+          node .github/scripts/upstream-sync-decision.mjs evaluate \
+            --upstream-sha "$UPSTREAM_COMMIT" \
+            --marker-file "$UPSTREAM_MARKER_FILE"
 
-          if [ "$LOCAL_COMMIT" = "$UPSTREAM_COMMIT" ]; then
-            echo "No new changes from upstream"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "New changes detected from upstream"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "upstream_commit=$UPSTREAM_COMMIT" >> $GITHUB_OUTPUT
+          SHOULD_SYNC="$(grep -E '^should_sync=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
+          SYNC_REASON="$(grep -E '^sync_reason=' "$GITHUB_OUTPUT" | tail -n 1 | cut -d= -f2-)"
+
+          echo "has_changes=$SHOULD_SYNC" >> "$GITHUB_OUTPUT"
+
+          if ! grep -q '^upstream_commit=' "$GITHUB_OUTPUT"; then
+            echo "upstream_commit=$UPSTREAM_COMMIT" >> "$GITHUB_OUTPUT"
           fi
 
+          echo "Dry-run style evaluation: should_sync=${SHOULD_SYNC} reason=${SYNC_REASON} upstream=${UPSTREAM_COMMIT}"
+
+      - name: Dry run summary
+        if: github.event.inputs.dry_run == 'true'
+        env:
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+        run: |
+          {
+            echo "## Upstream sync dry run"
+            echo
+            echo "- Upstream: \`${UPSTREAM_REPO}\` branch \`${UPSTREAM_BRANCH}\`"
+            echo "- Upstream commit: \`${{ steps.evaluate.outputs.upstream_commit }}\`"
+            echo "- Last integrated (marker): \`${{ steps.evaluate.outputs.last_integrated_upstream_sha }}\`"
+            echo "- Should sync: \`${{ steps.evaluate.outputs.should_sync }}\`"
+            echo "- Reason: \`${{ steps.evaluate.outputs.sync_reason }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Skip when upstream already integrated
+        if: steps.evaluate.outputs.should_sync != 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          echo "Skipping sync. Upstream commit matches .github/upstream-sync.json (${{ steps.evaluate.outputs.sync_reason }})."
+
+      - name: Skip when an open sync PR already targets this upstream commit
+        id: open_sync_pr
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          UPSTREAM_COMMIT: ${{ steps.evaluate.outputs.upstream_commit }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/sync-gh-helpers.sh
+          EXISTING_PR="$(find_open_sync_pr_for_upstream_sha "${GITHUB_REPOSITORY}" "$UPSTREAM_COMMIT" || true)"
+          if [ -n "$EXISTING_PR" ]; then
+            echo "skip_open_sync_pr=true" >> "$GITHUB_OUTPUT"
+            echo "existing_pr_number=$EXISTING_PR" >> "$GITHUB_OUTPUT"
+            echo "Skipping sync. Open upstream-sync PR #${EXISTING_PR} already covers upstream ${UPSTREAM_COMMIT}."
+            exit 0
+          fi
+          echo "skip_open_sync_pr=false" >> "$GITHUB_OUTPUT"
+
       - name: Create sync branch
-        if: steps.check_changes.outputs.has_changes == 'true'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true'
         run: |
           BRANCH_NAME="sync-upstream-$(date +%Y%m%d-%H%M%S)"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
           git checkout -b $BRANCH_NAME
 
       - name: Ensure sync labels exist
-        if: steps.check_changes.outputs.has_changes == 'true'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true'
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -87,7 +136,7 @@ jobs:
           ensure_sync_labels "${GITHUB_REPOSITORY}"
 
       - name: Merge upstream changes
-        if: steps.check_changes.outputs.has_changes == 'true'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true'
         id: merge
         env:
           UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
@@ -119,8 +168,25 @@ jobs:
           echo "merge_status=conflict" >> $GITHUB_OUTPUT
           echo "resolution_mode=manual" >> $GITHUB_OUTPUT
 
+      - name: Record integrated upstream marker
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true' && steps.merge.outputs.merge_status == 'success'
+        env:
+          UPSTREAM_COMMIT: ${{ steps.evaluate.outputs.upstream_commit }}
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
+          UPSTREAM_MARKER_FILE: ${{ env.UPSTREAM_MARKER_FILE }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/upstream-sync-decision.mjs write-marker \
+            --upstream-sha "$UPSTREAM_COMMIT" \
+            --marker-file "$UPSTREAM_MARKER_FILE" \
+            --upstream-repo "$UPSTREAM_REPO" \
+            --upstream-branch "$UPSTREAM_BRANCH"
+          git add "$UPSTREAM_MARKER_FILE"
+          git commit -m "chore: record integrated upstream ${UPSTREAM_COMMIT}"
+
       - name: Push sync branch
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true' && steps.merge.outputs.merge_status == 'success'
         env:
           GH_PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           BRANCH_NAME: ${{ env.branch_name }}
@@ -130,14 +196,14 @@ jobs:
           git push "$remote_repo" "$BRANCH_NAME"
 
       - name: Create Pull Request
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true' && steps.merge.outputs.merge_status == 'success'
         id: create_pr
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           BRANCH_NAME: ${{ env.branch_name }}
           UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
           UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
-          UPSTREAM_COMMIT: ${{ steps.check_changes.outputs.upstream_commit }}
+          UPSTREAM_COMMIT: ${{ steps.evaluate.outputs.upstream_commit }}
         run: |
           set -euo pipefail
 
@@ -157,6 +223,7 @@ jobs:
           ### Changes Included
           - Latest commits from upstream \`${UPSTREAM_BRANCH}\` branch
           - Upstream commit: \`${UPSTREAM_COMMIT}\`
+          - Updates \`.github/upstream-sync.json\` so squash merges still advance the integrated upstream marker
 
           ${RESOLUTION_NOTES}
 
@@ -185,7 +252,7 @@ jobs:
           echo "pull_request_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Enable auto-merge
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'success' && steps.create_pr.outputs.pull_request_number
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true' && steps.merge.outputs.merge_status == 'success' && steps.create_pr.outputs.pull_request_number
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           PR_NUMBER: ${{ steps.create_pr.outputs.pull_request_number }}
@@ -196,12 +263,12 @@ jobs:
           }
 
       - name: Report unresolved conflicts
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.merge.outputs.merge_status == 'conflict'
+        if: steps.evaluate.outputs.should_sync == 'true' && github.event.inputs.dry_run != 'true' && steps.open_sync_pr.outputs.skip_open_sync_pr != 'true' && steps.merge.outputs.merge_status == 'conflict'
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
           UPSTREAM_BRANCH: ${{ github.event.inputs.branch || env.DEFAULT_UPSTREAM_BRANCH }}
-          UPSTREAM_COMMIT: ${{ steps.check_changes.outputs.upstream_commit }}
+          UPSTREAM_COMMIT: ${{ steps.evaluate.outputs.upstream_commit }}
           BRANCH_NAME: ${{ env.branch_name }}
           MERGE_CONFLICTS: ${{ steps.merge.outputs.conflicts }}
         run: |
@@ -232,10 +299,11 @@ jobs:
           1. Check out \`main\` locally
           2. Merge the upstream commit
           3. Resolve the listed conflicts and open a PR
+          4. Set \`lastIntegratedUpstreamSha\` in \`.github/upstream-sync.json\` to the integrated upstream commit
           EOF_BODY
           )
 
-          ISSUE_NUMBER="$(create_or_update_conflict_issue "${GITHUB_REPOSITORY}" "⚠️ Upstream sync requires manual conflict resolution" "$ISSUE_BODY" || true)"
+          ISSUE_NUMBER="$(create_or_update_conflict_issue "${GITHUB_REPOSITORY}" "⚠️ Upstream sync requires manual conflict resolution" "$ISSUE_BODY" "$UPSTREAM_COMMIT" || true)"
 
           if [ -n "$ISSUE_NUMBER" ]; then
             echo "Created or updated issue #$ISSUE_NUMBER"
