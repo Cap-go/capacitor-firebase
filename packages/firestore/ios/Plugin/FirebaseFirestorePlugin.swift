@@ -226,7 +226,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func getCollectionGroup(_ call: CAPPluginCall) {
         guard let reference = call.getString("reference") else {
-            call.reject("collectionId must be provided.")
+            call.reject(errorReferenceMissing)
             return
         }
         let compositeFilter = call.getObject("compositeFilter")
