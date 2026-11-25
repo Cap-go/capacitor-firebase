@@ -305,6 +305,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func terminate(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorImplementationMissing)
+            return
+        }
         implementation?.terminate(completion: { error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
