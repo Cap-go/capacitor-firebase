@@ -4,6 +4,16 @@
 
 All notable changes to this project are documented in the GitHub Releases page.
 
+## 8.6.2
+
+### Minor Changes
+
+- [`e28d2de2`](https://github.com/capawesome-team/capacitor-firebase/commit/e28d2de2) ([#1071](https://github.com/capawesome-team/capacitor-firebase/pull/1071)): feat(firestore): add `terminate` method
+
+### Patch Changes
+
+- [`ac4ee6c7`](https://github.com/capawesome-team/capacitor-firebase/commit/ac4ee6c7) ([#1076](https://github.com/capawesome-team/capacitor-firebase/pull/1076)): fix(firestore): fix three error paths on Android and iOS
+
 ## 8.6.0
 
 ### Patch Changes

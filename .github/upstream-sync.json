@@ -1,7 +1,7 @@
 {
   "upstreamRepo": "capawesome-team/capacitor-firebase",
   "upstreamBranch": "main",
-  "lastIntegratedUpstreamSha": "599906dded8327acd5995a909edb35c444b5bc0e",
-  "recordedAt": "2026-11-20T09:30:00.000Z",
-  "note": "Set when upstream content at this SHA was integrated on main (including manual sync PR #27)."
+  "lastIntegratedUpstreamSha": "e118657c8cb771f8516830d6be8eb936fb812814",
+  "recordedAt": "2026-11-25T15:30:00.000Z",
+  "note": "Integrated via manual sync PR (cherry-pick 599906dd..e118657c on main)."
 }
