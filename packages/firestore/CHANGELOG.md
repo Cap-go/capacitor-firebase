@@ -4,7 +4,7 @@
 
 All notable changes to this project are documented in the GitHub Releases page.
 
-## 8.6.2
+## 8.7.0
 
 ### Minor Changes
 
