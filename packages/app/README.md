@@ -151,7 +151,7 @@ const initializeApp = async () => {
 };
 ```
 
-Then pass the name as `appName` to the methods of a plugin that supports it, such as [Cloud Firestore](https://capgo.app/docs/plugins/firebase/cloud-firestore/), to use this app in place of the default app.
+Then pass the name as `appName` to the methods of a plugin that supports it, such as [Cloud Firestore](https://capgo.app/docs/plugins/firebase-firestore/), to use this app in place of the default app.
 
 ## API
 
@@ -351,10 +351,10 @@ Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless 
 
 ## Related Plugins
 
-- [Firebase Analytics](https://capgo.app/docs/plugins/firebase/analytics/): Log events and track user interactions with Firebase Analytics.
-- [Firebase Authentication](https://capgo.app/docs/plugins/firebase/authentication/): Authenticate users with Firebase Authentication.
-- [Firebase Crashlytics](https://capgo.app/docs/plugins/firebase/crashlytics/): Track and report app crashes with Firebase Crashlytics.
-- [Firebase Cloud Messaging](https://capgo.app/docs/plugins/firebase/cloud-messaging/): Receive push notifications with Firebase Cloud Messaging.
+- [Firebase Analytics](https://capgo.app/docs/plugins/firebase-analytics/): Log events and track user interactions with Firebase Analytics.
+- [Firebase Authentication](https://capgo.app/docs/plugins/firebase-authentication/): Authenticate users with Firebase Authentication.
+- [Firebase Crashlytics](https://capgo.app/docs/plugins/firebase-crashlytics/): Track and report app crashes with Firebase Crashlytics.
+- [Firebase Cloud Messaging](https://capgo.app/docs/plugins/firebase-messaging/): Receive push notifications with Firebase Cloud Messaging.
 
 ## Newsletter
 

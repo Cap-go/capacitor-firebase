@@ -111,7 +111,7 @@ In `capacitor.config.json`:
 {
   "plugins": {
     "FirebaseFirestore": {
-      "databaseId": undefined
+      "databaseId": "(default)"
     }
   }
 }
@@ -127,7 +127,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   plugins: {
     FirebaseFirestore: {
-      databaseId: undefined,
+      databaseId: '(default)',
     },
   },
 };
@@ -498,7 +498,7 @@ const removeAllListeners = async () => {
 
 ### Use another Firebase project
 
-Pass the `appName` option to use a Firebase app other than the default app, for example to read data of a second Firebase project. Initialize the app with the `initializeApp(...)` method of the [Firebase App](https://capgo.app/docs/plugins/firebase/app/) plugin first. Then pass its name as `appName`:
+Pass the `appName` option to use a Firebase app other than the default app, for example to read data of a second Firebase project. Initialize the app with the `initializeApp(...)` method of the [Firebase App](https://capgo.app/docs/plugins/firebase-app/getting-started/) plugin first. Then pass its name as `appName`:
 
 ```typescript
 import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
@@ -1326,9 +1326,9 @@ Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless 
 
 ## Related Plugins
 
-- [Firebase Authentication](https://capgo.app/docs/plugins/firebase/authentication/): Unofficial Capacitor plugin for Firebase Authentication.
-- [Firebase Cloud Functions](https://capgo.app/docs/plugins/firebase/cloud-functions/): Unofficial Capacitor plugin for Firebase Cloud Functions.
-- [Firebase Cloud Storage](https://capgo.app/docs/plugins/firebase/cloud-storage/): Unofficial Capacitor plugin for Firebase Cloud Storage.
+- [Firebase Authentication](https://capgo.app/docs/plugins/firebase-authentication/): Unofficial Capacitor plugin for Firebase Authentication.
+- [Firebase Cloud Functions](https://capgo.app/docs/plugins/firebase-functions/): Unofficial Capacitor plugin for Firebase Cloud Functions.
+- [Firebase Cloud Storage](https://capgo.app/docs/plugins/firebase-storage/): Unofficial Capacitor plugin for Firebase Cloud Storage.
 
 ## Newsletter
 
