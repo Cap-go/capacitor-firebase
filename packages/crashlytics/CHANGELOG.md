@@ -4,6 +4,12 @@
 
 All notable changes to this project are documented in the GitHub Releases page.
 
+## 8.6.2
+
+### Patch Changes
+
+- [`e118657c`](https://github.com/capawesome-team/capacitor-firebase/commit/e118657c) ([#1075](https://github.com/capawesome-team/capacitor-firebase/pull/1075)): fix(crashlytics): use Capacitor 9-compatible option checks
+
 ## 8.6.0
 
 ## 8.5.2

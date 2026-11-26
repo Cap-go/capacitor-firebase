@@ -7,14 +7,21 @@ import app.capgo.capacitor.firebase.firestore.classes.options.AddCollectionGroup
 import app.capgo.capacitor.firebase.firestore.classes.options.AddCollectionSnapshotListenerOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.AddDocumentOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.AddDocumentSnapshotListenerOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.ClearPersistenceOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.DeleteDocumentOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.DisableNetworkOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.DisablePersistenceOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.EnableNetworkOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.EnablePersistenceOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.GetCollectionGroupOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.GetCollectionOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.GetCountFromServerOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.GetDocumentOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.RemoveSnapshotListenerOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.SetDocumentOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.TerminateOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.UpdateDocumentOptions;
+import app.capgo.capacitor.firebase.firestore.classes.options.UseEmulatorOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.WriteBatchOperation;
 import app.capgo.capacitor.firebase.firestore.classes.options.WriteBatchOptions;
 import app.capgo.capacitor.firebase.firestore.classes.results.AddDocumentResult;
@@ -26,6 +33,7 @@ import app.capgo.capacitor.firebase.firestore.interfaces.NonEmptyResultCallback;
 import app.capgo.capacitor.firebase.firestore.interfaces.QueryNonFilterConstraint;
 import com.getcapacitor.PluginCall;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.AggregateQuery;
 import com.google.firebase.firestore.AggregateQuerySnapshot;
 import com.google.firebase.firestore.AggregateSource;
@@ -44,20 +52,108 @@ import java.util.Map;
 
 public class FirebaseFirestore {
 
-    private FirebaseFirestorePlugin plugin;
     private FirebaseFirestoreConfig config;
     private Map<String, ListenerRegistration> listenerRegistrationMap = new HashMap<>();
+    private FirebaseFirestorePlugin plugin;
 
     public FirebaseFirestore(FirebaseFirestorePlugin plugin, FirebaseFirestoreConfig config) {
         this.plugin = plugin;
         this.config = config;
     }
 
-    public void addDocument(@NonNull AddDocumentOptions options, @NonNull NonEmptyResultCallback callback) {
+    public void addCollectionGroupSnapshotListener(
+        @NonNull AddCollectionGroupSnapshotListenerOptions options,
+        @NonNull NonEmptyResultCallback<GetCollectionResult> callback
+    ) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
         String reference = options.getReference();
-        Map<String, Object> data = options.getData();
+        QueryCompositeFilterConstraint compositeFilter = FirebaseFirestoreHelper.createQueryCompositeFilterConstraintFromJSObject(
+            options.getCompositeFilter(),
+            firestore
+        );
+        QueryNonFilterConstraint[] queryConstraints = FirebaseFirestoreHelper.createQueryNonFilterConstraintArrayFromJSArray(
+            options.getQueryConstraints()
+        );
+        String callbackId = options.getCallbackId();
+        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
+            options.getServerTimestampBehavior()
+        );
 
-        getFirebaseFirestoreInstance()
+        Query query = firestore.collectionGroup(reference);
+        if (compositeFilter != null) {
+            Filter filter = compositeFilter.toFilter();
+            query = query.where(filter);
+        }
+        if (queryConstraints.length > 0) {
+            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
+                query = queryConstraint.toQuery(query, firestore);
+            }
+        }
+
+        ListenerRegistration listenerRegistration = query.addSnapshotListener(
+            options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
+            (querySnapshot, exception) -> {
+                if (exception != null) {
+                    callback.error(exception);
+                } else {
+                    GetCollectionResult result = new GetCollectionResult(querySnapshot, serverTimestampBehavior);
+                    callback.success(result);
+                }
+            }
+        );
+        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
+    }
+
+    public void addCollectionSnapshotListener(
+        @NonNull AddCollectionSnapshotListenerOptions options,
+        @NonNull NonEmptyResultCallback<GetCollectionResult> callback
+    ) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        QueryCompositeFilterConstraint compositeFilter = FirebaseFirestoreHelper.createQueryCompositeFilterConstraintFromJSObject(
+            options.getCompositeFilter(),
+            firestore
+        );
+        QueryNonFilterConstraint[] queryConstraints = FirebaseFirestoreHelper.createQueryNonFilterConstraintArrayFromJSArray(
+            options.getQueryConstraints()
+        );
+        String callbackId = options.getCallbackId();
+        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
+            options.getServerTimestampBehavior()
+        );
+
+        Query query = firestore.collection(reference);
+        if (compositeFilter != null) {
+            Filter filter = compositeFilter.toFilter();
+            query = query.where(filter);
+        }
+        if (queryConstraints.length > 0) {
+            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
+                query = queryConstraint.toQuery(query, firestore);
+            }
+        }
+
+        ListenerRegistration listenerRegistration = query.addSnapshotListener(
+            options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
+            (querySnapshot, exception) -> {
+                if (exception != null) {
+                    callback.error(exception);
+                } else {
+                    GetCollectionResult result = new GetCollectionResult(querySnapshot, serverTimestampBehavior);
+                    callback.success(result);
+                }
+            }
+        );
+        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
+    }
+
+    public void addDocument(@NonNull AddDocumentOptions options, @NonNull NonEmptyResultCallback<AddDocumentResult> callback)
+        throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        Map<String, Object> data = FirebaseFirestoreHelper.createHashMapFromJSONObject(options.getData(), firestore);
+
+        firestore
             .collection(reference)
             .add(data)
             .addOnSuccessListener(documentReference -> {
@@ -67,25 +163,207 @@ public class FirebaseFirestore {
             .addOnFailureListener(exception -> callback.error(exception));
     }
 
-    public void setDocument(@NonNull SetDocumentOptions options, @NonNull EmptyResultCallback callback) {
+    public void addDocumentSnapshotListener(
+        @NonNull AddDocumentSnapshotListenerOptions options,
+        @NonNull NonEmptyResultCallback<GetDocumentResult> callback
+    ) {
         String reference = options.getReference();
-        Map<String, Object> data = options.getData();
-        boolean merge = options.getMerge();
+        String callbackId = options.getCallbackId();
+        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
+            options.getServerTimestampBehavior()
+        );
 
-        DocumentReference documentReference = getFirebaseFirestoreInstance().document(reference);
-        Task<Void> task;
-        if (merge) {
-            task = documentReference.set(data, SetOptions.merge());
-        } else {
-            task = documentReference.set(data);
-        }
-        task.addOnSuccessListener(unused -> callback.success()).addOnFailureListener(exception -> callback.error(exception));
+        ListenerRegistration listenerRegistration = getFirebaseFirestoreInstance(options.getAppName())
+            .document(reference)
+            .addSnapshotListener(
+                options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
+                (documentSnapshot, exception) -> {
+                    if (exception != null) {
+                        callback.error(exception);
+                    } else {
+                        GetDocumentResult result = new GetDocumentResult(documentSnapshot, serverTimestampBehavior);
+                        callback.success(result);
+                    }
+                }
+            );
+        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
     }
 
-    public void getDocument(@NonNull GetDocumentOptions options, @NonNull NonEmptyResultCallback callback) {
+    public void clearPersistence(@NonNull ClearPersistenceOptions options, @NonNull EmptyResultCallback callback) {
+        getFirebaseFirestoreInstance(options.getAppName())
+            .clearPersistence()
+            .addOnSuccessListener(unused -> {
+                callback.success();
+            })
+            .addOnFailureListener(exception -> {
+                callback.error(exception);
+            });
+    }
+
+    public void deleteDocument(@NonNull DeleteDocumentOptions options, @NonNull EmptyResultCallback callback) {
         String reference = options.getReference();
 
-        getFirebaseFirestoreInstance()
+        getFirebaseFirestoreInstance(options.getAppName())
+            .document(reference)
+            .delete()
+            .addOnSuccessListener(unused -> callback.success())
+            .addOnFailureListener(exception -> callback.error(exception));
+    }
+
+    public void disableNetwork(@NonNull DisableNetworkOptions options, @NonNull EmptyResultCallback callback) {
+        getFirebaseFirestoreInstance(options.getAppName())
+            .disableNetwork()
+            .addOnSuccessListener(unused -> {
+                callback.success();
+            })
+            .addOnFailureListener(exception -> {
+                callback.error(exception);
+            });
+    }
+
+    public void disablePersistence(@NonNull DisablePersistenceOptions options) {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder(firestore.getFirestoreSettings())
+            .setPersistenceEnabled(false)
+            .build();
+        firestore.setFirestoreSettings(settings);
+    }
+
+    public void enableNetwork(@NonNull EnableNetworkOptions options, @NonNull EmptyResultCallback callback) {
+        getFirebaseFirestoreInstance(options.getAppName())
+            .enableNetwork()
+            .addOnSuccessListener(unused -> {
+                callback.success();
+            })
+            .addOnFailureListener(exception -> {
+                callback.error(exception);
+            });
+    }
+
+    public void enablePersistence(@NonNull EnablePersistenceOptions options) {
+        Long cacheSizeBytes = options.getCacheSizeBytes();
+
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        FirebaseFirestoreSettings.Builder builder = new FirebaseFirestoreSettings.Builder(
+            firestore.getFirestoreSettings()
+        ).setPersistenceEnabled(true);
+        if (cacheSizeBytes != null) {
+            builder.setCacheSizeBytes(cacheSizeBytes);
+        }
+        firestore.setFirestoreSettings(builder.build());
+    }
+
+    public void getCollection(@NonNull GetCollectionOptions options, @NonNull NonEmptyResultCallback<GetCollectionResult> callback)
+        throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        QueryCompositeFilterConstraint compositeFilter = FirebaseFirestoreHelper.createQueryCompositeFilterConstraintFromJSObject(
+            options.getCompositeFilter(),
+            firestore
+        );
+        QueryNonFilterConstraint[] queryConstraints = FirebaseFirestoreHelper.createQueryNonFilterConstraintArrayFromJSArray(
+            options.getQueryConstraints()
+        );
+
+        Query query = firestore.collection(reference);
+        if (compositeFilter != null) {
+            Filter filter = compositeFilter.toFilter();
+            if (filter != null) {
+                query = query.where(filter);
+            }
+        }
+        if (queryConstraints.length > 0) {
+            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
+                query = queryConstraint.toQuery(query, firestore);
+            }
+        }
+        query
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                GetCollectionResult result = new GetCollectionResult(querySnapshot);
+                callback.success(result);
+            })
+            .addOnFailureListener(exception -> callback.error(exception));
+    }
+
+    public void getCollectionGroup(
+        @NonNull GetCollectionGroupOptions options,
+        @NonNull NonEmptyResultCallback<GetCollectionResult> callback
+    ) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        QueryCompositeFilterConstraint compositeFilter = FirebaseFirestoreHelper.createQueryCompositeFilterConstraintFromJSObject(
+            options.getCompositeFilter(),
+            firestore
+        );
+        QueryNonFilterConstraint[] queryConstraints = FirebaseFirestoreHelper.createQueryNonFilterConstraintArrayFromJSArray(
+            options.getQueryConstraints()
+        );
+
+        Query query = firestore.collectionGroup(reference);
+        if (compositeFilter != null) {
+            Filter filter = compositeFilter.toFilter();
+            query = query.where(filter);
+        }
+        if (queryConstraints.length > 0) {
+            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
+                query = queryConstraint.toQuery(query, firestore);
+            }
+        }
+        query
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                GetCollectionResult result = new GetCollectionResult(querySnapshot);
+                callback.success(result);
+            })
+            .addOnFailureListener(exception -> callback.error(exception));
+    }
+
+    public void getCountFromServer(
+        @NonNull GetCountFromServerOptions options,
+        @NonNull NonEmptyResultCallback<GetCountFromServerResult> callback
+    ) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        QueryCompositeFilterConstraint compositeFilter = FirebaseFirestoreHelper.createQueryCompositeFilterConstraintFromJSObject(
+            options.getCompositeFilter(),
+            firestore
+        );
+        QueryNonFilterConstraint[] queryConstraints = FirebaseFirestoreHelper.createQueryNonFilterConstraintArrayFromJSArray(
+            options.getQueryConstraints()
+        );
+
+        Query query = firestore.collection(reference);
+        if (compositeFilter != null) {
+            Filter filter = compositeFilter.toFilter();
+            if (filter != null) {
+                query = query.where(filter);
+            }
+        }
+        if (queryConstraints.length > 0) {
+            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
+                query = queryConstraint.toQuery(query, firestore);
+            }
+        }
+        AggregateQuery countQuery = query.count();
+
+        countQuery
+            .get(AggregateSource.SERVER)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    AggregateQuerySnapshot snapshot = task.getResult();
+                    GetCountFromServerResult result = new GetCountFromServerResult(snapshot.getCount());
+                    callback.success(result);
+                } else {
+                    callback.error(task.getException());
+                }
+            });
+    }
+
+    public void getDocument(@NonNull GetDocumentOptions options, @NonNull NonEmptyResultCallback<GetDocumentResult> callback) {
+        String reference = options.getReference();
+
+        getFirebaseFirestoreInstance(options.getAppName())
             .document(reference)
             .get()
             .addOnSuccessListener(documentSnapshot -> {
@@ -95,37 +373,80 @@ public class FirebaseFirestore {
             .addOnFailureListener(exception -> callback.error(exception));
     }
 
-    public void updateDocument(@NonNull UpdateDocumentOptions options, @NonNull EmptyResultCallback callback) {
-        String reference = options.getReference();
-        Map<String, Object> data = options.getData();
+    public void removeAllListeners() {
+        for (ListenerRegistration listenerRegistration : this.listenerRegistrationMap.values()) {
+            listenerRegistration.remove();
+        }
+        this.listenerRegistrationMap.clear();
+    }
 
-        getFirebaseFirestoreInstance()
+    public void removeSnapshotListener(@NonNull RemoveSnapshotListenerOptions options) {
+        String callbackId = options.getCallbackId();
+
+        ListenerRegistration listenerRegistration = this.listenerRegistrationMap.get(callbackId);
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+        }
+        this.listenerRegistrationMap.remove(callbackId);
+    }
+
+    public void setDocument(@NonNull SetDocumentOptions options, @NonNull EmptyResultCallback callback) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        Map<String, Object> data = FirebaseFirestoreHelper.createHashMapFromJSONObject(options.getData(), firestore);
+        boolean merge = options.getMerge();
+
+        DocumentReference documentReference = firestore.document(reference);
+        Task<Void> task;
+        if (merge) {
+            task = documentReference.set(data, SetOptions.merge());
+        } else {
+            task = documentReference.set(data);
+        }
+        task.addOnSuccessListener(unused -> callback.success()).addOnFailureListener(exception -> callback.error(exception));
+    }
+
+    public void terminate(@NonNull TerminateOptions options, @NonNull EmptyResultCallback callback) {
+        getFirebaseFirestoreInstance(options.getAppName())
+            .terminate()
+            .addOnSuccessListener(unused -> {
+                callback.success();
+            })
+            .addOnFailureListener(exception -> {
+                callback.error(exception);
+            });
+    }
+
+    public void updateDocument(@NonNull UpdateDocumentOptions options, @NonNull EmptyResultCallback callback) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
+        String reference = options.getReference();
+        Map<String, Object> data = FirebaseFirestoreHelper.createHashMapFromJSONObject(options.getData(), firestore);
+
+        firestore
             .document(reference)
             .update(data)
             .addOnSuccessListener(unused -> callback.success())
             .addOnFailureListener(exception -> callback.error(exception));
     }
 
-    public void deleteDocument(@NonNull DeleteDocumentOptions options, @NonNull EmptyResultCallback callback) {
-        String reference = options.getReference();
+    public void useEmulator(@NonNull UseEmulatorOptions options) {
+        String host = options.getHost();
+        int port = options.getPort();
 
-        getFirebaseFirestoreInstance()
-            .document(reference)
-            .delete()
-            .addOnSuccessListener(unused -> callback.success())
-            .addOnFailureListener(exception -> callback.error(exception));
+        getFirebaseFirestoreInstance(options.getAppName()).useEmulator(host, port);
     }
 
-    public void writeBatch(@NonNull WriteBatchOptions options, @NonNull EmptyResultCallback callback) {
+    public void writeBatch(@NonNull WriteBatchOptions options, @NonNull EmptyResultCallback callback) throws Exception {
+        com.google.firebase.firestore.FirebaseFirestore firestore = getFirebaseFirestoreInstance(options.getAppName());
         WriteBatchOperation[] operations = options.getOperations();
 
-        WriteBatch batch = getFirebaseFirestoreInstance().batch();
+        WriteBatch batch = firestore.batch();
         for (WriteBatchOperation operation : operations) {
             String type = operation.getType();
             String reference = operation.getReference();
-            Map<String, Object> data = operation.getData();
+            Map<String, Object> data = FirebaseFirestoreHelper.createHashMapFromJSONObject(operation.getData(), firestore);
 
-            DocumentReference documentReference = getFirebaseFirestoreInstance().document(reference);
+            DocumentReference documentReference = firestore.document(reference);
             switch (type) {
                 case "set":
                     if (operation.getOptions() != null && operation.getOptions().isMerge()) {
@@ -145,257 +466,11 @@ public class FirebaseFirestore {
         batch.commit().addOnSuccessListener(unused -> callback.success()).addOnFailureListener(exception -> callback.error(exception));
     }
 
-    public void getCollection(@NonNull GetCollectionOptions options, @NonNull NonEmptyResultCallback callback) throws Exception {
-        String reference = options.getReference();
-        QueryCompositeFilterConstraint compositeFilter = options.getCompositeFilter();
-        QueryNonFilterConstraint[] queryConstraints = options.getQueryConstraints();
-
-        Query query = getFirebaseFirestoreInstance().collection(reference);
-        if (compositeFilter != null) {
-            Filter filter = compositeFilter.toFilter();
-            if (filter != null) {
-                query = query.where(filter);
-            }
+    @NonNull
+    private com.google.firebase.firestore.FirebaseFirestore getFirebaseFirestoreInstance(@Nullable String appName) {
+        if (appName != null) {
+            return com.google.firebase.firestore.FirebaseFirestore.getInstance(FirebaseApp.getInstance(appName));
         }
-        if (queryConstraints.length > 0) {
-            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
-                query = queryConstraint.toQuery(query, getFirebaseFirestoreInstance());
-            }
-        }
-        query
-            .get()
-            .addOnSuccessListener(querySnapshot -> {
-                GetCollectionResult result = new GetCollectionResult(querySnapshot);
-                callback.success(result);
-            })
-            .addOnFailureListener(exception -> callback.error(exception));
-    }
-
-    public void getCollectionGroup(@NonNull GetCollectionGroupOptions options, @NonNull NonEmptyResultCallback callback) throws Exception {
-        String reference = options.getReference();
-        QueryCompositeFilterConstraint compositeFilter = options.getCompositeFilter();
-        QueryNonFilterConstraint[] queryConstraints = options.getQueryConstraints();
-
-        Query query = getFirebaseFirestoreInstance().collectionGroup(reference);
-        if (compositeFilter != null) {
-            Filter filter = compositeFilter.toFilter();
-            query = query.where(filter);
-        }
-        if (queryConstraints.length > 0) {
-            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
-                query = queryConstraint.toQuery(query, getFirebaseFirestoreInstance());
-            }
-        }
-        query
-            .get()
-            .addOnSuccessListener(querySnapshot -> {
-                GetCollectionResult result = new GetCollectionResult(querySnapshot);
-                callback.success(result);
-            })
-            .addOnFailureListener(exception -> callback.error(exception));
-    }
-
-    public void disablePersistence() {
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder(getFirebaseFirestoreInstance().getFirestoreSettings())
-            .setPersistenceEnabled(false)
-            .build();
-        getFirebaseFirestoreInstance().setFirestoreSettings(settings);
-    }
-
-    public void enablePersistence(@Nullable Long cacheSizeBytes) {
-        FirebaseFirestoreSettings.Builder builder = new FirebaseFirestoreSettings.Builder(
-            getFirebaseFirestoreInstance().getFirestoreSettings()
-        ).setPersistenceEnabled(true);
-        if (cacheSizeBytes != null) {
-            builder.setCacheSizeBytes(cacheSizeBytes);
-        }
-        getFirebaseFirestoreInstance().setFirestoreSettings(builder.build());
-    }
-
-    public void clearPersistence(@NonNull EmptyResultCallback callback) {
-        getFirebaseFirestoreInstance()
-            .clearPersistence()
-            .addOnSuccessListener(unused -> {
-                callback.success();
-            })
-            .addOnFailureListener(exception -> {
-                callback.error(exception);
-            });
-    }
-
-    public void enableNetwork(@NonNull EmptyResultCallback callback) {
-        getFirebaseFirestoreInstance()
-            .enableNetwork()
-            .addOnSuccessListener(unused -> {
-                callback.success();
-            })
-            .addOnFailureListener(exception -> {
-                callback.error(exception);
-            });
-    }
-
-    public void disableNetwork(@NonNull EmptyResultCallback callback) {
-        getFirebaseFirestoreInstance()
-            .disableNetwork()
-            .addOnSuccessListener(unused -> {
-                callback.success();
-            })
-            .addOnFailureListener(exception -> {
-                callback.error(exception);
-            });
-    }
-
-    public void useEmulator(@NonNull String host, int port) {
-        getFirebaseFirestoreInstance().useEmulator(host, port);
-    }
-
-    public void getCountFromServer(@NonNull GetCountFromServerOptions options, @NonNull NonEmptyResultCallback callback) throws Exception {
-        String reference = options.getReference();
-        QueryCompositeFilterConstraint compositeFilter = options.getCompositeFilter();
-        QueryNonFilterConstraint[] queryConstraints = options.getQueryConstraints();
-
-        Query query = getFirebaseFirestoreInstance().collection(reference);
-        if (compositeFilter != null) {
-            Filter filter = compositeFilter.toFilter();
-            if (filter != null) {
-                query = query.where(filter);
-            }
-        }
-        if (queryConstraints.length > 0) {
-            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
-                query = queryConstraint.toQuery(query, getFirebaseFirestoreInstance());
-            }
-        }
-        AggregateQuery countQuery = query.count();
-
-        countQuery
-            .get(AggregateSource.SERVER)
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    AggregateQuerySnapshot snapshot = task.getResult();
-                    GetCountFromServerResult result = new GetCountFromServerResult(snapshot.getCount());
-                    callback.success(result);
-                } else {
-                    callback.error(task.getException());
-                }
-            });
-    }
-
-    public void addDocumentSnapshotListener(@NonNull AddDocumentSnapshotListenerOptions options, @NonNull NonEmptyResultCallback callback) {
-        String reference = options.getReference();
-        String callbackId = options.getCallbackId();
-        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
-            options.getServerTimestampBehavior()
-        );
-
-        ListenerRegistration listenerRegistration = getFirebaseFirestoreInstance()
-            .document(reference)
-            .addSnapshotListener(
-                options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
-                (documentSnapshot, exception) -> {
-                    if (exception != null) {
-                        callback.error(exception);
-                    } else {
-                        GetDocumentResult result = new GetDocumentResult(documentSnapshot, serverTimestampBehavior);
-                        callback.success(result);
-                    }
-                }
-            );
-        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
-    }
-
-    public void addCollectionSnapshotListener(
-        @NonNull AddCollectionSnapshotListenerOptions options,
-        @NonNull NonEmptyResultCallback callback
-    ) throws Exception {
-        String reference = options.getReference();
-        QueryCompositeFilterConstraint compositeFilter = options.getCompositeFilter();
-        QueryNonFilterConstraint[] queryConstraints = options.getQueryConstraints();
-        String callbackId = options.getCallbackId();
-        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
-            options.getServerTimestampBehavior()
-        );
-
-        Query query = getFirebaseFirestoreInstance().collection(reference);
-        if (compositeFilter != null) {
-            Filter filter = compositeFilter.toFilter();
-            query = query.where(filter);
-        }
-        if (queryConstraints.length > 0) {
-            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
-                query = queryConstraint.toQuery(query, getFirebaseFirestoreInstance());
-            }
-        }
-
-        ListenerRegistration listenerRegistration = query.addSnapshotListener(
-            options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
-            (querySnapshot, exception) -> {
-                if (exception != null) {
-                    callback.error(exception);
-                } else {
-                    GetCollectionResult result = new GetCollectionResult(querySnapshot, serverTimestampBehavior);
-                    callback.success(result);
-                }
-            }
-        );
-        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
-    }
-
-    public void addCollectionGroupSnapshotListener(
-        @NonNull AddCollectionGroupSnapshotListenerOptions options,
-        @NonNull NonEmptyResultCallback callback
-    ) throws Exception {
-        String reference = options.getReference();
-        QueryCompositeFilterConstraint compositeFilter = options.getCompositeFilter();
-        QueryNonFilterConstraint[] queryConstraints = options.getQueryConstraints();
-        String callbackId = options.getCallbackId();
-        DocumentSnapshot.ServerTimestampBehavior serverTimestampBehavior = FirebaseFirestoreHelper.createServerTimestampBehavior(
-            options.getServerTimestampBehavior()
-        );
-
-        Query query = getFirebaseFirestoreInstance().collectionGroup(reference);
-        if (compositeFilter != null) {
-            Filter filter = compositeFilter.toFilter();
-            query = query.where(filter);
-        }
-        if (queryConstraints.length > 0) {
-            for (QueryNonFilterConstraint queryConstraint : queryConstraints) {
-                query = queryConstraint.toQuery(query, getFirebaseFirestoreInstance());
-            }
-        }
-
-        ListenerRegistration listenerRegistration = query.addSnapshotListener(
-            options.isIncludeMetadataChanges() ? MetadataChanges.INCLUDE : MetadataChanges.EXCLUDE,
-            (querySnapshot, exception) -> {
-                if (exception != null) {
-                    callback.error(exception);
-                } else {
-                    GetCollectionResult result = new GetCollectionResult(querySnapshot, serverTimestampBehavior);
-                    callback.success(result);
-                }
-            }
-        );
-        this.listenerRegistrationMap.put(callbackId, listenerRegistration);
-    }
-
-    public void removeSnapshotListener(@NonNull RemoveSnapshotListenerOptions options) {
-        String callbackId = options.getCallbackId();
-
-        ListenerRegistration listenerRegistration = this.listenerRegistrationMap.get(callbackId);
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-        }
-        this.listenerRegistrationMap.remove(callbackId);
-    }
-
-    public void removeAllListeners() {
-        for (ListenerRegistration listenerRegistration : this.listenerRegistrationMap.values()) {
-            listenerRegistration.remove();
-        }
-        this.listenerRegistrationMap.clear();
-    }
-
-    public com.google.firebase.firestore.FirebaseFirestore getFirebaseFirestoreInstance() {
         String databaseId = config.getDatabaseId();
         if (databaseId != null) {
             return com.google.firebase.firestore.FirebaseFirestore.getInstance(databaseId);

@@ -49,6 +49,10 @@ public class FirebaseCrashlyticsPlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorKeyMissing)
             return
         }
+        guard let value = call.options["value"], !(value is NSNull) else {
+            call.reject(errorValueMissing)
+            return
+        }
         let type = call.getString("type") ?? "string"
         if !CustomKeyValueValidation.hasCustomKeyValue(call, type: type) {
             call.reject(errorValueMissing)

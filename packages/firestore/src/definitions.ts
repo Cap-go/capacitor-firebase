@@ -13,8 +13,12 @@ declare module '@capacitor/cli' {
       /**
        * The database ID of the Firestore database to use.
        *
+       * This option applies only to calls without `appName`.
+       * A call with `appName` always uses the default database of that app.
+       *
        * Only available for Android and iOS.
        *
+       * @default "(default)"
        * @since 8.2.0
        */
       databaseId?: string;
@@ -59,11 +63,12 @@ export interface FirebaseFirestorePlugin {
   /**
    * Clears the persistent storage. This includes pending writes and cached documents.
    *
-   * **Attention**: Must be called after the app is shutdown or when the app is first initialized.
+   * **Attention**: The Firestore instance must not be running.
+   * Call this method before the first read or write, or after `terminate()`.
    *
    * @since 5.2.0
    */
-  clearPersistence(): Promise<void>;
+  clearPersistence(options?: ClearPersistenceOptions): Promise<void>;
   /**
    * Deletes the document referred to by the specified reference.
    *
@@ -75,7 +80,7 @@ export interface FirebaseFirestorePlugin {
    *
    * @since 5.2.0
    */
-  disableNetwork(): Promise<void>;
+  disableNetwork(options?: DisableNetworkOptions): Promise<void>;
   /**
    * Disables offline persistence.
    *
@@ -83,7 +88,7 @@ export interface FirebaseFirestorePlugin {
    *
    * @since 8.2.0
    */
-  disablePersistence(): Promise<void>;
+  disablePersistence(options?: DisablePersistenceOptions): Promise<void>;
   /**
    * Enables offline persistence.
    *
@@ -97,7 +102,7 @@ export interface FirebaseFirestorePlugin {
    *
    * @since 5.2.0
    */
-  enableNetwork(): Promise<void>;
+  enableNetwork(options?: EnableNetworkOptions): Promise<void>;
   /**
    * Reads the collection referenced by the specified reference.
    *
@@ -148,6 +153,21 @@ export interface FirebaseFirestorePlugin {
    */
   setDocument(options: SetDocumentOptions): Promise<void>;
   /**
+   * Terminates the Firestore instance. The next call to any other method starts a new instance.
+   *
+   * To clear the persistent storage while the app is running, call `terminate()`,
+   * then `enablePersistence(...)` if the app uses it, then `clearPersistence()`.
+   *
+   * **Attention**: Snapshot listeners stop receiving updates and must be removed.
+   * On Web, each listener is called one last time with an error.
+   * Calls that are still running may fail or never resolve.
+   * The new instance starts with the default settings. An app that uses `enablePersistence(...)`,
+   * `disablePersistence()` or `useEmulator(...)` must call it again.
+   *
+   * @since 8.7.0
+   */
+  terminate(options?: TerminateOptions): Promise<void>;
+  /**
    * Updates fields in the document referred to by the specified reference.
    *
    * @since 5.2.0
@@ -193,6 +213,16 @@ export interface SetDocumentOptions {
    * @default false
    */
   merge?: boolean;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -213,6 +243,16 @@ export interface AddDocumentOptions {
    * @example { first: 'Alan', last: 'Turing', born: 1912 }
    */
   data: DocumentData;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -237,6 +277,16 @@ export interface GetDocumentOptions {
    * @since 5.2.0
    */
   reference: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -268,6 +318,16 @@ export interface UpdateDocumentOptions {
    * @example { first: 'Alan', last: 'Turing', born: 1912 }
    */
   data: DocumentData;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -280,6 +340,16 @@ export interface DeleteDocumentOptions {
    * @since 5.2.0
    */
   reference: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -292,6 +362,16 @@ export interface WriteBatchOptions {
    * @since 6.1.0
    */
   operations: WriteBatchOperation[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -359,6 +439,16 @@ export interface GetCollectionOptions {
    * @since 5.2.0
    */
   queryConstraints?: QueryNonFilterConstraint[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -395,6 +485,16 @@ export interface GetCollectionGroupOptions {
    * @since 5.2.0
    */
   queryConstraints?: QueryNonFilterConstraint[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -430,6 +530,16 @@ export interface UseEmulatorOptions {
    * @example 8080
    */
   port?: number;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -481,6 +591,16 @@ export interface AddDocumentSnapshotListenerOptions
    * @since 5.2.0
    */
   reference: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -519,6 +639,16 @@ export interface AddCollectionSnapshotListenerOptions
    * @since 5.2.0
    */
   queryConstraints?: QueryNonFilterConstraint[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -558,6 +688,16 @@ export interface AddCollectionGroupSnapshotListenerOptions
    * @since 6.1.0
    */
   queryConstraints?: QueryNonFilterConstraint[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -611,6 +751,16 @@ export interface GetCountFromServerOptions {
    * @since 8.3.0
    */
   queryConstraints?: QueryNonFilterConstraint[];
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -645,6 +795,96 @@ export interface EnablePersistenceOptions {
    * @default false
    */
   synchronizeTabs?: boolean;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface ClearPersistenceOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface DisableNetworkOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface DisablePersistenceOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface EnableNetworkOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface TerminateOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**

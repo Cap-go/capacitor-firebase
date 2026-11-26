@@ -68,19 +68,15 @@ public typealias AuthStateChangedObserver = () -> Void
             return
         }
 
-        self.savedCall = call
         return Auth.auth().createUser(withEmail: email, password: password) { _, error in
             if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let user = self.getCurrentUser()
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
                                                                          accessToken: nil, additionalUserInfo: nil)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -188,19 +184,15 @@ public typealias AuthStateChangedObserver = () -> Void
 
         let credential = EmailAuthProvider.credential(withEmail: email, password: password)
 
-        self.savedCall = call
         user.link(with: credential) { authResult, error in
             if let error = error {
-                self.handleFailedLink(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
                                                                          idToken: nil, nonce: nil, accessToken: nil,
                                                                          additionalUserInfo: authResult?.additionalUserInfo)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -215,19 +207,15 @@ public typealias AuthStateChangedObserver = () -> Void
 
         let credential = EmailAuthProvider.credential(withEmail: email, link: emailLink)
 
-        self.savedCall = call
         user.link(with: credential) { authResult, error in
             if let error = error {
-                self.handleFailedLink(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
                                                                          idToken: nil, nonce: nil, accessToken: nil,
                                                                          additionalUserInfo: authResult?.additionalUserInfo)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -373,19 +361,15 @@ public typealias AuthStateChangedObserver = () -> Void
             call.reject(plugin.errorSignInAnonymouslySkipNativeAuth)
             return
         }
-        self.savedCall = call
         Auth.auth().signInAnonymously { authResult, error in
             if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
                                                                          idToken: nil, nonce: nil, accessToken: nil,
                                                                          additionalUserInfo: authResult?.additionalUserInfo)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -407,19 +391,15 @@ public typealias AuthStateChangedObserver = () -> Void
 
         let token = call.getString("token", "")
 
-        self.savedCall = call
         Auth.auth().signIn(withCustomToken: token) { _, error in
             if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let user = self.getCurrentUser()
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
                                                                          accessToken: nil, additionalUserInfo: nil)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -433,19 +413,15 @@ public typealias AuthStateChangedObserver = () -> Void
         let email = call.getString("email", "")
         let password = call.getString("password", "")
 
-        self.savedCall = call
         Auth.auth().signIn(withEmail: email, password: password) { _, error in
             if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let user = self.getCurrentUser()
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
                                                                          accessToken: nil, additionalUserInfo: nil)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -459,19 +435,15 @@ public typealias AuthStateChangedObserver = () -> Void
         let email = call.getString("email", "")
         let emailLink = call.getString("emailLink", "")
 
-        self.savedCall = call
         Auth.auth().signIn(withEmail: email, link: emailLink) { authResult, error in
             if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
+                self.rejectCall(call, message: nil, error: error)
                 return
             }
             let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
                                                                          idToken: nil, nonce: nil, accessToken: nil,
                                                                          additionalUserInfo: authResult?.additionalUserInfo)
-            savedCall.resolve(result)
+            call.resolve(result)
         }
     }
 
@@ -664,10 +636,7 @@ public typealias AuthStateChangedObserver = () -> Void
         guard let savedCall = self.savedCall else {
             return
         }
-        let errorMessage = message ?? error?.localizedDescription ?? ""
-        CAPLog.print("[", self.plugin.tag, "] ", errorMessage)
-        let code = FirebaseAuthenticationHelper.createErrorCode(error: error)
-        savedCall.reject(errorMessage, code)
+        rejectCall(savedCall, message: message, error: error)
     }
 
     func handleSuccessfulLink(credential: AuthCredential, idToken: String?, nonce: String?, accessToken: String?, serverAuthCode: String?, displayName: String?, authorizationCode: String?) {
@@ -695,10 +664,7 @@ public typealias AuthStateChangedObserver = () -> Void
         guard let savedCall = self.savedCall else {
             return
         }
-        let errorMessage = message ?? error?.localizedDescription ?? ""
-        CAPLog.print("[", self.plugin.tag, "] ", errorMessage)
-        let code = FirebaseAuthenticationHelper.createErrorCode(error: error)
-        savedCall.reject(errorMessage, code)
+        rejectCall(savedCall, message: message, error: error)
     }
 
     func handlePhoneVerificationFailed(_ error: Error) {
@@ -748,5 +714,12 @@ public typealias AuthStateChangedObserver = () -> Void
             self.phoneAuthProviderHandler = PhoneAuthProviderHandler(self)
         }
         self.oAuthProviderHandler = OAuthProviderHandler(self)
+    }
+
+    private func rejectCall(_ call: CAPPluginCall, message: String?, error: Error?) {
+        let errorMessage = message ?? error?.localizedDescription ?? ""
+        CAPLog.print("[", self.plugin.tag, "] ", errorMessage)
+        let code = FirebaseAuthenticationHelper.createErrorCode(error: error)
+        call.reject(errorMessage, code)
     }
 }
