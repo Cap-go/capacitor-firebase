@@ -18,6 +18,7 @@ declare module '@capacitor/cli' {
        *
        * Only available for Android and iOS.
        *
+       * @default "(default)"
        * @since 8.2.0
        */
       databaseId?: string;

@@ -10,9 +10,9 @@ All notable changes to this project are documented in the GitHub Releases page.
 
 - [`e28d2de2`](https://github.com/capawesome-team/capacitor-firebase/commit/e28d2de2) ([#1071](https://github.com/capawesome-team/capacitor-firebase/pull/1071)): feat(firestore): add `terminate` method
 
-### Patch Changes
-
 - [`44cce102`](https://github.com/capawesome-team/capacitor-firebase/commit/44cce102) ([#1080](https://github.com/capawesome-team/capacitor-firebase/pull/1080)): feat(firestore): add optional `appName` for named Firebase apps
+
+### Patch Changes
 
 - [`7db7dec6`](https://github.com/capawesome-team/capacitor-firebase/commit/7db7dec6) ([#1077](https://github.com/capawesome-team/capacitor-firebase/pull/1077)): refactor(firestore): restructure the native code
 

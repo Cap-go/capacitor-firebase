@@ -6,20 +6,7 @@
   <h2><a href="https://capgo.app/consulting/?ref=plugin"> Missing a feature? We'll build the plugin for you 💪</a></h2>
 </div>
 
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-firebase" alt="Capgo - Instant updates for Capacitor" /></a>
-
-<div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin"> Missing a feature? We'll build the plugin for you 💪</a></h2>
-</div>
-
 Unofficial Capacitor plugin for [Firebase App](https://firebase.google.com/docs).[^1]
-
-<div class="capawesome-z29o10a">
-  <a href="https://capawesome.io/" target="_blank">
-    <img alt="Thousands of teams ship faster with Capawesome Cloud Native Builds and Live Updates" src="https://capawesome.io/assets/banners/cloud-teams-ship-faster-with-capacitor.png" />
-  </a>
-</div>
 
 ## Use Cases
 
@@ -42,21 +29,21 @@ The Firebase App plugin is typically used to access the core Firebase configurat
 
 ## Guides
 
-- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): The starting point for the whole plugin family and the setup every Firebase plugin shares.
+- [How to Use Firebase in a Capacitor App](https://capgo.app/blog/how-to-use-firebase-in-a-capacitor-app/): The starting point for the whole plugin family and the setup every Firebase plugin shares.
 
 ## Installation
 
 You can use our **AI-Assisted Setup** to install the plugin.
-Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
+Add the [Capgo skills](https://github.com/cap-go/capacitor-skills) to your AI tool using the following command:
 
 ```bash
-npx skills add capawesome-team/skills --skill capacitor-plugins
+npx skills add cap-go/capacitor-skills --skill capacitor-plugins
 ```
 
 Then use the following prompt:
 
 ```
-Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-app` plugin in my project.
+Use the `capacitor-plugins` skill from `cap-go/capacitor-skills` to install the `@capgo/capacitor-firebase-app` plugin in my project.
 ```
 
 If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
@@ -66,7 +53,7 @@ npm install @capgo/capacitor-firebase-app firebase
 npx cap sync
 ```
 
-Add Firebase to your project if you haven't already ([Android](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#android) / [iOS](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#ios) / [Web](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#web)).
+Add Firebase to your project if you haven't already ([Android](https://github.com/Cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#android) / [iOS](https://github.com/Cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#ios) / [Web](https://github.com/Cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#web)).
 
 ### Android
 
@@ -82,7 +69,7 @@ This can be useful if you encounter dependency conflicts with other plugins in y
 
 #### Swift Package Manager
 
-Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/Cap-go/capacitor-firebase/issues/959):
 
 ```json
 {
@@ -164,7 +151,7 @@ const initializeApp = async () => {
 };
 ```
 
-Then pass the name as `appName` to the methods of a plugin that supports it, such as [Cloud Firestore](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-firestore/), to use this app in place of the default app.
+Then pass the name as `appName` to the methods of a plugin that supports it, such as [Cloud Firestore](https://capgo.app/docs/plugins/firebase/cloud-firestore/), to use this app in place of the default app.
 
 ## API
 
@@ -364,21 +351,21 @@ Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless 
 
 ## Related Plugins
 
-- [Firebase Analytics](https://capawesome.io/docs/sdks/capacitor/firebase/analytics/): Log events and track user interactions with Firebase Analytics.
-- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Authenticate users with Firebase Authentication.
-- [Firebase Crashlytics](https://capawesome.io/docs/sdks/capacitor/firebase/crashlytics/): Track and report app crashes with Firebase Crashlytics.
-- [Firebase Cloud Messaging](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-messaging/): Receive push notifications with Firebase Cloud Messaging.
+- [Firebase Analytics](https://capgo.app/docs/plugins/firebase/analytics/): Log events and track user interactions with Firebase Analytics.
+- [Firebase Authentication](https://capgo.app/docs/plugins/firebase/authentication/): Authenticate users with Firebase Authentication.
+- [Firebase Crashlytics](https://capgo.app/docs/plugins/firebase/crashlytics/): Track and report app crashes with Firebase Crashlytics.
+- [Firebase Cloud Messaging](https://capgo.app/docs/plugins/firebase/cloud-messaging/): Receive push notifications with Firebase Cloud Messaging.
 
 ## Newsletter
 
-Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
+Stay up to date with Capgo, Capacitor, and Ionic by subscribing to our [Capgo newsletter](https://capgo.app/newsletter/).
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/app/CHANGELOG.md).
+See [CHANGELOG.md](https://github.com/Cap-go/capacitor-firebase/blob/main/packages/app/CHANGELOG.md).
 
 ## License
 
-See [LICENSE](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/app/LICENSE).
+See [LICENSE](https://github.com/Cap-go/capacitor-firebase/blob/main/packages/app/LICENSE).
 
 [^1]: This project is not affiliated with, endorsed by, sponsored by, or approved by Google LLC or any of their affiliates or subsidiaries.
