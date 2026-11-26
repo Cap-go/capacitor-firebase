@@ -111,7 +111,7 @@ In `capacitor.config.json`:
 {
   "plugins": {
     "FirebaseFirestore": {
-      "databaseId": "(default)"
+      "databaseId": undefined
     }
   }
 }
@@ -127,7 +127,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   plugins: {
     FirebaseFirestore: {
-      databaseId: '(default)',
+      databaseId: undefined,
     },
   },
 };
