@@ -19,7 +19,7 @@ import com.google.firebase.FirebaseOptions;
 @CapacitorPlugin(name = "FirebaseApp")
 public class FirebaseAppPlugin extends Plugin {
 
-    private final String pluginVersion = "8.6.1";
+    private final String pluginVersion = "8.6.2";
 
     public static final String TAG = "FirebaseApp";
     public static final String ERROR_UNKNOWN_ERROR = "An unknown error has occurred.";
