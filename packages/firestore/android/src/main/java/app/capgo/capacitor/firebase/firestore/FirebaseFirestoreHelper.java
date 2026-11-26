@@ -5,12 +5,6 @@ import static app.capgo.capacitor.firebase.firestore.FirebaseFirestorePlugin.ERR
 import android.util.Base64;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryCompositeFilterConstraint;
-import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryEndAtConstraint;
-import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryLimitConstraint;
-import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryOrderByConstraint;
-import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryStartAtConstraint;
-import app.capgo.capacitor.firebase.firestore.interfaces.QueryNonFilterConstraint;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.google.firebase.Timestamp;
@@ -20,6 +14,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
+import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryCompositeFilterConstraint;
+import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryEndAtConstraint;
+import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryLimitConstraint;
+import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryOrderByConstraint;
+import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryStartAtConstraint;
+import app.capgo.capacitor.firebase.firestore.interfaces.QueryNonFilterConstraint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,19 +30,16 @@ import org.json.JSONObject;
 
 public class FirebaseFirestoreHelper {
 
-    @NonNull
-    public static DocumentSnapshot.ServerTimestampBehavior createServerTimestampBehavior(@Nullable String value) {
-        if (value == null) {
-            return DocumentSnapshot.ServerTimestampBehavior.NONE;
+    @Nullable
+    public static String createErrorCode(@Nullable Exception exception) {
+        if (exception == null) {
+            return null;
+        } else if (exception instanceof FirebaseFirestoreException) {
+            String errorCode = ((FirebaseFirestoreException) exception).getCode().name();
+            String prefixedErrorCode = String.format("%s/%s", ERROR_CODE_PREFIX, errorCode);
+            return snakeToKebabCase(prefixedErrorCode);
         }
-        switch (value) {
-            case "estimate":
-                return DocumentSnapshot.ServerTimestampBehavior.ESTIMATE;
-            case "previous":
-                return DocumentSnapshot.ServerTimestampBehavior.PREVIOUS;
-            default:
-                return DocumentSnapshot.ServerTimestampBehavior.NONE;
-        }
+        return null;
     }
 
     public static HashMap<String, Object> createHashMapFromJSONObject(
@@ -71,9 +68,10 @@ public class FirebaseFirestoreHelper {
         return object;
     }
 
+    @Nullable
     public static Object createObjectFromJSValue(Object value, @NonNull com.google.firebase.firestore.FirebaseFirestore firestore)
         throws JSONException {
-        if (value.toString().equals("null")) {
+        if (value == JSONObject.NULL) {
             return null;
         } else if (value instanceof JSONObject) {
             JSONObject jsonObject = (JSONObject) value;
@@ -133,6 +131,118 @@ public class FirebaseFirestoreHelper {
         }
     }
 
+    @NonNull
+    public static DocumentSnapshot.ServerTimestampBehavior createServerTimestampBehavior(@Nullable String value) {
+        if (value == null) {
+            return DocumentSnapshot.ServerTimestampBehavior.NONE;
+        }
+        switch (value) {
+            case "estimate":
+                return DocumentSnapshot.ServerTimestampBehavior.ESTIMATE;
+            case "previous":
+                return DocumentSnapshot.ServerTimestampBehavior.PREVIOUS;
+            default:
+                return DocumentSnapshot.ServerTimestampBehavior.NONE;
+        }
+    }
+
+    public static JSObject createSnapshotMetadataResult(DocumentSnapshot snapshot) {
+        final JSObject obj = new JSObject();
+        obj.put("fromCache", snapshot.getMetadata().isFromCache());
+        obj.put("hasPendingWrites", snapshot.getMetadata().hasPendingWrites());
+        return obj;
+    }
+
+    private static ArrayList<Object> createArrayListFromJSONArray(
+        JSONArray array,
+        @NonNull com.google.firebase.firestore.FirebaseFirestore firestore
+    ) throws JSONException {
+        ArrayList<Object> arrayList = new ArrayList<>();
+        for (int x = 0; x < array.length(); x++) {
+            arrayList.add(createObjectFromJSValue(array.get(x), firestore));
+        }
+        return arrayList;
+    }
+
+    private static JSArray createJSArrayFromArrayList(ArrayList arrayList) {
+        JSArray array = new JSArray();
+        for (Object value : arrayList) {
+            array.put(createJSValueFromNative(value));
+        }
+        return array;
+    }
+
+    @NonNull
+    private static JSObject createJSObjectFromBlob(@NonNull Blob blob) {
+        JSObject object = new JSObject();
+        object.put("__type__", "bytes");
+        object.put("bytes", Base64.encodeToString(blob.toBytes(), Base64.NO_WRAP));
+        return object;
+    }
+
+    @NonNull
+    private static JSObject createJSObjectFromDocumentReference(@NonNull DocumentReference reference) {
+        JSObject object = new JSObject();
+        object.put("__type__", "documentReference");
+        object.put("id", reference.getId());
+        object.put("path", reference.getPath());
+        return object;
+    }
+
+    @NonNull
+    private static JSObject createJSObjectFromGeoPoint(@NonNull GeoPoint geoPoint) {
+        JSObject object = new JSObject();
+        object.put("__type__", "geopoint");
+        object.put("latitude", geoPoint.getLatitude());
+        object.put("longitude", geoPoint.getLongitude());
+        return object;
+    }
+
+    @NonNull
+    private static JSObject createJSObjectFromSpecialNumber(double value) {
+        JSObject object = new JSObject();
+        object.put("__type__", "number");
+        if (Double.isNaN(value)) {
+            object.put("value", "NaN");
+        } else if (value > 0) {
+            object.put("value", "Infinity");
+        } else {
+            object.put("value", "-Infinity");
+        }
+        return object;
+    }
+
+    @NonNull
+    private static JSObject createJSObjectFromTimestamp(@NonNull Timestamp timestamp) {
+        JSObject object = new JSObject();
+        object.put("__type__", "timestamp");
+        object.put("seconds", timestamp.getSeconds());
+        object.put("nanoseconds", timestamp.getNanoseconds());
+        return object;
+    }
+
+    @Nullable
+    private static Object createJSValueFromNative(@Nullable Object value) {
+        if (value instanceof Timestamp) {
+            return createJSObjectFromTimestamp((Timestamp) value);
+        } else if (value instanceof GeoPoint) {
+            return createJSObjectFromGeoPoint((GeoPoint) value);
+        } else if (value instanceof DocumentReference) {
+            return createJSObjectFromDocumentReference((DocumentReference) value);
+        } else if (value instanceof Blob) {
+            return createJSObjectFromBlob((Blob) value);
+        } else if (value instanceof Double && !Double.isFinite((Double) value)) {
+            return createJSObjectFromSpecialNumber((Double) value);
+        } else if (value instanceof Float && !Float.isFinite((Float) value)) {
+            return createJSObjectFromSpecialNumber(((Float) value).doubleValue());
+        } else if (value instanceof ArrayList) {
+            return createJSArrayFromArrayList((ArrayList) value);
+        } else if (value instanceof Map) {
+            return createJSObjectFromMap((Map<String, Object>) value);
+        }
+        return value;
+    }
+
     @Nullable
     private static Object createNativeValueFromMarker(
         @NonNull JSONObject jsonObject,
@@ -180,55 +290,6 @@ public class FirebaseFirestoreHelper {
         }
     }
 
-    @NonNull
-    private static JSObject createJSObjectFromTimestamp(@NonNull Timestamp timestamp) {
-        JSObject object = new JSObject();
-        object.put("__type__", "timestamp");
-        object.put("seconds", timestamp.getSeconds());
-        object.put("nanoseconds", timestamp.getNanoseconds());
-        return object;
-    }
-
-    @NonNull
-    private static JSObject createJSObjectFromGeoPoint(@NonNull GeoPoint geoPoint) {
-        JSObject object = new JSObject();
-        object.put("__type__", "geopoint");
-        object.put("latitude", geoPoint.getLatitude());
-        object.put("longitude", geoPoint.getLongitude());
-        return object;
-    }
-
-    @NonNull
-    private static JSObject createJSObjectFromDocumentReference(@NonNull DocumentReference reference) {
-        JSObject object = new JSObject();
-        object.put("__type__", "documentReference");
-        object.put("id", reference.getId());
-        object.put("path", reference.getPath());
-        return object;
-    }
-
-    @NonNull
-    private static JSObject createJSObjectFromBlob(@NonNull Blob blob) {
-        JSObject object = new JSObject();
-        object.put("__type__", "bytes");
-        object.put("bytes", Base64.encodeToString(blob.toBytes(), Base64.NO_WRAP));
-        return object;
-    }
-
-    @NonNull
-    private static JSObject createJSObjectFromSpecialNumber(double value) {
-        JSObject object = new JSObject();
-        object.put("__type__", "number");
-        if (Double.isNaN(value)) {
-            object.put("value", "NaN");
-        } else if (value > 0) {
-            object.put("value", "Infinity");
-        } else {
-            object.put("value", "-Infinity");
-        }
-        return object;
-    }
-
     private static double parseSpecialNumber(String value) {
         switch (value) {
             case "NaN":
@@ -244,78 +305,6 @@ public class FirebaseFirestoreHelper {
                     return Double.NaN;
                 }
         }
-    }
-
-    private static ArrayList<Object> createArrayListFromJSONArray(
-        JSONArray array,
-        @NonNull com.google.firebase.firestore.FirebaseFirestore firestore
-    ) throws JSONException {
-        ArrayList<Object> arrayList = new ArrayList<>();
-        for (int x = 0; x < array.length(); x++) {
-            Object value = array.get(x);
-            if (value instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) value;
-                Object nativeValue = createNativeValueFromMarker(jsonObject, firestore);
-                if (nativeValue != null) {
-                    value = nativeValue;
-                } else {
-                    value = createHashMapFromJSONObject(jsonObject, firestore);
-                }
-            } else if (value instanceof JSONArray) {
-                value = createArrayListFromJSONArray((JSONArray) value, firestore);
-            }
-            arrayList.add(value);
-        }
-        return arrayList;
-    }
-
-    @Nullable
-    private static Object createJSValueFromNative(@Nullable Object value) {
-        if (value instanceof Timestamp) {
-            return createJSObjectFromTimestamp((Timestamp) value);
-        } else if (value instanceof GeoPoint) {
-            return createJSObjectFromGeoPoint((GeoPoint) value);
-        } else if (value instanceof DocumentReference) {
-            return createJSObjectFromDocumentReference((DocumentReference) value);
-        } else if (value instanceof Blob) {
-            return createJSObjectFromBlob((Blob) value);
-        } else if (value instanceof Double && !Double.isFinite((Double) value)) {
-            return createJSObjectFromSpecialNumber((Double) value);
-        } else if (value instanceof Float && !Float.isFinite((Float) value)) {
-            return createJSObjectFromSpecialNumber(((Float) value).doubleValue());
-        } else if (value instanceof ArrayList) {
-            return createJSArrayFromArrayList((ArrayList) value);
-        } else if (value instanceof Map) {
-            return createJSObjectFromMap((Map<String, Object>) value);
-        }
-        return value;
-    }
-
-    private static JSArray createJSArrayFromArrayList(ArrayList arrayList) {
-        JSArray array = new JSArray();
-        for (Object value : arrayList) {
-            array.put(createJSValueFromNative(value));
-        }
-        return array;
-    }
-
-    public static JSObject createSnapshotMetadataResult(DocumentSnapshot snapshot) {
-        final JSObject obj = new JSObject();
-        obj.put("fromCache", snapshot.getMetadata().isFromCache());
-        obj.put("hasPendingWrites", snapshot.getMetadata().hasPendingWrites());
-        return obj;
-    }
-
-    @Nullable
-    public static String createErrorCode(@Nullable Exception exception) {
-        if (exception == null) {
-            return null;
-        } else if (exception instanceof FirebaseFirestoreException) {
-            String errorCode = ((FirebaseFirestoreException) exception).getCode().name();
-            String prefixedErrorCode = String.format("%s/%s", ERROR_CODE_PREFIX, errorCode);
-            return snakeToKebabCase(prefixedErrorCode);
-        }
-        return null;
     }
 
     private static String snakeToKebabCase(String snakeCase) {
