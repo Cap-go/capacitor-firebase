@@ -1,13 +1,13 @@
 package app.capgo.capacitor.firebase.firestore.classes.results;
 
 import androidx.annotation.NonNull;
+import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
+import app.capgo.capacitor.firebase.firestore.interfaces.Result;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import app.capgo.capacitor.firebase.firestore.FirebaseFirestoreHelper;
-import app.capgo.capacitor.firebase.firestore.interfaces.Result;
 import org.json.JSONObject;
 
 public class GetCollectionResult implements Result {

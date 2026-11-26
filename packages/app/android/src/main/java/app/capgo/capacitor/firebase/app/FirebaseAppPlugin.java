@@ -2,6 +2,12 @@ package app.capgo.capacitor.firebase.app;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import app.capgo.capacitor.firebase.app.classes.CustomException;
+import app.capgo.capacitor.firebase.app.classes.options.InitializeAppOptions;
+import app.capgo.capacitor.firebase.app.classes.results.GetAppsResult;
+import app.capgo.capacitor.firebase.app.interfaces.EmptyResultCallback;
+import app.capgo.capacitor.firebase.app.interfaces.NonEmptyResultCallback;
+import app.capgo.capacitor.firebase.app.interfaces.Result;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
 import com.getcapacitor.Plugin;
@@ -9,12 +15,6 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.firebase.FirebaseOptions;
-import app.capgo.capacitor.firebase.app.classes.CustomException;
-import app.capgo.capacitor.firebase.app.classes.options.InitializeAppOptions;
-import app.capgo.capacitor.firebase.app.classes.results.GetAppsResult;
-import app.capgo.capacitor.firebase.app.interfaces.EmptyResultCallback;
-import app.capgo.capacitor.firebase.app.interfaces.NonEmptyResultCallback;
-import app.capgo.capacitor.firebase.app.interfaces.Result;
 
 @CapacitorPlugin(name = "FirebaseApp")
 public class FirebaseAppPlugin extends Plugin {

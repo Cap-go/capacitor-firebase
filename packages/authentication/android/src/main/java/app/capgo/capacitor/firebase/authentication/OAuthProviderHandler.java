@@ -86,7 +86,8 @@ public class OAuthProviderHandler {
             call.reject(FirebaseAuthenticationPlugin.ERROR_NO_USER_SIGNED_IN);
             return;
         }
-        user.startActivityForLinkWithProvider(pluginImplementation.getPlugin().getActivity(), provider.build())
+        user
+            .startActivityForLinkWithProvider(pluginImplementation.getPlugin().getActivity(), provider.build())
             .addOnSuccessListener(authResult -> pluginImplementation.handleSuccessfulLink(call, authResult, null, null, null, null))
             .addOnFailureListener(exception -> pluginImplementation.handleFailedLink(call, null, exception));
     }

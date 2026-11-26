@@ -2,22 +2,6 @@ package app.capgo.capacitor.firebase.firestore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.getcapacitor.PluginCall;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.firestore.AggregateQuery;
-import com.google.firebase.firestore.AggregateQuerySnapshot;
-import com.google.firebase.firestore.AggregateSource;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.Filter;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.MetadataChanges;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.firestore.WriteBatch;
 import app.capgo.capacitor.firebase.firestore.classes.constraints.QueryCompositeFilterConstraint;
 import app.capgo.capacitor.firebase.firestore.classes.options.AddCollectionGroupSnapshotListenerOptions;
 import app.capgo.capacitor.firebase.firestore.classes.options.AddCollectionSnapshotListenerOptions;
@@ -47,6 +31,22 @@ import app.capgo.capacitor.firebase.firestore.classes.results.GetDocumentResult;
 import app.capgo.capacitor.firebase.firestore.interfaces.EmptyResultCallback;
 import app.capgo.capacitor.firebase.firestore.interfaces.NonEmptyResultCallback;
 import app.capgo.capacitor.firebase.firestore.interfaces.QueryNonFilterConstraint;
+import com.getcapacitor.PluginCall;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.AggregateQuery;
+import com.google.firebase.firestore.AggregateQuerySnapshot;
+import com.google.firebase.firestore.AggregateSource;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Filter;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -347,15 +347,17 @@ public class FirebaseFirestore {
         }
         AggregateQuery countQuery = query.count();
 
-        countQuery.get(AggregateSource.SERVER).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                AggregateQuerySnapshot snapshot = task.getResult();
-                GetCountFromServerResult result = new GetCountFromServerResult(snapshot.getCount());
-                callback.success(result);
-            } else {
-                callback.error(task.getException());
-            }
-        });
+        countQuery
+            .get(AggregateSource.SERVER)
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    AggregateQuerySnapshot snapshot = task.getResult();
+                    GetCountFromServerResult result = new GetCountFromServerResult(snapshot.getCount());
+                    callback.success(result);
+                } else {
+                    callback.error(task.getException());
+                }
+            });
     }
 
     public void getDocument(@NonNull GetDocumentOptions options, @NonNull NonEmptyResultCallback<GetDocumentResult> callback) {
@@ -461,10 +463,7 @@ public class FirebaseFirestore {
                     break;
             }
         }
-        batch
-            .commit()
-            .addOnSuccessListener(unused -> callback.success())
-            .addOnFailureListener(exception -> callback.error(exception));
+        batch.commit().addOnSuccessListener(unused -> callback.success()).addOnFailureListener(exception -> callback.error(exception));
     }
 
     @NonNull

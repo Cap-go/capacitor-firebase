@@ -8,6 +8,8 @@ All notable changes to this project are documented in the GitHub Releases page.
 
 ### Patch Changes
 
+- [`271ccacc`](https://github.com/capawesome-team/capacitor-firebase/commit/271ccacc) ([#1078](https://github.com/capawesome-team/capacitor-firebase/pull/1078)): refactor(messaging): simplify `convertNotificationPermissionToPermissionState` on Web
+
 - [`39e327abe18dc7b78ae62db4c33bc2a1ec8934c5`](https://github.com/Cap-go/capacitor-firebase/commit/39e327abe18dc7b78ae62db4c33bc2a1ec8934c5) ([#1058](https://github.com/capawesome-team/capacitor-firebase/pull/1058)): fix(android): deliver every data message received before the plugin was loaded, not just the last one
 
 - [`b6f7a48d18ba358f57b1cba52131ba7b60bc7ce0`](https://github.com/Cap-go/capacitor-firebase/commit/b6f7a48d18ba358f57b1cba52131ba7b60bc7ce0) ([#1056](https://github.com/capawesome-team/capacitor-firebase/pull/1056)): fix(ios): replace the deprecated `alert` presentation option with `banner` and `list`

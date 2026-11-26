@@ -4,6 +4,12 @@
 
 All notable changes to this project are documented in the GitHub Releases page.
 
+## 8.7.0
+
+### Minor Changes
+
+- [`44cce102`](https://github.com/capawesome-team/capacitor-firebase/commit/44cce102) ([#1080](https://github.com/capawesome-team/capacitor-firebase/pull/1080)): feat: add `initializeApp`, `getApps` and named Firebase app support
+
 ## 8.6.0
 
 ## 8.5.2

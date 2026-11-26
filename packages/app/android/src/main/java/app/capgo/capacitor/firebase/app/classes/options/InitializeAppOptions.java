@@ -1,9 +1,9 @@
 package app.capgo.capacitor.firebase.app.classes.options;
 
 import androidx.annotation.NonNull;
+import app.capgo.capacitor.firebase.app.classes.CustomExceptions;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
-import app.capgo.capacitor.firebase.app.classes.CustomExceptions;
 
 public class InitializeAppOptions {
 

@@ -1,8 +1,8 @@
 package app.capgo.capacitor.firebase.firestore.classes.options;
 
 import androidx.annotation.NonNull;
-import com.getcapacitor.PluginCall;
 import app.capgo.capacitor.firebase.firestore.classes.CustomExceptions;
+import com.getcapacitor.PluginCall;
 
 public class RemoveSnapshotListenerOptions {
 

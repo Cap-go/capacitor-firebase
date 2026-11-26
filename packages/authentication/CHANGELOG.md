@@ -6,6 +6,10 @@ All notable changes to this project are documented in the GitHub Releases page.
 
 ## 8.6.0
 
+### Patch Changes
+
+- [`15c2107d`](https://github.com/capawesome-team/capacitor-firebase/commit/15c2107d) ([#1082](https://github.com/capawesome-team/capacitor-firebase/pull/1082)): fix(authentication): fix five bugs on Android and iOS
+
 ### Minor Changes
 
 - [`25f9dbe2d69b51cd936b9b131dfb2b865ca1e769`](https://github.com/Cap-go/capacitor-firebase/commit/25f9dbe2d69b51cd936b9b131dfb2b865ca1e769) ([#1037](https://github.com/capawesome-team/capacitor-firebase/pull/1037)): feat: add `code` property to `PhoneVerificationFailedEvent`

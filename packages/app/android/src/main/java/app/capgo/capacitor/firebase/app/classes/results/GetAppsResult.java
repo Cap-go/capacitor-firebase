@@ -1,9 +1,9 @@
 package app.capgo.capacitor.firebase.app.classes.results;
 
 import androidx.annotation.NonNull;
+import app.capgo.capacitor.firebase.app.interfaces.Result;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
-import app.capgo.capacitor.firebase.app.interfaces.Result;
 import java.util.List;
 
 public class GetAppsResult implements Result {

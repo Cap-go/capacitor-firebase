@@ -12,6 +12,12 @@ All notable changes to this project are documented in the GitHub Releases page.
 
 ### Patch Changes
 
+- [`44cce102`](https://github.com/capawesome-team/capacitor-firebase/commit/44cce102) ([#1080](https://github.com/capawesome-team/capacitor-firebase/pull/1080)): feat(firestore): add optional `appName` for named Firebase apps
+
+- [`7db7dec6`](https://github.com/capawesome-team/capacitor-firebase/commit/7db7dec6) ([#1077](https://github.com/capawesome-team/capacitor-firebase/pull/1077)): refactor(firestore): restructure the native code
+
+- [`bd147b19`](https://github.com/capawesome-team/capacitor-firebase/commit/bd147b19) ([#1081](https://github.com/capawesome-team/capacitor-firebase/pull/1081)): fix(firestore): fix two bugs with null values on Android
+
 - [`ac4ee6c7`](https://github.com/capawesome-team/capacitor-firebase/commit/ac4ee6c7) ([#1076](https://github.com/capawesome-team/capacitor-firebase/pull/1076)): fix(firestore): fix three error paths on Android and iOS
 
 ## 8.6.0
