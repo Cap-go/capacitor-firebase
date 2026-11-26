@@ -8,9 +8,22 @@
 
 Unofficial Capacitor plugin for [Firebase Cloud Firestore](https://firebase.google.com/docs/firestore/).[^1]
 
-## Guides
+<div class="capawesome-z29o10a">
+  <a href="https://capawesome.io/" target="_blank">
+    <img alt="Ship a fix in one command with Capawesome Cloud Live Updates, no store review" src="https://capawesome.io/assets/banners/cloud-ship-a-fix-in-one-command.png" />
+  </a>
+</div>
 
-- [Announcing the Capacitor Firebase Cloud Firestore Plugin](https://capgo.app/blog/announcing-the-capacitor-firebase-cloud-firestore-plugin/)
+## Use Cases
+
+The Cloud Firestore plugin is typically used to store and sync app data in the cloud, for example:
+
+- **Real-time updates**: Keep your UI up to date by listening to document and collection changes with snapshot listeners.
+- **User-generated content**: Create, read, update, and delete documents for user profiles, posts, or other app data.
+- **Complex queries**: Filter and sort collections with composite filters and query constraints such as `where`, `orderBy`, and `limit`.
+- **Offline support**: Enable offline persistence and control network access to work with locally cached data.
+- **Atomic writes**: Perform multiple write operations as a single atomic batch with `writeBatch(...)`.
+- **Multiple Firebase projects**: Read and write data of another Firebase project with the `appName` option.
 
 ## Compatibility
 
@@ -20,28 +33,36 @@ Unofficial Capacitor plugin for [Firebase Cloud Firestore](https://firebase.goog
 | 7.x.x          | 7.x.x             | Deprecated     |
 | 6.x.x          | 6.x.x             | Deprecated     |
 
+## Guides
+
+- [Announcing the Capacitor Firebase Cloud Firestore Plugin](https://capawesome.io/blog/announcing-the-capacitor-firebase-cloud-firestore-plugin/)
+- [Capacitor Firestore: Real-Time Data & Offline Sync](https://capawesome.io/blog/capacitor-firebase-cloud-firestore-guide/): Real-time listeners, offline persistence, and atomic writes with this plugin.
+- [How to Wrap an Angular App with Capacitor and Firebase](https://capawesome.io/blog/how-to-wrap-an-angular-app-with-capacitor-and-firebase/): Uses this plugin alongside Cloud Storage to store and sync user data.
+- [How to Use Firebase in a Capacitor App](https://capawesome.io/blog/how-to-use-firebase-in-a-capacitor-app/): How the database combines with Authentication, Storage, and the rest of the family in a real app.
+
 ## Installation
 
-You can use our AI-Assisted Setup to install the plugin. Add the Capgo skills to your AI tool using the following command:
+You can use our **AI-Assisted Setup** to install the plugin.
+Add the [Capawesome Skills](https://github.com/capawesome-team/skills) to your AI tool using the following command:
 
 ```bash
-npx skills add https://github.com/cap-go/capacitor-skills --skill capacitor-plugins
+npx skills add capawesome-team/skills --skill capacitor-plugins
 ```
 
 Then use the following prompt:
 
-```text
-Use the `capacitor-plugins` skill from `cap-go/capacitor-skills` to install the `@capgo/capacitor-firebase-firestore` plugin in my project.
+```
+Use the `capacitor-plugins` skill from `capawesome-team/skills` to install the `@capgo/capacitor-firebase-firestore` plugin in my project.
 ```
 
-If you prefer Manual Setup, install the plugin by running the following commands and follow the platform-specific instructions below:
+If you prefer **Manual Setup**, install the plugin by running the following commands and follow the platform-specific instructions below:
 
 ```bash
 npm install @capgo/capacitor-firebase-firestore
 npx cap sync
 ```
 
-Add Firebase to your project if you haven't already ([Android](https://github.com/cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#android) / [iOS](https://github.com/cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#ios) / [Web](https://github.com/cap-go/capacitor-firebase/blob/main/docs/firebase-setup.md#web)).
+Add Firebase to your project if you haven't already ([Android](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#android) / [iOS](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#ios) / [Web](https://github.com/capawesome-team/capacitor-firebase/blob/main/docs/firebase-setup.md#web)).
 
 ### Android
 
@@ -53,9 +74,74 @@ If needed, you can define the following project variable in your app’s `variab
 
 This can be useful if you encounter dependency conflicts with other plugins in your project.
 
+### iOS
+
+#### Swift Package Manager
+
+Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to avoid a [SwiftPM package identity collision](https://github.com/capawesome-team/capacitor-firebase/issues/959):
+
+```json
+{
+  "experimental": {
+    "ios": {
+      "spm": {
+        "packageOptions": {
+          "@capgo/capacitor-firebase-firestore": {
+            "symlink": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Attention**: SPM `packageOptions` support requires Capacitor CLI **8.4.0+**.
+
 ## Configuration
 
-No configuration required for this plugin.
+<docgen-config>
+<!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
+
+These configuration values are available:
+
+| Prop             | Type                | Description                                                                                                                                                                                                    | Since |
+| ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`databaseId`** | <code>string</code> | The database ID of the Firestore database to use. This option applies only to calls without `appName`. A call with `appName` always uses the default database of that app. Only available for Android and iOS. | 8.2.0 |
+
+### Examples
+
+In `capacitor.config.json`:
+
+```json
+{
+  "plugins": {
+    "FirebaseFirestore": {
+      "databaseId": undefined
+    }
+  }
+}
+```
+
+In `capacitor.config.ts`:
+
+```ts
+/// <reference types="@capgo/capacitor-firebase-firestore" />
+
+import { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  plugins: {
+    FirebaseFirestore: {
+      databaseId: undefined,
+    },
+  },
+};
+
+export default config;
+```
+
+</docgen-config>
 
 ## Demo
 
@@ -68,6 +154,12 @@ The following starter templates are available:
 - [Ionstarter Angular Firebase](https://ionstarter.dev/)
 
 ## Usage
+
+The following examples show how to create, read, update, and delete documents, update documents with field values, perform batched writes, query collections, control network access, use the Firebase Emulator, and listen for and remove real-time updates.
+
+### Create a document
+
+Add a new document to a collection with an auto-generated ID, or write a document at a known reference with `setDocument(...)`. Set `merge` to `true` to merge the data with an existing document:
 
 ```typescript
 import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
@@ -94,6 +186,14 @@ const setDocument = async () => {
     merge: true,
   });
 };
+```
+
+### Read a document
+
+Read a single document by its reference:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const getDocument = async () => {
   const { snapshot } = await FirebaseFirestore.getDocument({
@@ -101,6 +201,14 @@ const getDocument = async () => {
   });
   return snapshot;
 };
+```
+
+### Update or delete a document
+
+Update fields of an existing document or delete it entirely:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const updateDocument = async () => {
   await FirebaseFirestore.updateDocument({
@@ -118,6 +226,35 @@ const deleteDocument = async () => {
     reference: 'users/Aorq09lkt1ynbR7xhTUx',
   });
 };
+```
+
+### Update a document with field values
+
+Use `FieldValue` helpers to increment numbers, set server timestamps, modify arrays, or delete fields:
+
+```typescript
+import { FieldValue, FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
+
+const updateDocumentWithFieldValue = async () => {
+  await FirebaseFirestore.updateDocument({
+    reference: 'users/Aorq09lkt1ynbR7xhTUx',
+    data: {
+      born: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp(),
+      nicknames: FieldValue.arrayUnion('Prof'),
+      tags: FieldValue.arrayRemove('draft'),
+      deprecatedField: FieldValue.delete(),
+    },
+  });
+};
+```
+
+### Perform a batched write
+
+Execute multiple set, update, and delete operations as a single atomic batch:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const writeBatch = async () => {
   await FirebaseFirestore.writeBatch({
@@ -148,6 +285,14 @@ const writeBatch = async () => {
     ],
   });
 };
+```
+
+### Query a collection
+
+Read multiple documents from a collection or a collection group. You can filter the results with a composite filter and apply query constraints such as `orderBy` and `limit`:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const getCollection = async () => {
   const { snapshots } = await FirebaseFirestore.getCollection({
@@ -206,6 +351,14 @@ const getCollectionGroup = async () => {
   });
   return snapshots;
 };
+```
+
+### Control network access
+
+Disable and re-enable the use of the network, for example to force the plugin to work with locally cached data:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const enableNetwork = async () => {
   await FirebaseFirestore.enableNetwork();
@@ -214,6 +367,14 @@ const enableNetwork = async () => {
 const disableNetwork = async () => {
   await FirebaseFirestore.disableNetwork();
 };
+```
+
+### Use the Firebase Emulator
+
+Connect the plugin to a local [Firebase Emulator](https://firebase.google.com/docs/emulator-suite) instance during development:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const useEmulator = async () => {
   await FirebaseFirestore.useEmulator({
@@ -221,6 +382,14 @@ const useEmulator = async () => {
     port: 9001,
   });
 };
+```
+
+### Listen for real-time updates
+
+Attach snapshot listeners to a document, a collection, or a collection group to get notified whenever the data changes:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const addDocumentSnapshotListener = async () => {
   const callbackId = await FirebaseFirestore.addDocumentSnapshotListener(
@@ -313,6 +482,14 @@ const addCollectionGroupSnapshotListener = async () => {
   );
   return callbackId;
 };
+```
+
+### Remove listeners
+
+Remove a single snapshot listener by its callback ID or remove all listeners at once:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
 
 const removeSnapshotListener = async (callbackId: string) => {
   await FirebaseFirestore.removeSnapshotListener({
@@ -325,6 +502,28 @@ const removeAllListeners = async () => {
 };
 ```
 
+### Use another Firebase project
+
+Pass the `appName` option to use a Firebase app other than the default app, for example to read data of a second Firebase project. Initialize the app with the `initializeApp(...)` method of the [Firebase App](https://capawesome.io/docs/sdks/capacitor/firebase/app/) plugin first. Then pass its name as `appName`:
+
+```typescript
+import { FirebaseFirestore } from '@capgo/capacitor-firebase-firestore';
+
+const getDocument = async () => {
+  const { snapshot } = await FirebaseFirestore.getDocument({
+    reference: 'users/Aorq09lkt1ynbR7xhTUx',
+    appName: 'secondary',
+  });
+  return snapshot;
+};
+```
+
+Every app has its own Firestore instance. Methods that change the instance, such as `useEmulator(...)`, `enablePersistence(...)`, `disablePersistence(...)` and `disableNetwork(...)`, apply only to the app of that call. Call them once for every `appName` that needs them.
+
+To use the default app, leave `appName` out.
+
+**Attention**: The Firebase Authentication plugin always uses the default app, so calls with `appName` are made without a signed-in user.
+
 ## API
 
 <docgen-index>
@@ -333,12 +532,12 @@ const removeAllListeners = async () => {
 * [`addCollectionGroupSnapshotListener(...)`](#addcollectiongroupsnapshotlistener)
 * [`addCollectionSnapshotListener(...)`](#addcollectionsnapshotlistener)
 * [`addDocumentSnapshotListener(...)`](#adddocumentsnapshotlistener)
-* [`clearPersistence()`](#clearpersistence)
+* [`clearPersistence(...)`](#clearpersistence)
 * [`deleteDocument(...)`](#deletedocument)
-* [`disableNetwork()`](#disablenetwork)
-* [`disablePersistence()`](#disablepersistence)
+* [`disableNetwork(...)`](#disablenetwork)
+* [`disablePersistence(...)`](#disablepersistence)
 * [`enablePersistence(...)`](#enablepersistence)
-* [`enableNetwork()`](#enablenetwork)
+* [`enableNetwork(...)`](#enablenetwork)
 * [`getCollection(...)`](#getcollection)
 * [`getCollectionGroup(...)`](#getcollectiongroup)
 * [`getCountFromServer(...)`](#getcountfromserver)
@@ -346,7 +545,7 @@ const removeAllListeners = async () => {
 * [`removeAllListeners()`](#removealllisteners)
 * [`removeSnapshotListener(...)`](#removesnapshotlistener)
 * [`setDocument(...)`](#setdocument)
-* [`terminate()`](#terminate)
+* [`terminate(...)`](#terminate)
 * [`updateDocument(...)`](#updatedocument)
 * [`useEmulator(...)`](#useemulator)
 * [`writeBatch(...)`](#writebatch)
@@ -437,16 +636,20 @@ Adds a listener for document snapshot events.
 --------------------
 
 
-### clearPersistence()
+### clearPersistence(...)
 
 ```typescript
-clearPersistence() => Promise<void>
+clearPersistence(options?: ClearPersistenceOptions | undefined) => Promise<void>
 ```
 
 Clears the persistent storage. This includes pending writes and cached documents.
 
 **Attention**: The Firestore instance must not be running.
 Call this method before the first read or write, or after `terminate()`.
+
+| Param         | Type                                                                        |
+| ------------- | --------------------------------------------------------------------------- |
+| **`options`** | <code><a href="#clearpersistenceoptions">ClearPersistenceOptions</a></code> |
 
 **Since:** 5.2.0
 
@@ -470,28 +673,36 @@ Deletes the document referred to by the specified reference.
 --------------------
 
 
-### disableNetwork()
+### disableNetwork(...)
 
 ```typescript
-disableNetwork() => Promise<void>
+disableNetwork(options?: DisableNetworkOptions | undefined) => Promise<void>
 ```
 
 Disables use of the network.
+
+| Param         | Type                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| **`options`** | <code><a href="#disablenetworkoptions">DisableNetworkOptions</a></code> |
 
 **Since:** 5.2.0
 
 --------------------
 
 
-### disablePersistence()
+### disablePersistence(...)
 
 ```typescript
-disablePersistence() => Promise<void>
+disablePersistence(options?: DisablePersistenceOptions | undefined) => Promise<void>
 ```
 
 Disables offline persistence.
 
 **Attention**: Must be called before any other Firestore method.
+
+| Param         | Type                                                                            |
+| ------------- | ------------------------------------------------------------------------------- |
+| **`options`** | <code><a href="#disablepersistenceoptions">DisablePersistenceOptions</a></code> |
 
 **Since:** 8.2.0
 
@@ -517,13 +728,17 @@ Enables offline persistence.
 --------------------
 
 
-### enableNetwork()
+### enableNetwork(...)
 
 ```typescript
-enableNetwork() => Promise<void>
+enableNetwork(options?: EnableNetworkOptions | undefined) => Promise<void>
 ```
 
 Re-enables use of the network.
+
+| Param         | Type                                                                  |
+| ------------- | --------------------------------------------------------------------- |
+| **`options`** | <code><a href="#enablenetworkoptions">EnableNetworkOptions</a></code> |
 
 **Since:** 5.2.0
 
@@ -652,10 +867,10 @@ If the document does not yet exist, it will be created.
 --------------------
 
 
-### terminate()
+### terminate(...)
 
 ```typescript
-terminate() => Promise<void>
+terminate(options?: TerminateOptions | undefined) => Promise<void>
 ```
 
 Terminates the Firestore instance. The next call to any other method starts a new instance.
@@ -668,6 +883,10 @@ On Web, each listener is called one last time with an error.
 Calls that are still running may fail or never resolve.
 The new instance starts with the default settings. An app that uses `enablePersistence(...)`,
 `disablePersistence()` or `useEmulator(...)` must call it again.
+
+| Param         | Type                                                          |
+| ------------- | ------------------------------------------------------------- |
+| **`options`** | <code><a href="#terminateoptions">TerminateOptions</a></code> |
 
 **Since:** 8.7.0
 
@@ -737,10 +956,11 @@ Execute multiple write operations as a single batch.
 
 #### AddDocumentOptions
 
-| Prop            | Type                                                  | Description                                                                         | Since |
-| --------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`). | 5.2.0 |
-| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                 | 5.2.0 |
+| Prop            | Type                                                  | Description                                                                                                                                                         | Since |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                                                                                                 | 5.2.0 |
+| **`appName`**   | <code>string</code>                                   | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### DocumentData
@@ -748,11 +968,12 @@ Execute multiple write operations as a single batch.
 
 #### AddCollectionGroupSnapshotListenerOptions
 
-| Prop                   | Type                                                                                      | Description                                                                                         | Since |
-| ---------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                 | 6.1.0 |
-| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                | 6.1.0 |
-| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields. | 6.1.0 |
+| Prop                   | Type                                                                                      | Description                                                                                                                                                         | Since |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 6.1.0 |
+| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                                                                                | 6.1.0 |
+| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields.                                                                 | 6.1.0 |
+| **`appName`**          | <code>string</code>                                                                       | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### QueryCompositeFilterConstraint
@@ -833,11 +1054,12 @@ Execute multiple write operations as a single batch.
 
 #### AddCollectionSnapshotListenerOptions
 
-| Prop                   | Type                                                                                      | Description                                                                                         | Since |
-| ---------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                 | 5.2.0 |
-| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                | 5.2.0 |
-| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields. | 5.2.0 |
+| Prop                   | Type                                                                                      | Description                                                                                                                                                         | Since |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                                                                                | 5.2.0 |
+| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields.                                                                 | 5.2.0 |
+| **`appName`**          | <code>string</code>                                                                       | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetCollectionResult
@@ -849,9 +1071,10 @@ Execute multiple write operations as a single batch.
 
 #### AddDocumentSnapshotListenerOptions
 
-| Prop            | Type                | Description                                                                         | Since |
-| --------------- | ------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`). | 5.2.0 |
+| Prop            | Type                | Description                                                                                                                                                         | Since |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`appName`**   | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetDocumentResult
@@ -861,37 +1084,69 @@ Execute multiple write operations as a single batch.
 | **`snapshot`** | <code><a href="#documentsnapshot">DocumentSnapshot</a>&lt;T&gt;</code> | The current document contents. | 5.2.0 |
 
 
+#### ClearPersistenceOptions
+
+| Prop          | Type                | Description                                                                                                                                                         | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
+
+
 #### DeleteDocumentOptions
 
-| Prop            | Type                | Description                                                                         | Since |
-| --------------- | ------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`). | 5.2.0 |
+| Prop            | Type                | Description                                                                                                                                                         | Since |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`appName`**   | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
+
+
+#### DisableNetworkOptions
+
+| Prop          | Type                | Description                                                                                                                                                         | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
+
+
+#### DisablePersistenceOptions
+
+| Prop          | Type                | Description                                                                                                                                                         | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### EnablePersistenceOptions
 
-| Prop                  | Type                 | Description                                                                      | Default                         | Since |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------- | ------------------------------- | ----- |
-| **`cacheSizeBytes`**  | <code>number</code>  | The cache size in bytes.                                                         | <code>104857600 (100 MB)</code> | 8.2.0 |
-| **`synchronizeTabs`** | <code>boolean</code> | Whether to synchronize persistence across multiple tabs. Only available for Web. | <code>false</code>              | 8.2.0 |
+| Prop                  | Type                 | Description                                                                                                                                                         | Default                         | Since |
+| --------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ----- |
+| **`cacheSizeBytes`**  | <code>number</code>  | The cache size in bytes.                                                                                                                                            | <code>104857600 (100 MB)</code> | 8.2.0 |
+| **`synchronizeTabs`** | <code>boolean</code> | Whether to synchronize persistence across multiple tabs. Only available for Web.                                                                                    | <code>false</code>              | 8.2.0 |
+| **`appName`**         | <code>string</code>  | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. |                                 | 8.7.0 |
+
+
+#### EnableNetworkOptions
+
+| Prop          | Type                | Description                                                                                                                                                         | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetCollectionOptions
 
-| Prop                   | Type                                                                                      | Description                                                                                         | Since |
-| ---------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                 | 5.2.0 |
-| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                | 5.2.0 |
-| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields. | 5.2.0 |
+| Prop                   | Type                                                                                      | Description                                                                                                                                                         | Since |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                                                                                | 5.2.0 |
+| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields.                                                                 | 5.2.0 |
+| **`appName`**          | <code>string</code>                                                                       | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetCollectionGroupOptions
 
-| Prop                   | Type                                                                                      | Description                                                                                         | Since |
-| ---------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                 | 5.2.0 |
-| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                | 5.2.0 |
-| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields. | 5.2.0 |
+| Prop                   | Type                                                                                      | Description                                                                                                                                                         | Since |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                                                                                | 5.2.0 |
+| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to retrieve, but do not explicitly filter for document fields.                                                                 | 5.2.0 |
+| **`appName`**          | <code>string</code>                                                                       | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetCountFromServerResult
@@ -903,18 +1158,20 @@ Execute multiple write operations as a single batch.
 
 #### GetCountFromServerOptions
 
-| Prop                   | Type                                                                                      | Description                                                                                      | Since |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----- |
-| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).              | 6.4.0 |
-| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                             | 8.3.0 |
-| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to count, but do not explicitly filter for document fields. | 8.3.0 |
+| Prop                   | Type                                                                                      | Description                                                                                                                                                         | Since |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`**        | <code>string</code>                                                                       | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 6.4.0 |
+| **`compositeFilter`**  | <code><a href="#querycompositefilterconstraint">QueryCompositeFilterConstraint</a></code> | The filter to apply.                                                                                                                                                | 8.3.0 |
+| **`queryConstraints`** | <code>QueryNonFilterConstraint[]</code>                                                   | Narrow or order the set of documents to count, but do not explicitly filter for document fields.                                                                    | 8.3.0 |
+| **`appName`**          | <code>string</code>                                                                       | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### GetDocumentOptions
 
-| Prop            | Type                | Description                                                                         | Since |
-| --------------- | ------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`). | 5.2.0 |
+| Prop            | Type                | Description                                                                                                                                                         | Since |
+| --------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`** | <code>string</code> | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`appName`**   | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### RemoveSnapshotListenerOptions
@@ -926,34 +1183,45 @@ Execute multiple write operations as a single batch.
 
 #### SetDocumentOptions
 
-| Prop            | Type                                                  | Description                                                                         | Default            | Since |
-| --------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------ | ----- |
-| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`). |                    | 5.2.0 |
-| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                 |                    | 5.2.0 |
-| **`merge`**     | <code>boolean</code>                                  | Whether to merge the provided data with an existing document.                       | <code>false</code> | 5.2.0 |
+| Prop            | Type                                                  | Description                                                                                                                                                         | Default            | Since |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----- |
+| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 |                    | 5.2.0 |
+| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                                                                                                 |                    | 5.2.0 |
+| **`merge`**     | <code>boolean</code>                                  | Whether to merge the provided data with an existing document.                                                                                                       | <code>false</code> | 5.2.0 |
+| **`appName`**   | <code>string</code>                                   | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. |                    | 8.7.0 |
+
+
+#### TerminateOptions
+
+| Prop          | Type                | Description                                                                                                                                                         | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### UpdateDocumentOptions
 
-| Prop            | Type                                                  | Description                                                                         | Since |
-| --------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`). | 5.2.0 |
-| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                 | 5.2.0 |
+| Prop            | Type                                                  | Description                                                                                                                                                         | Since |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`reference`** | <code>string</code>                                   | The reference as a string, with path components separated by a forward slash (`/`).                                                                                 | 5.2.0 |
+| **`data`**      | <code><a href="#documentdata">DocumentData</a></code> | An object containing the data for the new document.                                                                                                                 | 5.2.0 |
+| **`appName`**   | <code>string</code>                                   | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### UseEmulatorOptions
 
-| Prop       | Type                | Description                                                                                                                                                                     | Default           | Since |
-| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----- |
-| **`host`** | <code>string</code> | The emulator host without any port or scheme. Note when using a Android Emulator device: 10.0.2.2 is the special IP address to connect to the 'localhost' of the host computer. |                   | 6.1.0 |
-| **`port`** | <code>number</code> | The emulator port.                                                                                                                                                              | <code>8080</code> | 6.1.0 |
+| Prop          | Type                | Description                                                                                                                                                                     | Default           | Since |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----- |
+| **`host`**    | <code>string</code> | The emulator host without any port or scheme. Note when using a Android Emulator device: 10.0.2.2 is the special IP address to connect to the 'localhost' of the host computer. |                   | 6.1.0 |
+| **`port`**    | <code>number</code> | The emulator port.                                                                                                                                                              | <code>8080</code> | 6.1.0 |
+| **`appName`** | <code>string</code> | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used.             |                   | 8.7.0 |
 
 
 #### WriteBatchOptions
 
-| Prop             | Type                               | Description                             | Since |
-| ---------------- | ---------------------------------- | --------------------------------------- | ----- |
-| **`operations`** | <code>WriteBatchOperation[]</code> | The operations to execute in the batch. | 6.1.0 |
+| Prop             | Type                               | Description                                                                                                                                                         | Since |
+| ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`operations`** | <code>WriteBatchOperation[]</code> | The operations to execute in the batch.                                                                                                                             | 6.1.0 |
+| **`appName`**    | <code>string</code>                | The name of the Firebase app to use. Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first. If not set, the default app is used. | 8.7.0 |
 
 
 #### WriteBatchOperation
@@ -1032,19 +1300,52 @@ Execute multiple write operations as a single batch.
 
 </docgen-api>
 
-## Limitations
+## FAQ
 
-This plugin currently has the following limitations:
+### How do I get notified about data changes in real time?
 
-- The `Timestamp` data type is not yet supported (see https://github.com/cap-go/capacitor-firebase/issues/474). Use a `number` or a `string` instead.
-- The `FieldValue` data type is not yet supported (see https://github.com/cap-go/capacitor-firebase/issues/443).
+Attach a snapshot listener with `addDocumentSnapshotListener(...)`, `addCollectionSnapshotListener(...)`, or `addCollectionGroupSnapshotListener(...)`. The callback is invoked whenever the observed data changes. Each listener returns a callback ID that you can later pass to `removeSnapshotListener(...)`, or you can remove all listeners at once with `removeAllListeners()`. See [Listen for real-time updates](#listen-for-real-time-updates) for an example.
+
+### What is the difference between `getCollection` and `getCollectionGroup`?
+
+The `getCollection(...)` method reads the documents of a single collection at the given reference. The `getCollectionGroup(...)` method reads the documents of a collection group, which consists of all collections with the same ID. Both methods support composite filters and query constraints.
+
+### Does the plugin work offline?
+
+Yes, you can enable offline persistence with the `enablePersistence(...)` method, which must be called before any other Firestore method. You can also disable and re-enable the use of the network with `disableNetwork()` and `enableNetwork()`. The persistent storage, including pending writes and cached documents, can be cleared with `clearPersistence()`, which must be called before the first read or write, or after `terminate()`.
+
+### Can I use a Firestore database other than the default one?
+
+Yes, you can set the `databaseId` configuration option in your Capacitor configuration to select the Firestore database to use (see [Configuration](#configuration)). This option is only available on Android and iOS.
+
+### Can I use more than one Firebase project in my app?
+
+Yes. Initialize another app with the `initializeApp(...)` method of the Firebase App plugin and pass its name as `appName` to the Firestore methods. See [Use another Firebase project](#use-another-firebase-project) for an example. The `databaseId` configuration option applies only to calls without `appName`. A call with `appName` always uses the default database of that app.
+
+### How do I test my app against a local Firestore instance?
+
+Use the `useEmulator(...)` method to connect the plugin to a local Firebase Emulator instance by providing its host and port. This allows you to develop and test without touching your production data.
+
+### Can I use this plugin with Ionic, React, Vue or Angular?
+
+Yes, the plugin is framework-agnostic. It works in any Capacitor app regardless of the web framework, including Ionic with Angular, React, or Vue, as well as plain JavaScript projects.
+
+## Related Plugins
+
+- [Firebase Authentication](https://capawesome.io/docs/sdks/capacitor/firebase/authentication/): Unofficial Capacitor plugin for Firebase Authentication.
+- [Firebase Cloud Functions](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-functions/): Unofficial Capacitor plugin for Firebase Cloud Functions.
+- [Firebase Cloud Storage](https://capawesome.io/docs/sdks/capacitor/firebase/cloud-storage/): Unofficial Capacitor plugin for Firebase Cloud Storage.
+
+## Newsletter
+
+Stay up to date with the latest news and updates about the Capawesome, Capacitor, and Ionic ecosystem by subscribing to our [Capawesome Newsletter](https://cloud.capawesome.io/newsletter/).
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/cap-go/capacitor-firebase/blob/main/packages/firestore/CHANGELOG.md).
+See [CHANGELOG.md](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/firestore/CHANGELOG.md).
 
 ## License
 
-See [LICENSE](https://github.com/cap-go/capacitor-firebase/blob/main/packages/firestore/LICENSE).
+See [LICENSE](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/firestore/LICENSE).
 
 [^1]: This project is not affiliated with, endorsed by, sponsored by, or approved by Google LLC or any of their affiliates or subsidiaries.
