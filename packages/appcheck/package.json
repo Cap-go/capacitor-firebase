@@ -1,11 +1,18 @@
 {
   "name": "@capgo/capacitor-firebase-app-check",
-  "version": "8.6.1",
+  "version": "8.7.0",
   "description": "Capacitor plugin for Firebase App Check on Android, iOS, and Web.",
-  "main": "dist/plugin.cjs.js",
+  "type": "module",
+  "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
-  "unpkg": "dist/plugin.js",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "android/src/main/",
     "android/build.gradle",
@@ -41,14 +48,16 @@
     "verify": "bun run verify:ios && bun run verify:android && bun run verify:web",
     "verify:ios": "xcodebuild -scheme CapgoCapacitorFirebaseAppCheck -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
-    "verify:web": "bun run build",
+    "verify:web": "bun run build && bun run check:esm-package",
     "lint": "bun run eslint && bun run prettier -- --check && bun run swiftlint -- lint",
     "fmt": "bun run eslint -- --fix && bun run prettier -- --write && bun run swiftlint -- --fix --format",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier-pretty-check \"**/*.{css,html,ts,js,java}\" --plugin=prettier-plugin-java",
     "swiftlint": "node-swiftlint",
     "docgen": "docgen --project tsconfig.docgen.json --api FirebaseAppCheckPlugin --output-readme README.md --output-json dist/docs.json",
-    "build": "bun run clean && bun run docgen && tsc && rollup -c rollup.config.mjs",
+    "build": "bun run check:esm-imports && bun run clean && bun run docgen && tsc",
+    "check:esm-imports": "node scripts/check-esm-imports.mjs",
+    "check:esm-package": "node scripts/check-esm-package.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "ios:pod:install": "cd ios && pod install --repo-update && cd ..",
@@ -67,7 +76,6 @@
     "firebase": "12.6.0",
     "prettier-plugin-java": "2.6.7",
     "rimraf": "6.1.2",
-    "rollup": "4.53.3",
     "swiftlint": "2.0.0",
     "typescript": "5.9.3"
   },

@@ -1,14 +1,14 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { FirebaseCrashlyticsPlugin } from './definitions';
+import type { FirebaseCrashlyticsPlugin } from './definitions.js';
 
 // No-op change to trigger CI release workflow (crashlytics).
 const FirebaseCrashlytics = registerPlugin<FirebaseCrashlyticsPlugin>(
   'FirebaseCrashlytics',
   {
-    web: () => import('./web').then(m => new m.FirebaseCrashlyticsWeb()),
+    web: () => import('./web.js').then(m => new m.FirebaseCrashlyticsWeb()),
   },
 );
 
-export * from './definitions';
+export * from './definitions.js';
 export { FirebaseCrashlytics };

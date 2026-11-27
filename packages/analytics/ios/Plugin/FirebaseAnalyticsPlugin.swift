@@ -29,7 +29,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseAnalytics"
-    private let pluginVersion = "8.6.1"
+    private let pluginVersion: String = "8.6.2"
     private var implementation: FirebaseAnalytics?
 
     override public func load() {

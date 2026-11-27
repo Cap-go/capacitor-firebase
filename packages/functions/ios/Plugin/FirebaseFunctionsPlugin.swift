@@ -16,7 +16,7 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.6.1"
+    private let pluginVersion: String = "8.6.2"
     public let tag = "FirebaseFunctions"
     private var implementation: FirebaseFunctions?
 

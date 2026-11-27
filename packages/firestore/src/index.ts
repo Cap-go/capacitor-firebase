@@ -1,20 +1,20 @@
 import { registerPlugin } from '@capacitor/core';
 
-import { FirebaseFirestoreClient } from './client';
-import type { FirebaseFirestorePlugin } from './definitions';
+import { FirebaseFirestoreClient } from './client.js';
+import type { FirebaseFirestorePlugin } from './definitions.js';
 
 const plugin = registerPlugin<FirebaseFirestorePlugin>('FirebaseFirestore', {
-  web: () => import('./web').then(m => new m.FirebaseFirestoreWeb()),
+  web: () => import('./web.js').then(m => new m.FirebaseFirestoreWeb()),
 });
 
 const FirebaseFirestore = new FirebaseFirestoreClient(
   plugin,
 ) as unknown as FirebaseFirestorePlugin;
 
-export * from './definitions';
+export * from './definitions.js';
 export { FirebaseFirestore };
-export { Bytes } from './bytes';
-export { DocumentReference } from './document-reference';
-export { FieldValue } from './field-value';
-export { GeoPoint } from './geopoint';
-export { Timestamp } from './timestamp';
+export { Bytes } from './bytes.js';
+export { DocumentReference } from './document-reference.js';
+export { FieldValue } from './field-value.js';
+export { GeoPoint } from './geopoint.js';
+export { Timestamp } from './timestamp.js';

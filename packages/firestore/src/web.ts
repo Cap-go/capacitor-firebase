@@ -56,7 +56,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 
-import { Bytes } from './bytes';
+import { Bytes } from './bytes.js';
 import type {
   AddCollectionGroupSnapshotListenerCallback,
   AddCollectionGroupSnapshotListenerOptions,
@@ -95,15 +95,15 @@ import type {
   UpdateDocumentOptions,
   UseEmulatorOptions,
   WriteBatchOptions,
-} from './definitions';
-import { DocumentReference } from './document-reference';
-import { FieldValue } from './field-value';
-import { GeoPoint } from './geopoint';
+} from './definitions.js';
+import { DocumentReference } from './document-reference.js';
+import { FieldValue } from './field-value.js';
+import { GeoPoint } from './geopoint.js';
 import {
   deserializeSpecialNumber,
   serializeSpecialNumber,
-} from './special-number';
-import { Timestamp } from './timestamp';
+} from './special-number.js';
+import { Timestamp } from './timestamp.js';
 
 type ServerTimestamps = 'estimate' | 'previous' | 'none';
 

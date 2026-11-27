@@ -85,7 +85,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.6.2"
+    private let pluginVersion: String = "8.6.3"
     public let tag = "FirebaseAuthentication"
     static let eventAuthStateChange = "authStateChange"
     static let eventIdTokenChange = "idTokenChange"

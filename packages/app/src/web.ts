@@ -8,7 +8,7 @@ import type {
   GetOptionsResult,
   GetPluginVersionResult,
   InitializeAppOptions,
-} from './definitions';
+} from './definitions.js';
 
 export class FirebaseAppWeb extends WebPlugin implements FirebaseAppPlugin {
   private readonly pluginVersion = '8.6.2';

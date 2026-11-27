@@ -27,7 +27,7 @@ public class FirebaseRemoteConfigPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
 
-    private let pluginVersion: String = "8.6.1"
+    private let pluginVersion: String = "8.6.2"
     public let tag = "FirebaseRemoteConfig"
     public let errorKeyMissing = "key must be provided."
     public let errorFetchAndActivatefailed = "fetchAndActivate failed."

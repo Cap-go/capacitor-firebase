@@ -25,8 +25,8 @@ import type {
   SetMinimumFetchIntervalOptions,
   SetDefaultsOptions,
   SetSettingsOptions,
-} from './definitions';
-import { GetValueSource, LastFetchStatus } from './definitions';
+} from './definitions.js';
+import { GetValueSource, LastFetchStatus } from './definitions.js';
 
 export class FirebaseRemoteConfigWeb
   extends WebPlugin

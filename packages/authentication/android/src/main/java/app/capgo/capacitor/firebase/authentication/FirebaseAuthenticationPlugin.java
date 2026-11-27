@@ -64,7 +64,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "FirebaseAuthentication")
 public class FirebaseAuthenticationPlugin extends Plugin {
 
-    private final String pluginVersion = "8.6.2";
+    private final String pluginVersion = "8.6.3";
 
     public static final String ERROR_CODE_PREFIX = "auth";
     public static final String ERROR_NO_BROWSER_AVAILABLE = "No browser is available to complete the sign-in flow.";

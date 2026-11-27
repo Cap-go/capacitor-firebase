@@ -9,7 +9,7 @@ import type {
   SetCustomKeyOptions,
   SetEnabledOptions,
   SetUserIdOptions,
-} from './definitions';
+} from './definitions.js';
 
 export class FirebaseCrashlyticsWeb
   extends WebPlugin

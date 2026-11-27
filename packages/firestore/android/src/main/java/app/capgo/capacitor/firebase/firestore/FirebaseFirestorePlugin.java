@@ -43,7 +43,7 @@ import java.util.Map;
 @CapacitorPlugin(name = "FirebaseFirestore")
 public class FirebaseFirestorePlugin extends Plugin {
 
-    private final String pluginVersion = "8.6.2";
+    private final String pluginVersion = "8.6.3";
 
     public static final String ERROR_CODE_PREFIX = "firestore";
     public static final String ERROR_UNKNOWN_ERROR = "An unknown error has occurred.";
