@@ -35,7 +35,7 @@ import type {
   UploadFileCallbackEvent,
   UploadFileOptions,
   UseEmulatorOptions,
-} from './definitions';
+} from './definitions.js';
 
 export class FirebaseStorageWeb
   extends WebPlugin

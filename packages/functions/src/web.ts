@@ -13,7 +13,7 @@ import type {
   CallResult,
   FirebaseFunctionsPlugin,
   UseEmulatorOptions,
-} from './definitions';
+} from './definitions.js';
 
 export class FirebaseFunctionsWeb
   extends WebPlugin

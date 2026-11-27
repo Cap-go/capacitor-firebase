@@ -23,8 +23,8 @@ import type {
   RemoveDeliveredNotificationsOptions,
   SubscribeToTopicOptions,
   UnsubscribeFromTopicOptions,
-} from './definitions';
-import { Notification } from './definitions';
+} from './definitions.js';
+import { Notification } from './definitions.js';
 
 export class FirebaseMessagingWeb
   extends WebPlugin

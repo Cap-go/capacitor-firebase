@@ -19,7 +19,7 @@ import type {
   SetEnabledOptions,
   StartTraceOptions,
   StopTraceOptions,
-} from './definitions';
+} from './definitions.js';
 
 export class FirebasePerformanceWeb
   extends WebPlugin

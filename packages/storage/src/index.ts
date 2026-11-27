@@ -1,13 +1,13 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { FirebaseStoragePlugin } from './definitions';
+import type { FirebaseStoragePlugin } from './definitions.js';
 
 const FirebaseStorage = registerPlugin<FirebaseStoragePlugin>(
   'FirebaseStorage',
   {
-    web: () => import('./web').then(m => new m.FirebaseStorageWeb()),
+    web: () => import('./web.js').then(m => new m.FirebaseStorageWeb()),
   },
 );
 
-export * from './definitions';
+export * from './definitions.js';
 export { FirebaseStorage };

@@ -26,8 +26,8 @@ import type {
   SetSessionTimeoutDurationOptions,
   SetUserIdOptions,
   SetUserPropertyOptions,
-} from './definitions';
-import { ConsentStatus, ConsentType } from './definitions';
+} from './definitions.js';
+import { ConsentStatus, ConsentType } from './definitions.js';
 
 export class FirebaseAnalyticsWeb
   extends WebPlugin

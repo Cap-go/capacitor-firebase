@@ -10,7 +10,7 @@ import type {
   InitializeOptions,
   SetTokenAutoRefreshEnabledOptions,
   TokenChangedEvent,
-} from './definitions';
+} from './definitions.js';
 
 declare global {
   interface Window {

@@ -2,10 +2,16 @@
   "name": "@capgo/capacitor-firebase-crashlytics",
   "version": "8.6.2",
   "description": "Capacitor plugin for Firebase Crashlytics on Android and iOS.",
-  "main": "dist/plugin.cjs.js",
+  "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
-  "unpkg": "dist/plugin.js",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "android/src/main/",
     "android/build.gradle",
@@ -48,7 +54,8 @@
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "swiftlint": "node-swiftlint",
     "docgen": "docgen --project tsconfig.docgen.json --api FirebaseCrashlyticsPlugin --output-readme README.md --output-json dist/docs.json",
-    "build": "npm run clean && npm run docgen && tsc && rollup -c rollup.config.mjs",
+    "build": "npm run check:esm-imports && npm run clean && npm run docgen && tsc",
+    "check:esm-imports": "node scripts/check-esm-imports.mjs",
     "clean": "rimraf ./dist",
     "watch": "tsc --watch",
     "ios:pod:install": "cd ios && pod install --repo-update && cd ..",
@@ -66,7 +73,6 @@
     "firebase": "12.6.0",
     "prettier-plugin-java": "2.6.7",
     "rimraf": "6.1.2",
-    "rollup": "4.53.3",
     "swiftlint": "2.0.0",
     "typescript": "5.9.3",
     "prettier": "3.4.2"

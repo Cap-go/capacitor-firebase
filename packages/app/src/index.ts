@@ -1,10 +1,10 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { FirebaseAppPlugin } from './definitions';
+import type { FirebaseAppPlugin } from './definitions.js';
 
 const FirebaseApp = registerPlugin<FirebaseAppPlugin>('FirebaseApp', {
-  web: () => import('./web').then(m => new m.FirebaseAppWeb()),
+  web: () => import('./web.js').then(m => new m.FirebaseAppWeb()),
 });
 
-export * from './definitions';
+export * from './definitions.js';
 export { FirebaseApp };
