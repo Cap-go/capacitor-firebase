@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-firebase-performance",
-  "version": "8.6.2",
+  "version": "8.7.0",
   "description": "Capacitor plugin for Firebase Performance Monitoring on Android, iOS, and Web.",
   "type": "module",
   "main": "dist/esm/index.js",

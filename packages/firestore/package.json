@@ -1,6 +1,6 @@
 {
   "name": "@capgo/capacitor-firebase-firestore",
-  "version": "8.6.3",
+  "version": "8.7.0",
   "description": "Capacitor plugin for Firebase Cloud Firestore on Android, iOS, and Web.",
   "type": "module",
   "main": "dist/esm/index.js",
