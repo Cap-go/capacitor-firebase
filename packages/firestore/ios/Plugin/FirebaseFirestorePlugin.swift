@@ -7,7 +7,6 @@ import Capacitor
  */
 @objc(FirebaseFirestorePlugin)
 public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
-    private let pluginVersion = "8.6.1"
     public let identifier = "FirebaseFirestorePlugin"
     public let jsName = "FirebaseFirestore"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -34,11 +33,8 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "writeBatch", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseFirestore"
+    private let pluginVersion = "8.6.1"
     private var implementation: FirebaseFirestore?
-
-    @objc func getPluginVersion(_ call: CAPPluginCall) {
-        call.resolve(["version": pluginVersion])
-    }
     private var pluginCallMap: [String: CAPPluginCall] = [:]
 
     override public func load() {
@@ -386,6 +382,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         } catch {
             rejectCall(call, error)
         }
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 
     private func firebaseFirestoreConfig() -> FirebaseFirestoreConfig {
