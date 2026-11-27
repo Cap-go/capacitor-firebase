@@ -829,4 +829,8 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         }
     }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
+    }
 }

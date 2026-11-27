@@ -93,4 +93,8 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         }
     }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
+    }
 }
