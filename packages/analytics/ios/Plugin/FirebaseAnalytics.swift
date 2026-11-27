@@ -23,7 +23,7 @@ import FirebaseAnalytics
         completion(result, nil)
     }
 
-    @objc public func getSessionId(completion: @escaping (Int64?, Error?) -> Void) {
+    public func getSessionId(completion: @escaping (Int64?, Error?) -> Void) {
         Task {
             do {
                 let sessionId = try await Analytics.sessionID()
