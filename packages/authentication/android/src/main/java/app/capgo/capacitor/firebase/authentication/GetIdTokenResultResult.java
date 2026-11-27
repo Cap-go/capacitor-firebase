@@ -1,4 +1,4 @@
-package app.capgo.capacitor.firebase.authentication.classes;
+package app.capgo.capacitor.firebase.authentication.classes.results;
 
 import androidx.annotation.Nullable;
 import app.capgo.capacitor.firebase.authentication.interfaces.Result;

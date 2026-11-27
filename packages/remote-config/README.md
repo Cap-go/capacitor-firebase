@@ -150,6 +150,7 @@ const removeAllListeners = async () => {
 * [`getAll()`](#getall)
 * [`getInfo()`](#getinfo)
 * [`setMinimumFetchInterval(...)`](#setminimumfetchinterval)
+* [`setCustomSignals(...)`](#setcustomsignals)
 * [`setDefaults(...)`](#setdefaults)
 * [`setSettings(...)`](#setsettings)
 * [`addConfigUpdateListener(...)`](#addconfigupdatelistener)
@@ -310,6 +311,23 @@ Only available for Web.
 | **`options`** | <code><a href="#setminimumfetchintervaloptions">SetMinimumFetchIntervalOptions</a></code> |
 
 **Since:** 1.3.0
+
+--------------------
+
+
+### setCustomSignals(...)
+
+```typescript
+setCustomSignals(options: SetCustomSignalsOptions) => Promise<void>
+```
+
+Set custom signals for the app instance that can be used for targeting in Remote Config conditions.
+
+| Param         | Type                                                                        |
+| ------------- | --------------------------------------------------------------------------- |
+| **`options`** | <code><a href="#setcustomsignalsoptions">SetCustomSignalsOptions</a></code> |
+
+**Since:** 8.4.0
 
 --------------------
 
@@ -487,6 +505,13 @@ Get the version of this plugin.
 | Prop                                | Type                | Description                                                                                                                                                                           | Default            | Since |
 | ----------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----- |
 | **`minimumFetchIntervalInSeconds`** | <code>number</code> | Define the maximum age in seconds of an entry in the config cache before it is considered stale. During development, it's recommended to set a relatively low minimum fetch interval. | <code>43200</code> | 1.3.0 |
+
+
+#### SetCustomSignalsOptions
+
+| Prop                | Type                                                                              | Description                                                                                  | Since |
+| ------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----- |
+| **`customSignals`** | <code><a href="#record">Record</a>&lt;string, string \| number \| null&gt;</code> | The custom signals to set for the app instance. Signals with a `null` value will be removed. | 8.4.0 |
 
 
 #### SetDefaultsOptions

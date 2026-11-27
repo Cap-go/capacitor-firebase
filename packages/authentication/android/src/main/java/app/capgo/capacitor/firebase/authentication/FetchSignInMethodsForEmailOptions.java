@@ -1,18 +1,44 @@
 package app.capgo.capacitor.firebase.authentication.classes.options;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import app.capgo.capacitor.firebase.authentication.classes.CustomExceptions;
+import com.getcapacitor.PluginCall;
 
 public class FetchSignInMethodsForEmailOptions {
 
-    @NonNull
-    private String email;
+    @Nullable
+    private final String appName;
 
-    public FetchSignInMethodsForEmailOptions(@NonNull String email) {
-        this.email = email;
+    @NonNull
+    private final String email;
+
+    public FetchSignInMethodsForEmailOptions(@NonNull PluginCall call) throws Exception {
+        this.email = FetchSignInMethodsForEmailOptions.getEmailFromCall(call);
+        this.appName = FetchSignInMethodsForEmailOptions.getAppNameFromCall(call);
+    }
+
+    @Nullable
+    public String getAppName() {
+        return appName;
     }
 
     @NonNull
     public String getEmail() {
         return this.email;
+    }
+
+    @Nullable
+    private static String getAppNameFromCall(@NonNull PluginCall call) {
+        return call.getString("appName");
+    }
+
+    @NonNull
+    private static String getEmailFromCall(@NonNull PluginCall call) throws Exception {
+        String email = call.getString("email");
+        if (email == null) {
+            throw CustomExceptions.EMAIL_MISSING;
+        }
+        return email;
     }
 }

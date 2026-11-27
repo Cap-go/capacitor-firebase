@@ -771,8 +771,4 @@ export class FirebaseFirestoreWeb
   private getFirestoreInstance(appName?: string): Firestore {
     return getFirestore(getApp(appName));
   }
-
-  async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.6.1' };
-  }
 }

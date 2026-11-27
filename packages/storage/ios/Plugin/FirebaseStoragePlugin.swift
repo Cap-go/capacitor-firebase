@@ -81,6 +81,46 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
         })
     }
 
+    @objc func downloadFile(_ call: CAPPluginCall) {
+        call.keepAlive = true
+
+        guard let path = call.getString("path") else {
+            call.reject(errorPathMissing)
+            return
+        }
+        guard let uri = call.getString("uri") else {
+            call.reject(errorUriMissing)
+            return
+        }
+        guard let url = URL(string: uri) else {
+            call.reject(errorFileNotExist)
+            return
+        }
+        guard let callbackId = call.callbackId else {
+            call.reject(errorCallbackIdMissing)
+            return
+        }
+
+        let options = DownloadFileOptions(path: path, uri: url, callbackId: callbackId)
+
+        implementation?.downloadFile(options, completion: { result, error, releaseCall in
+            if let error = error {
+                CAPLog.print("[", self.tag, "] ", error)
+                call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
+                if releaseCall == true {
+                    self.bridge?.releaseCall(call)
+                }
+                return
+            }
+            if let result = result?.toJSObject() as? JSObject {
+                call.resolve(result)
+            }
+            if releaseCall == true {
+                self.bridge?.releaseCall(call)
+            }
+        })
+    }
+
     @objc func deleteFile(_ call: CAPPluginCall) {
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)

@@ -34,6 +34,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     public let errorAttributeMissing = "attribute must be provided."
     public let errorValueMissing = "value must be provided."
     public let errorNumMissing = "num must be provided."
+    public let errorNumInvalid = "num is invalid."
     public let errorStartTimeMissing = "startTime must be provided."
     public let errorDurationMissing = "duration must be provided."
     public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
@@ -51,6 +52,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
+            return
+        }
+        guard FirebasePerformance.isValidTraceName(traceName) else {
+            // The SDK starts no trace for such a name. NEVER call it here, it ends the app in a build with assertions.
+            call.resolve()
             return
         }
         let trace = implementation?.getTraceByName(traceName)
@@ -162,7 +168,9 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorTraceNotFound)
             return
         }
-        call.resolve(["result": FirebasePerformance.getAttributes(trace!)])
+        let attributes = FirebasePerformance.getAttributes(trace!)
+        // The old key `result` stays until the next major version, so apps that read it keep working.
+        call.resolve(["attributes": attributes, "result": attributes])
     }
 
     @objc func removeAttribute(_ call: CAPPluginCall) {
@@ -201,7 +209,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorTraceNotFound)
             return
         }
-        FirebasePerformance.putMetric(trace!, metricName, num)
+        guard let metricValue = Int64(exactly: floor(num)) else {
+            call.reject(errorNumInvalid)
+            return
+        }
+        FirebasePerformance.putMetric(trace!, metricName, metricValue)
         call.resolve()
     }
 

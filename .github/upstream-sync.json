@@ -1,7 +1,7 @@
 {
   "upstreamRepo": "capawesome-team/capacitor-firebase",
   "upstreamBranch": "main",
-  "lastIntegratedUpstreamSha": "15c2107d5058edb7d5d53dfeb6b7b994566705c9",
-  "recordedAt": "2026-11-26T09:21:11.972Z",
+  "lastIntegratedUpstreamSha": "e8336a2b916c7d4a3f824850470bc26d47430869",
+  "recordedAt": "2026-11-27T09:30:00.000Z",
   "note": "Updated by sync-upstream workflow when opening an automated sync pull request."
 }

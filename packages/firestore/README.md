@@ -99,9 +99,9 @@ Add the following to your `capacitor.config.json` (or `capacitor.config.ts`) to 
 
 These configuration values are available:
 
-| Prop             | Type                | Description                                                                                                                                                                                                    | Default                  | Since |
-| ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ----- |
-| **`databaseId`** | <code>string</code> | The database ID of the Firestore database to use. This option applies only to calls without `appName`. A call with `appName` always uses the default database of that app. Only available for Android and iOS. | <code>"(default)"</code> | 8.2.0 |
+| Prop             | Type                | Description                                                                                                                                                                                                    | Since |
+| ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`databaseId`** | <code>string</code> | The database ID of the Firestore database to use. This option applies only to calls without `appName`. A call with `appName` always uses the default database of that app. Only available for Android and iOS. | 8.2.0 |
 
 ### Examples
 

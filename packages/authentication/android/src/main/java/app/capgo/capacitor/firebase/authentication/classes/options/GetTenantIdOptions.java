@@ -1,0 +1,25 @@
+package app.capgo.capacitor.firebase.authentication.classes.options;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.getcapacitor.PluginCall;
+
+public class GetTenantIdOptions {
+
+    @Nullable
+    private final String appName;
+
+    public GetTenantIdOptions(@NonNull PluginCall call) {
+        this.appName = GetTenantIdOptions.getAppNameFromCall(call);
+    }
+
+    @Nullable
+    public String getAppName() {
+        return appName;
+    }
+
+    @Nullable
+    private static String getAppNameFromCall(@NonNull PluginCall call) {
+        return call.getString("appName");
+    }
+}

@@ -13,7 +13,6 @@ import FirebaseFunctions
         if FirebaseApp.app() == nil {
             guard FirebaseOptions.defaultOptions() != nil else {
                 CAPLog.print("[FirebaseFunctions] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
-                isConfigured = false
                 return
             }
             FirebaseApp.configure()
@@ -21,11 +20,11 @@ import FirebaseFunctions
     }
 
     @objc public func callByName(_ options: CallByNameOptions, completion: @escaping (Result?, Error?) -> Void) {
-        let name = options.getName()
-        let data = options.getData()
-        let timeout = options.getTimeout()
+        let name = options.name
+        let data = options.data
+        let timeout = options.timeout
 
-        let functions = getFunctions(options.getRegion())
+        let functions = getFunctions(options.region)
         let callable = functions.httpsCallable(name)
         if let timeout = timeout {
             callable.timeoutInterval = TimeInterval(timeout) / 1000.0
@@ -41,9 +40,9 @@ import FirebaseFunctions
     }
 
     @objc public func callByUrl(_ options: CallByUrlOptions, completion: @escaping (Result?, Error?) -> Void) {
-        let url = options.getUrl()
-        let data = options.getData()
-        let timeout = options.getTimeout()
+        let url = options.url
+        let data = options.data
+        let timeout = options.timeout
 
         let functions = getFunctions(nil)
         let callable = functions.httpsCallable(url)
@@ -60,9 +59,14 @@ import FirebaseFunctions
         }
     }
 
-    @objc func useEmulator(_ host: String, _ port: Int, _ regionOrCustomDomain: String?) {
+    @objc public func useEmulator(_ options: UseEmulatorOptions, completion: @escaping (Error?) -> Void) {
+        let host = options.host
+        let port = options.port
+        let regionOrCustomDomain = options.regionOrCustomDomain
+
         let functions = getFunctions(regionOrCustomDomain)
         functions.useEmulator(withHost: host, port: port)
+        completion(nil)
     }
 
     private func getFunctions(_ regionOrCustomDomain: String?) -> Functions {

@@ -51,10 +51,6 @@ public class FirebaseCrashlyticsPlugin extends Plugin {
                 return;
             }
             String type = call.getString("type", "string");
-            if (!CustomKeyValueValidation.hasCustomKeyValue(call, type)) {
-                call.reject(ERROR_VALUE_MISSING);
-                return;
-            }
             implementation.setCustomKey(key, type, call);
             call.resolve();
         } catch (Exception exception) {

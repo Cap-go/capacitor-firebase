@@ -29,7 +29,6 @@ private actor ListenerRegistrationMap {
     private let config: FirebaseFirestoreConfig
     private var listenerRegistrationMap = ListenerRegistrationMap()
     private let plugin: FirebaseFirestorePlugin
-    private(set) var isConfigured = true
 
     init(plugin: FirebaseFirestorePlugin, config: FirebaseFirestoreConfig) {
         self.plugin = plugin
@@ -38,7 +37,6 @@ private actor ListenerRegistrationMap {
         if FirebaseApp.app() == nil {
             guard FirebaseOptions.defaultOptions() != nil else {
                 CAPLog.print("[FirebaseFirestore] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
-                isConfigured = false
                 return
             }
             FirebaseApp.configure()
@@ -59,7 +57,7 @@ private actor ListenerRegistrationMap {
                 let collectionReference = firestore.collectionGroup(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
-                    if let filter = compositeFilter.toFilter() {
+                    if let filter = try compositeFilter.toFilter() {
                         query = query.whereFilter(filter)
                     }
                 }
@@ -98,7 +96,7 @@ private actor ListenerRegistrationMap {
                 let collectionReference = firestore.collection(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
-                    if let filter = compositeFilter.toFilter() {
+                    if let filter = try compositeFilter.toFilter() {
                         query = query.whereFilter(filter)
                     }
                 }
@@ -126,7 +124,7 @@ private actor ListenerRegistrationMap {
     @objc public func addDocument(_ options: AddDocumentOptions, completion: @escaping (Result?, Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let reference = options.reference
-        let data = FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
+        let data = try FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
 
         var documentReference: DocumentReference?
         documentReference = firestore.collection(reference).addDocument(data: data) { error in
@@ -179,11 +177,12 @@ private actor ListenerRegistrationMap {
         }
     }
 
-    @objc public func disablePersistence(_ options: DisablePersistenceOptions) throws {
+    @objc public func disablePersistence(_ options: DisablePersistenceOptions, completion: @escaping (Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let settings = firestore.settings
         settings.cacheSettings = MemoryCacheSettings()
         firestore.settings = settings
+        completion(nil)
     }
 
     @objc public func enableNetwork(_ options: EnableNetworkOptions, completion: @escaping (Error?) -> Void) throws {
@@ -192,7 +191,7 @@ private actor ListenerRegistrationMap {
         }
     }
 
-    @objc public func enablePersistence(_ options: EnablePersistenceOptions) throws {
+    @objc public func enablePersistence(_ options: EnablePersistenceOptions, completion: @escaping (Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let settings = firestore.settings
         if let cacheSizeBytes = options.cacheSizeBytes {
@@ -201,6 +200,7 @@ private actor ListenerRegistrationMap {
             settings.cacheSettings = PersistentCacheSettings()
         }
         firestore.settings = settings
+        completion(nil)
     }
 
     @objc public func getCollection(_ options: GetCollectionOptions, completion: @escaping (Result?, Error?) -> Void) throws {
@@ -214,7 +214,7 @@ private actor ListenerRegistrationMap {
                 let collectionReference = firestore.collection(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
-                    if let filter = compositeFilter.toFilter() {
+                    if let filter = try compositeFilter.toFilter() {
                         query = query.whereFilter(filter)
                     }
                 }
@@ -244,7 +244,7 @@ private actor ListenerRegistrationMap {
                 let collectionReference = firestore.collectionGroup(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
-                    if let filter = compositeFilter.toFilter() {
+                    if let filter = try compositeFilter.toFilter() {
                         query = query.whereFilter(filter)
                     }
                 }
@@ -274,7 +274,7 @@ private actor ListenerRegistrationMap {
                 let collectionReference = firestore.collection(reference)
                 var query = collectionReference as Query
                 if let compositeFilter = compositeFilter {
-                    if let filter = compositeFilter.toFilter() {
+                    if let filter = try compositeFilter.toFilter() {
                         query = query.whereFilter(filter)
                     }
                 }
@@ -311,6 +311,7 @@ private actor ListenerRegistrationMap {
             await listenerRegistrationMap.removeAll()
             completion()
         }
+        return Firestore.firestore()
     }
 
     @objc public func removeSnapshotListener(_ options: RemoveSnapshotListenerOptions, completion: @escaping () -> Void) {
@@ -324,7 +325,7 @@ private actor ListenerRegistrationMap {
     @objc public func setDocument(_ options: SetDocumentOptions, completion: @escaping (Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let reference = options.reference
-        let data = FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
+        let data = try FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
         let merge = options.merge
 
         firestore.document(reference).setData(data, merge: merge) { error in
@@ -346,19 +347,20 @@ private actor ListenerRegistrationMap {
     @objc public func updateDocument(_ options: UpdateDocumentOptions, completion: @escaping (Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let reference = options.reference
-        let data = FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
+        let data = try FirebaseFirestoreHelper.createHashMapFromJSObject(options.data, firestore: firestore)
 
         firestore.document(reference).updateData(data) { error in
             completion(error)
         }
     }
 
-    @objc public func useEmulator(_ options: UseEmulatorOptions) throws {
+    @objc public func useEmulator(_ options: UseEmulatorOptions, completion: @escaping (Error?) -> Void) throws {
         let firestore = try getFirestoreInstance(appName: options.appName)
         let settings = firestore.settings
         settings.host = "\(options.host):\(options.port)"
         settings.isSSLEnabled = false
         firestore.settings = settings
+        completion(nil)
     }
 
     @objc public func writeBatch(_ options: WriteBatchOptions, completion: @escaping (Error?) -> Void) throws {
@@ -369,11 +371,11 @@ private actor ListenerRegistrationMap {
         for operation in operations {
             let type = operation.type
             let reference = operation.reference
-            let data = FirebaseFirestoreHelper.createHashMapFromJSObject(operation.data, firestore: firestore)
 
             let documentReference = firestore.document(reference)
             switch type {
             case "set":
+                let data = try FirebaseFirestoreHelper.createHashMapFromJSObject(operation.data, firestore: firestore)
                 if let setOpts = operation.options, setOpts.merge {
                     batch.setData(
                         data,
@@ -384,6 +386,7 @@ private actor ListenerRegistrationMap {
                     batch.setData(data, forDocument: documentReference)
                 }
             case "update":
+                let data = try FirebaseFirestoreHelper.createHashMapFromJSObject(operation.data, firestore: firestore)
                 batch.updateData(data, forDocument: documentReference)
             case "delete":
                 batch.deleteDocument(documentReference)

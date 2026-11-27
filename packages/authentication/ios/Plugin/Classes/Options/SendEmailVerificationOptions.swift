@@ -1,15 +1,20 @@
 import Foundation
 import Capacitor
-import FirebaseAuth
 
 @objc public class SendEmailVerificationOptions: NSObject {
-    private var actionCodeSettings: ActionCodeSettings?
+    let actionCodeSettings: JSObject?
+    let appName: String?
 
-    init(actionCodeSettings: JSObject?) {
-        self.actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(actionCodeSettings)
+    init(_ call: CAPPluginCall) {
+        self.actionCodeSettings = SendEmailVerificationOptions.getActionCodeSettingsFromCall(call)
+        self.appName = SendEmailVerificationOptions.getAppNameFromCall(call)
     }
 
-    func getActionCodeSettings() -> ActionCodeSettings? {
-        return actionCodeSettings
+    private static func getActionCodeSettingsFromCall(_ call: CAPPluginCall) -> JSObject? {
+        return call.getObject("actionCodeSettings")
+    }
+
+    private static func getAppNameFromCall(_ call: CAPPluginCall) -> String? {
+        return call.getString("appName")
     }
 }

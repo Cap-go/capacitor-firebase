@@ -15,13 +15,9 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getName", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getOptions", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "initializeApp", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "initializeApp", returnType: CAPPluginReturnPromise)
     ]
     public static let tag = "FirebaseApp"
-
-    private let pluginVersion = "8.6.1"
-    private let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
 
     private var implementation: FirebaseApp?
 
@@ -106,9 +102,5 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
         } else {
             call.resolve()
         }
-    }
-
-    @objc func getPluginVersion(_ call: CAPPluginCall) {
-        call.resolve(["version": pluginVersion])
     }
 }

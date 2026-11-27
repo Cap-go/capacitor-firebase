@@ -1,22 +1,41 @@
 package app.capgo.capacitor.firebase.authentication.classes.options;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import app.capgo.capacitor.firebase.authentication.FirebaseAuthenticationHelper;
 import com.getcapacitor.JSObject;
-import com.google.firebase.auth.ActionCodeSettings;
-import org.json.JSONException;
+import com.getcapacitor.PluginCall;
 
 public class SendEmailVerificationOptions {
 
     @Nullable
-    private ActionCodeSettings actionCodeSettings;
+    private final JSObject actionCodeSettings;
 
-    public SendEmailVerificationOptions(@Nullable JSObject actionCodeSettings) throws JSONException {
-        this.actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(actionCodeSettings);
+    @Nullable
+    private final String appName;
+
+    public SendEmailVerificationOptions(@NonNull PluginCall call) {
+        this.actionCodeSettings = SendEmailVerificationOptions.getActionCodeSettingsFromCall(call);
+        this.appName = SendEmailVerificationOptions.getAppNameFromCall(call);
     }
 
     @Nullable
-    public ActionCodeSettings getActionCodeSettings() {
+    public JSObject getActionCodeSettings() {
         return actionCodeSettings;
+    }
+
+    @Nullable
+    public String getAppName() {
+        return appName;
+    }
+
+    @Nullable
+    private static JSObject getActionCodeSettingsFromCall(@NonNull PluginCall call) {
+        return call.getObject("actionCodeSettings");
+    }
+
+    @Nullable
+    private static String getAppNameFromCall(@NonNull PluginCall call) {
+        return call.getString("appName");
     }
 }

@@ -33,17 +33,6 @@ public class FirebaseAppPlugin extends Plugin {
     }
 
     @PluginMethod
-    public void getPluginVersion(final PluginCall call) {
-        try {
-            final JSObject ret = new JSObject();
-            ret.put("version", this.pluginVersion);
-            call.resolve(ret);
-        } catch (final Exception e) {
-            call.reject("Could not get plugin version", e);
-        }
-    }
-
-    @PluginMethod
     public void getApps(PluginCall call) {
         try {
             NonEmptyResultCallback<GetAppsResult> callback = new NonEmptyResultCallback<>() {
@@ -148,6 +137,17 @@ public class FirebaseAppPlugin extends Plugin {
             call.resolve();
         } else {
             call.resolve(result.toJSObject());
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

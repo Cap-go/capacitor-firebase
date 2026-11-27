@@ -1,13 +1,23 @@
 import Foundation
+import Capacitor
 
-@objc class FetchSignInMethodsForEmailOptions: NSObject {
-    private var email: String
+@objc public class FetchSignInMethodsForEmailOptions: NSObject {
+    let appName: String?
+    let email: String
 
-    init(email: String) {
-        self.email = email
+    init(_ call: CAPPluginCall) throws {
+        self.email = try FetchSignInMethodsForEmailOptions.getEmailFromCall(call)
+        self.appName = FetchSignInMethodsForEmailOptions.getAppNameFromCall(call)
     }
 
-    func getEmail() -> String {
+    private static func getAppNameFromCall(_ call: CAPPluginCall) -> String? {
+        return call.getString("appName")
+    }
+
+    private static func getEmailFromCall(_ call: CAPPluginCall) throws -> String {
+        guard let email = call.getString("email") else {
+            throw CustomError.emailMissing
+        }
         return email
     }
 }

@@ -8,14 +8,14 @@ public typealias AuthStateChangedObserver = () -> Void
 
 // swiftlint:disable type_body_length
 @objc public class FirebaseAuthentication: NSObject {
-    private let plugin: FirebaseAuthenticationPlugin
-    private let config: FirebaseAuthenticationConfig
     private var appleAuthProviderHandler: AppleAuthProviderHandler?
-    private var gameCenterAuthProviderHandler: GameCenterAuthProviderHandler?
+    private let config: FirebaseAuthenticationConfig
     private var facebookAuthProviderHandler: FacebookAuthProviderHandler?
+    private var gameCenterAuthProviderHandler: GameCenterAuthProviderHandler?
     private var googleAuthProviderHandler: GoogleAuthProviderHandler?
     private var oAuthProviderHandler: OAuthProviderHandler?
     private var phoneAuthProviderHandler: PhoneAuthProviderHandler?
+    private let plugin: FirebaseAuthenticationPlugin
     private var savedCall: CAPPluginCall?
     private(set) var isConfigured = true
 
@@ -26,7 +26,6 @@ public typealias AuthStateChangedObserver = () -> Void
         if FirebaseApp.app() == nil {
             guard FirebaseOptions.defaultOptions() != nil else {
                 CAPLog.print("[FirebaseAuthentication] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
-                isConfigured = false
                 return
             }
             FirebaseApp.configure()
@@ -36,74 +35,71 @@ public typealias AuthStateChangedObserver = () -> Void
         }
         self.initAuthProviderHandlers(config: config)
         _ = Auth.auth().addStateDidChangeListener {_, _ in
-            self.plugin.handleAuthStateChange()
+            self.handleAuthStateChange()
         }
         _ = Auth.auth().addIDTokenDidChangeListener {_, _ in
-            self.plugin.handleIdTokenChange()
+            self.handleIdTokenChange()
         }
         if let authDomain = config.authDomain {
             Auth.auth().customAuthDomain = authDomain
         }
     }
 
-    @objc func applyActionCode(oobCode: String, completion: @escaping (Error?) -> Void) {
-        return Auth.auth().applyActionCode(oobCode, completion: { error in
+    @objc public func applyActionCode(_ options: ApplyActionCodeOptions, completion: @escaping (Error?) -> Void) throws {
+        let oobCode = options.oobCode
+
+        let auth = try getAuthInstance(appName: options.appName)
+        return auth.applyActionCode(oobCode, completion: { error in
             completion(error)
         })
     }
 
-    @objc func createUserWithEmailAndPassword(_ call: CAPPluginCall) {
-        let skipNativeAuth = call.getBool("skipNativeAuth", config.skipNativeAuth)
-        if skipNativeAuth == true {
-            call.reject(plugin.errorEmailSignInSkipNativeAuth)
-            return
-        }
+    @objc public func checkAppTrackingTransparencyPermission(completion: @escaping (Result?, Error?) -> Void) {
+        completion(CheckAppTrackingTransparencyPermissionResult(ATTrackingManager.trackingAuthorizationStatus), nil)
+    }
 
-        guard let email = call.getString("email") else {
-            call.reject(plugin.errorEmailMissing)
-            return
-        }
-        guard let password = call.getString("password") else {
-            call.reject(plugin.errorPasswordMissing)
-            return
-        }
+    @objc public func confirmPasswordReset(_ options: ConfirmPasswordResetOptions, completion: @escaping (Error?) -> Void) throws {
+        let oobCode = options.oobCode
+        let newPassword = options.newPassword
 
-        return Auth.auth().createUser(withEmail: email, password: password) { _, error in
+        let auth = try getAuthInstance(appName: options.appName)
+        return auth.confirmPasswordReset(withCode: oobCode, newPassword: newPassword, completion: { error in
+            completion(error)
+        })
+    }
+
+    @objc public func createUserWithEmailAndPassword(_ options: CreateUserWithEmailAndPasswordOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let email = options.email
+        let password = options.password
+
+        let auth = try getAuthInstance(appName: options.appName)
+        return auth.createUser(withEmail: email, password: password) { _, error in
             if let error = error {
-                self.rejectCall(call, message: nil, error: error)
+                completion(nil, error)
                 return
             }
-            let user = self.getCurrentUser()
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
-                                                                         accessToken: nil, additionalUserInfo: nil)
-            call.resolve(result)
+            let user = auth.currentUser
+            let result = SignInResult(user: user, credential: nil, additionalUserInfo: nil)
+            completion(result, nil)
         }
     }
 
-    @objc func confirmPasswordReset(oobCode: String, newPassword: String, completion: @escaping (Error?) -> Void) {
-        return Auth.auth().confirmPasswordReset(withCode: oobCode, newPassword: newPassword, completion: { error in
-            completion(error)
-        })
-    }
-
-    @objc func confirmVerificationCode(_ options: ConfirmVerificationCodeOptions, completion: @escaping (Result?, Error?) -> Void) {
-        guard let phoneAuthProviderHandler = self.phoneAuthProviderHandler else {
-            completion(nil, RuntimeError(createProviderNotEnabledErrorMessage("Phone")))
+    @objc public func deleteUser(_ options: DeleteUserOptions, completion: @escaping (Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
             return
         }
-        phoneAuthProviderHandler.confirmVerificationCode(options, completion: completion)
-    }
-
-    @objc func deleteUser(user: User, completion: @escaping (Error?) -> Void) {
         user.delete { error in
             completion(error)
         }
     }
 
-    @objc func fetchSignInMethodsForEmail(_ options: FetchSignInMethodsForEmailOptions, completion: @escaping (Result?, Error?) -> Void) {
-        let email = options.getEmail()
+    @objc public func fetchSignInMethodsForEmail(_ options: FetchSignInMethodsForEmailOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let email = options.email
 
-        Auth.auth().fetchSignInMethods(forEmail: email) { signInMethods, error in
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.fetchSignInMethods(forEmail: email) { signInMethods, error in
             if let error = error {
                 completion(nil, error)
                 return
@@ -113,30 +109,26 @@ public typealias AuthStateChangedObserver = () -> Void
         }
     }
 
-    @objc func getCurrentUser() -> User? {
-        return Auth.auth().currentUser
+    @objc public func getCurrentUser(_ options: GetCurrentUserOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        let user = auth.currentUser
+        let result = GetCurrentUserResult(user: user)
+        completion(result, nil)
     }
 
-    @objc func getIdToken(_ forceRefresh: Bool, completion: @escaping (GetIdTokenResult?, Error?) -> Void) {
-        guard let user = self.getCurrentUser() else {
-            let error = RuntimeError(self.plugin.errorNoUserSignedIn)
-            completion(nil, error)
-            return
-        }
-        user.getIDTokenResult(forcingRefresh: forceRefresh, completion: { result, error in
-            if let error = error {
-                CAPLog.print("[", self.plugin.tag, "] ", error)
-                completion(nil, error)
-                return
-            }
-            let result = GetIdTokenResult(token: result?.token ?? "")
-            completion(result, nil)
-        })
+    @objc public func getIdToken(_ options: GetIdTokenOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let forceRefresh = options.forceRefresh
+
+        let auth = try getAuthInstance(appName: options.appName)
+        getIdToken(auth, forceRefresh: forceRefresh, completion: completion)
     }
 
-    @objc func getIdTokenResult(_ forceRefresh: Bool, completion: @escaping (GetIdTokenResultResult?, Error?) -> Void) {
-        guard let user = self.getCurrentUser() else {
-            let error = RuntimeError(self.plugin.errorNoUserSignedIn)
+    @objc public func getIdTokenResult(_ options: GetIdTokenResultOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let forceRefresh = options.forceRefresh
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            let error = CustomError.noUserSignedIn
             completion(nil, error)
             return
         }
@@ -151,12 +143,444 @@ public typealias AuthStateChangedObserver = () -> Void
         }
     }
 
-    @objc func getTenantId() -> String? {
-        return Auth.auth().tenantID
+    @objc public func getTenantId(_ options: GetTenantIdOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        let tenantId = auth.tenantID
+        let result = GetTenantIdResult(tenantId: tenantId)
+        completion(result, nil)
     }
 
-    @objc func isSignInWithEmailLink(link: String) -> Bool {
-        return Auth.auth().isSignIn(withEmailLink: link)
+    @objc public func isSignInWithEmailLink(_ options: IsSignInWithEmailLinkOptions, completion: @escaping (Result?, Error?) -> Void) {
+        let emailLink = options.emailLink
+
+        let isSignInWithEmailLink = Auth.auth().isSignIn(withEmailLink: emailLink)
+        let result = IsSignInWithEmailLinkResult(isSignInWithEmailLink: isSignInWithEmailLink)
+        completion(result, nil)
+    }
+
+    @objc public func linkWithEmailAndPassword(_ options: LinkWithEmailAndPasswordOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let skipNativeAuth = options.getSkipNativeAuth()
+        if skipNativeAuth == true {
+            completion(nil, CustomError.emailSignInSkipNativeAuth)
+            return
+        }
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(nil, CustomError.noUserSignedIn)
+            return
+        }
+
+        let email = options.email
+        let password = options.password
+
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+
+        user.link(with: credential) { authResult, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let result = SignInResult(user: authResult?.user, credential: authResult?.credential, additionalUserInfo: authResult?.additionalUserInfo)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func linkWithEmailLink(_ options: LinkWithEmailLinkOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(nil, CustomError.noUserSignedIn)
+            return
+        }
+
+        let email = options.email
+        let emailLink = options.emailLink
+
+        let credential = EmailAuthProvider.credential(withEmail: email, link: emailLink)
+
+        user.link(with: credential) { authResult, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let result = SignInResult(user: authResult?.user, credential: authResult?.credential, additionalUserInfo: authResult?.additionalUserInfo)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func reload(_ options: ReloadOptions, completion: @escaping (Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+        user.reload { error in
+            completion(error)
+        }
+    }
+
+    @objc public func requestAppTrackingTransparencyPermission(completion: @escaping (Result?, Error?) -> Void) {
+        ATTrackingManager.requestTrackingAuthorization { result in
+            completion(CheckAppTrackingTransparencyPermissionResult(result), nil)
+        }
+    }
+
+    @objc public func revokeAccessToken(_ options: RevokeAccessTokenOptions, completion: @escaping (Error?) -> Void) throws {
+        let token = options.token
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.revokeToken(withAuthorizationCode: token) { error in
+            completion(error)
+        }
+    }
+
+    @objc public func sendEmailVerification(_ options: SendEmailVerificationOptions, completion: @escaping (Error?) -> Void) throws {
+        let actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(options.actionCodeSettings)
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+
+        let completion: (Error?) -> Void = { error in
+            completion(error)
+        }
+        if let actionCodeSettings = actionCodeSettings {
+            user.sendEmailVerification(with: actionCodeSettings, completion: completion)
+        } else {
+            user.sendEmailVerification(completion: completion)
+        }
+    }
+
+    @objc public func sendPasswordResetEmail(_ options: SendPasswordResetEmailOptions, completion: @escaping (Error?) -> Void) throws {
+        let email = options.email
+        let actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(options.actionCodeSettings)
+
+        let completion: (Error?) -> Void = { error in
+            completion(error)
+        }
+        let auth = try getAuthInstance(appName: options.appName)
+        if let actionCodeSettings = actionCodeSettings {
+            auth.sendPasswordReset(withEmail: email, actionCodeSettings: actionCodeSettings, completion: completion)
+        } else {
+            auth.sendPasswordReset(withEmail: email, completion: completion)
+        }
+    }
+
+    @objc public func sendSignInLinkToEmail(_ options: SendSignInLinkToEmailOptions, completion: @escaping (Error?) -> Void) throws {
+        let email = options.email
+        guard let actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(options.actionCodeSettings) else {
+            completion(CustomError.actionCodeSettingsMissing)
+            return
+        }
+
+        let auth = try getAuthInstance(appName: options.appName)
+        return auth.sendSignInLink(toEmail: email, actionCodeSettings: actionCodeSettings) { error in
+            completion(error)
+        }
+    }
+
+    @objc public func setLanguageCode(_ options: SetLanguageCodeOptions, completion: @escaping (Error?) -> Void) throws {
+        let languageCode = options.languageCode
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.languageCode = languageCode
+        completion(nil)
+    }
+
+    @objc public func setTenantId(_ options: SetTenantIdOptions, completion: @escaping (Error?) -> Void) throws {
+        let tenantId = options.tenantId
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.tenantID = tenantId
+        completion(nil)
+    }
+
+    @objc public func signInAnonymously(_ options: SignInAnonymouslyOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let skipNativeAuth = config.skipNativeAuth
+        if skipNativeAuth == true {
+            completion(nil, CustomError.signInAnonymouslySkipNativeAuth)
+            return
+        }
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.signInAnonymously { authResult, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let result = SignInResult(user: authResult?.user, credential: authResult?.credential, additionalUserInfo: authResult?.additionalUserInfo)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func signInWithCustomToken(_ options: SignInWithCustomTokenOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let skipNativeAuth = options.getSkipNativeAuth()
+        if skipNativeAuth == true {
+            completion(nil, CustomError.customTokenSkipNativeAuth)
+            return
+        }
+
+        let token = options.token
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.signIn(withCustomToken: token) { _, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let user = auth.currentUser
+            let result = SignInResult(user: user, credential: nil, additionalUserInfo: nil)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func signInWithEmailAndPassword(_ options: SignInWithEmailAndPasswordOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let skipNativeAuth = config.skipNativeAuth
+        if skipNativeAuth == true {
+            completion(nil, CustomError.emailSignInSkipNativeAuth)
+            return
+        }
+
+        let email = options.email
+        let password = options.password
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.signIn(withEmail: email, password: password) { _, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let user = auth.currentUser
+            let result = SignInResult(user: user, credential: nil, additionalUserInfo: nil)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func signInWithEmailLink(_ options: SignInWithEmailLinkOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let skipNativeAuth = config.skipNativeAuth
+        if skipNativeAuth == true {
+            completion(nil, CustomError.emailLinkSignInSkipNativeAuth)
+            return
+        }
+
+        let email = options.email
+        let emailLink = options.emailLink
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.signIn(withEmail: email, link: emailLink) { authResult, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let result = SignInResult(user: authResult?.user, credential: authResult?.credential, additionalUserInfo: authResult?.additionalUserInfo)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func signOut(_ options: SignOutOptions, completion: @escaping (Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        do {
+            try auth.signOut()
+            // The providers only ever sign in to the default app.
+            if options.appName == nil {
+                googleAuthProviderHandler?.signOut()
+                facebookAuthProviderHandler?.signOut()
+            }
+            completion(nil)
+        } catch {
+            completion(error)
+        }
+    }
+
+    @objc public func unlink(_ options: UnlinkOptions, completion: @escaping (Result?, Error?) -> Void) throws {
+        let providerId = options.providerId
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(nil, CustomError.noUserSignedIn)
+            return
+        }
+        user.unlink(fromProvider: providerId) { user, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            let result = UnlinkResult(user: user)
+            completion(result, nil)
+        }
+    }
+
+    @objc public func updateEmail(_ options: UpdateEmailOptions, completion: @escaping (Error?) -> Void) throws {
+        let newEmail = options.newEmail
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+        user.updateEmail(to: newEmail) { error in
+            completion(error)
+        }
+    }
+
+    @objc public func updatePassword(_ options: UpdatePasswordOptions, completion: @escaping (Error?) -> Void) throws {
+        let newPassword = options.newPassword
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+        user.updatePassword(to: newPassword) { error in
+            completion(error)
+        }
+    }
+
+    @objc public func updateProfile(_ options: UpdateProfileOptions, completion: @escaping (Error?) -> Void) throws {
+        let displayName = options.displayName
+        let photoUrl = options.photoUrl
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+        let changeRequest = user.createProfileChangeRequest()
+
+        if displayName != nil {
+            changeRequest.displayName = displayName
+        }
+        if photoUrl != nil {
+            changeRequest.photoURL = URL(string: photoUrl!)
+        }
+
+        changeRequest.commitChanges { error in
+            completion(error)
+        }
+    }
+
+    @objc public func useAppLanguage(_ options: UseAppLanguageOptions, completion: @escaping (Error?) -> Void) throws {
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.useAppLanguage()
+        completion(nil)
+    }
+
+    @objc public func useEmulator(_ options: UseEmulatorOptions, completion: @escaping (Error?) -> Void) throws {
+        let host = options.host
+        let port = options.port
+
+        let auth = try getAuthInstance(appName: options.appName)
+        auth.useEmulator(withHost: host, port: port)
+        completion(nil)
+    }
+
+    @objc public func verifyBeforeUpdateEmail(_ options: VerifyBeforeUpdateEmailOptions, completion: @escaping (Error?) -> Void) throws {
+        let newEmail = options.newEmail
+        let actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(options.actionCodeSettings)
+
+        let auth = try getAuthInstance(appName: options.appName)
+        guard let user = auth.currentUser else {
+            completion(CustomError.noUserSignedIn)
+            return
+        }
+
+        let completion: (Error?) -> Void = { error in
+            completion(error)
+        }
+
+        if let actionCodeSettings = actionCodeSettings {
+            user.sendEmailVerification(beforeUpdatingEmail: newEmail, actionCodeSettings: actionCodeSettings, completion: completion)
+        } else {
+            user.sendEmailVerification(beforeUpdatingEmail: newEmail, completion: completion)
+        }
+    }
+
+    @objc func confirmVerificationCode(_ options: ConfirmVerificationCodeOptions, completion: @escaping (Result?, Error?) -> Void) {
+        guard let phoneAuthProviderHandler = self.phoneAuthProviderHandler else {
+            completion(nil, RuntimeError(createProviderNotEnabledErrorMessage("Phone")))
+            return
+        }
+        phoneAuthProviderHandler.confirmVerificationCode(options, completion: completion)
+    }
+
+    func getConfig() -> FirebaseAuthenticationConfig {
+        return self.config
+    }
+
+    func getPlugin() -> FirebaseAuthenticationPlugin {
+        return self.plugin
+    }
+
+    func handleFailedLink(message: String?, error: Error?) {
+        guard let savedCall = self.savedCall else {
+            return
+        }
+        rejectCall(savedCall, message: message, error: error)
+    }
+
+    func handleFailedSignIn(message: String?, error: Error?) {
+        guard let savedCall = self.savedCall else {
+            return
+        }
+        rejectCall(savedCall, message: message, error: error)
+    }
+
+    func handlePhoneCodeSent(_ verificationId: String) {
+        plugin.handlePhoneCodeSent(verificationId)
+    }
+
+    func handlePhoneVerificationFailed(_ error: Error) {
+        plugin.handlePhoneVerificationFailed(error)
+    }
+
+    func handleSuccessfulLink(credential: AuthCredential, idToken: String?, nonce: String?, accessToken: String?, serverAuthCode: String?, displayName: String?, authorizationCode: String?) {
+        guard let user = Auth.auth().currentUser else {
+            self.handleFailedLink(message: plugin.errorNoUserSignedIn, error: nil)
+            return
+        }
+        user.link(with: credential) { (authResult, error) in
+            if let error = error {
+                self.handleFailedLink(message: nil, error: error)
+                return
+            }
+            guard let savedCall = self.savedCall else {
+                return
+            }
+            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user, idToken: idToken,
+                                                                         nonce: nonce, accessToken: accessToken,
+                                                                         serverAuthCode: serverAuthCode, additionalUserInfo: authResult?.additionalUserInfo,
+                                                                         displayName: displayName, authorizationCode: authorizationCode)
+            savedCall.resolve(result)
+        }
+    }
+
+    func handleSuccessfulSignIn(credential: AuthCredential, idToken: String?, nonce: String?, accessToken: String?, displayName: String?, authorizationCode: String?, serverAuthCode: String?) {
+        guard let savedCall = self.savedCall else {
+            return
+        }
+        let skipNativeAuth = savedCall.getBool("skipNativeAuth", config.skipNativeAuth)
+        if skipNativeAuth == true {
+            let result = FirebaseAuthenticationHelper.createSignInResult(credential: credential, user: nil, idToken: idToken,
+                                                                         nonce: nonce, accessToken: accessToken, serverAuthCode: serverAuthCode,
+                                                                         additionalUserInfo: nil, displayName: displayName,
+                                                                         authorizationCode: authorizationCode)
+            savedCall.resolve(result)
+            return
+        }
+        Auth.auth().signIn(with: credential) { (authResult, error) in
+            if let error = error {
+                self.handleFailedSignIn(message: nil, error: error)
+                return
+            }
+            guard let savedCall = self.savedCall else {
+                return
+            }
+            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user, idToken: idToken,
+                                                                         nonce: nonce, accessToken: accessToken, serverAuthCode: serverAuthCode,
+                                                                         additionalUserInfo: authResult?.additionalUserInfo, displayName: displayName,
+                                                                         authorizationCode: authorizationCode)
+            savedCall.resolve(result)
+        }
     }
 
     @objc func linkWithApple(_ call: CAPPluginCall) {
@@ -168,54 +592,23 @@ public typealias AuthStateChangedObserver = () -> Void
         appleAuthProviderHandler.link(call: call)
     }
 
-    @objc func linkWithEmailAndPassword(_ call: CAPPluginCall) {
-        let skipNativeAuth = call.getBool("skipNativeAuth", config.skipNativeAuth)
-        if skipNativeAuth == true {
-            call.reject(plugin.errorEmailSignInSkipNativeAuth)
+    @objc func linkWithCredential(
+        credential: AuthCredential,
+        completion: @escaping (Result?, Error?) -> Void
+    ) {
+        guard let user = Auth.auth().currentUser else {
+            completion(nil, RuntimeError(plugin.errorNoUserSignedIn))
             return
         }
-        guard let user = self.getCurrentUser() else {
-            call.reject(plugin.errorNoUserSignedIn)
-            return
-        }
-
-        let email = call.getString("email", "")
-        let password = call.getString("password", "")
-
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-
-        user.link(with: credential) { authResult, error in
+        user.link(with: credential) { (authResult, error) in
             if let error = error {
-                self.rejectCall(call, message: nil, error: error)
+                completion(nil, error)
                 return
             }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
-                                                                         idToken: nil, nonce: nil, accessToken: nil,
-                                                                         additionalUserInfo: authResult?.additionalUserInfo)
-            call.resolve(result)
-        }
-    }
-
-    @objc func linkWithEmailLink(_ call: CAPPluginCall) {
-        guard let user = self.getCurrentUser() else {
-            call.reject(plugin.errorNoUserSignedIn)
-            return
-        }
-
-        let email = call.getString("email", "")
-        let emailLink = call.getString("emailLink", "")
-
-        let credential = EmailAuthProvider.credential(withEmail: email, link: emailLink)
-
-        user.link(with: credential) { authResult, error in
-            if let error = error {
-                self.rejectCall(call, message: nil, error: error)
-                return
+            if let authResult = authResult {
+                let result = SignInResult(authResult)
+                completion(result, nil)
             }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
-                                                                         idToken: nil, nonce: nil, accessToken: nil,
-                                                                         additionalUserInfo: authResult?.additionalUserInfo)
-            call.resolve(result)
         }
     }
 
@@ -278,101 +671,6 @@ public typealias AuthStateChangedObserver = () -> Void
         self.oAuthProviderHandler?.link(call: call, providerId: ProviderId.yahoo)
     }
 
-    @objc func reload(user: User, completion: @escaping (Error?) -> Void) {
-        user.reload { error in
-            completion(error)
-        }
-    }
-
-    @objc func revokeAccessToken(_ options: RevokeAccessTokenOptions, completion: @escaping (Error?) -> Void) {
-        let token = options.getToken()
-
-        Auth.auth().revokeToken(withAuthorizationCode: token) { error in
-            completion(error)
-        }
-    }
-
-    @objc func sendEmailVerification(_ options: SendEmailVerificationOptions, completion: @escaping (Error?) -> Void) {
-        let actionCodeSettings = options.getActionCodeSettings()
-
-        guard let user = self.getCurrentUser() else {
-            completion(RuntimeError(plugin.errorNoUserSignedIn))
-            return
-        }
-
-        let completion: (Error?) -> Void = { error in
-            completion(error)
-        }
-        if let actionCodeSettings = actionCodeSettings {
-            user.sendEmailVerification(with: actionCodeSettings, completion: completion)
-        } else {
-            user.sendEmailVerification(completion: completion)
-        }
-    }
-
-    @objc func verifyBeforeUpdateEmail(_ newEmail: String, actionCodeSettings: ActionCodeSettings?, completion: @escaping (Error?) -> Void) {
-        guard let user = self.getCurrentUser() else {
-            completion(RuntimeError(plugin.errorNoUserSignedIn))
-            return
-        }
-
-        let completion: (Error?) -> Void = { error in
-            completion(error)
-        }
-
-        if let actionCodeSettings = actionCodeSettings {
-            user.sendEmailVerification(beforeUpdatingEmail: newEmail, actionCodeSettings: actionCodeSettings, completion: completion)
-        } else {
-            user.sendEmailVerification(beforeUpdatingEmail: newEmail, completion: completion)
-        }
-    }
-
-    @objc func sendPasswordResetEmail(_ options: SendPasswordResetEmailOptions, completion: @escaping (Error?) -> Void) {
-        let email = options.getEmail()
-        let actionCodeSettings = options.getActionCodeSettings()
-
-        let completion: (Error?) -> Void = { error in
-            completion(error)
-        }
-        if let actionCodeSettings = actionCodeSettings {
-            Auth.auth().sendPasswordReset(withEmail: email, actionCodeSettings: actionCodeSettings, completion: completion)
-        } else {
-            Auth.auth().sendPasswordReset(withEmail: email, completion: completion)
-        }
-    }
-
-    @objc func sendSignInLinkToEmail(email: String, actionCodeSettings: ActionCodeSettings, completion: @escaping (Error?) -> Void) {
-        return Auth.auth().sendSignInLink(toEmail: email, actionCodeSettings: actionCodeSettings) { error in
-            completion(error)
-        }
-    }
-
-    @objc func setLanguageCode(_ languageCode: String) {
-        Auth.auth().languageCode = languageCode
-    }
-
-    @objc func setTenantId(tenantId: String) {
-        Auth.auth().tenantID = tenantId
-    }
-
-    @objc func signInAnonymously(_ call: CAPPluginCall) {
-        let skipNativeAuth = config.skipNativeAuth
-        if skipNativeAuth == true {
-            call.reject(plugin.errorSignInAnonymouslySkipNativeAuth)
-            return
-        }
-        Auth.auth().signInAnonymously { authResult, error in
-            if let error = error {
-                self.rejectCall(call, message: nil, error: error)
-                return
-            }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
-                                                                         idToken: nil, nonce: nil, accessToken: nil,
-                                                                         additionalUserInfo: authResult?.additionalUserInfo)
-            call.resolve(result)
-        }
-    }
-
     @objc func signInWithApple(_ call: CAPPluginCall) {
         guard let appleAuthProviderHandler = self.appleAuthProviderHandler else {
             call.reject(createProviderNotEnabledErrorMessage("Apple"))
@@ -382,68 +680,26 @@ public typealias AuthStateChangedObserver = () -> Void
         appleAuthProviderHandler.signIn(call: call)
     }
 
-    @objc func signInWithCustomToken(_ call: CAPPluginCall) {
-        let skipNativeAuth = call.getBool("skipNativeAuth", config.skipNativeAuth)
+    @objc func signInWithCredential(
+        _ options: SignInOptions,
+        credential: AuthCredential,
+        completion: @escaping (Result?, Error?) -> Void
+    ) {
+        let skipNativeAuth = options.getSkipNativeAuth()
         if skipNativeAuth == true {
-            call.reject(plugin.errorCustomTokenSkipNativeAuth)
+            let result = SignInResult(user: nil, credential: credential, additionalUserInfo: nil)
+            completion(result, nil)
             return
         }
-
-        let token = call.getString("token", "")
-
-        Auth.auth().signIn(withCustomToken: token) { _, error in
+        Auth.auth().signIn(with: credential) { (authResult, error) in
             if let error = error {
-                self.rejectCall(call, message: nil, error: error)
+                completion(nil, error)
                 return
             }
-            let user = self.getCurrentUser()
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
-                                                                         accessToken: nil, additionalUserInfo: nil)
-            call.resolve(result)
-        }
-    }
-
-    @objc func signInWithEmailAndPassword(_ call: CAPPluginCall) {
-        let skipNativeAuth = config.skipNativeAuth
-        if skipNativeAuth == true {
-            call.reject(plugin.errorEmailSignInSkipNativeAuth)
-            return
-        }
-
-        let email = call.getString("email", "")
-        let password = call.getString("password", "")
-
-        Auth.auth().signIn(withEmail: email, password: password) { _, error in
-            if let error = error {
-                self.rejectCall(call, message: nil, error: error)
-                return
+            if let authResult = authResult {
+                let result = SignInResult(authResult)
+                completion(result, nil)
             }
-            let user = self.getCurrentUser()
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: nil, user: user, idToken: nil, nonce: nil,
-                                                                         accessToken: nil, additionalUserInfo: nil)
-            call.resolve(result)
-        }
-    }
-
-    @objc func signInWithEmailLink(_ call: CAPPluginCall) {
-        let skipNativeAuth = config.skipNativeAuth
-        if skipNativeAuth == true {
-            call.reject(plugin.errorEmailLinkSignInSkipNativeAuth)
-            return
-        }
-
-        let email = call.getString("email", "")
-        let emailLink = call.getString("emailLink", "")
-
-        Auth.auth().signIn(withEmail: email, link: emailLink) { authResult, error in
-            if let error = error {
-                self.rejectCall(call, message: nil, error: error)
-                return
-            }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user,
-                                                                         idToken: nil, nonce: nil, accessToken: nil,
-                                                                         additionalUserInfo: authResult?.additionalUserInfo)
-            call.resolve(result)
         }
     }
 
@@ -506,191 +762,52 @@ public typealias AuthStateChangedObserver = () -> Void
         self.oAuthProviderHandler?.signIn(call: call, providerId: ProviderId.yahoo)
     }
 
-    @objc func signOut(_ call: CAPPluginCall) {
-        do {
-            try Auth.auth().signOut()
-            googleAuthProviderHandler?.signOut()
-            facebookAuthProviderHandler?.signOut()
-            call.resolve()
-        } catch {
-            CAPLog.print("[", self.plugin.tag, "] ", error)
-            let code = FirebaseAuthenticationHelper.createErrorCode(error: error)
-            call.reject(error.localizedDescription, code)
-        }
+    private func createProviderNotEnabledErrorMessage(_ providerName: String) -> String {
+        return "\(providerName) sign-in provider is not enabled. Make sure to add the provider to the 'providers' list in the Capacitor configuration."
     }
 
-    @objc func unlink(user: User, providerId: String, completion: @escaping (User?, Error?) -> Void) {
-        user.unlink(fromProvider: providerId) { user, error in
-            completion(user, error)
+    private func getAuthInstance(appName: String?) throws -> Auth {
+        if let appName = appName {
+            guard let app = FirebaseApp.app(name: appName) else {
+                throw CustomError.appNotFound
+            }
+            return Auth.auth(app: app)
         }
+        return Auth.auth()
     }
 
-    @objc func updateEmail(user: User, newEmail: String, completion: @escaping (Error?) -> Void) {
-        user.updateEmail(to: newEmail) { error in
-            completion(error)
+    private func getIdToken(_ auth: Auth, forceRefresh: Bool, completion: @escaping (GetIdTokenResult?, Error?) -> Void) {
+        guard let user = auth.currentUser else {
+            let error = CustomError.noUserSignedIn
+            completion(nil, error)
+            return
         }
-    }
-
-    @objc func updatePassword(user: User, newPassword: String, completion: @escaping (Error?) -> Void) {
-        user.updatePassword(to: newPassword) { error in
-            completion(error)
-        }
-    }
-
-    @objc func updateProfile(user: User, displayName: String?, photoUrl: String?, completion: @escaping (Error?) -> Void) {
-        let changeRequest = user.createProfileChangeRequest()
-
-        if displayName != nil {
-            changeRequest.displayName = displayName
-        }
-        if photoUrl != nil {
-            changeRequest.photoURL = URL(string: photoUrl!)
-        }
-
-        changeRequest.commitChanges { error in
-            completion(error)
-        }
-    }
-
-    @objc func useAppLanguage() {
-        Auth.auth().useAppLanguage()
-    }
-
-    @objc func useEmulator(_ host: String, _ port: Int) {
-        Auth.auth().useEmulator(withHost: host, port: port)
-    }
-
-    @objc func signInWithCredential(
-        _ options: SignInOptions,
-        credential: AuthCredential,
-        completion: @escaping (Result?, Error?) -> Void
-    ) {
-        let skipNativeAuth = options.getSkipNativeAuth()
-        if skipNativeAuth == true {
-            let result = SignInResult(user: nil, credential: credential, additionalUserInfo: nil)
+        user.getIDTokenResult(forcingRefresh: forceRefresh, completion: { result, error in
+            if let error = error {
+                CAPLog.print("[", self.plugin.tag, "] ", error)
+                completion(nil, error)
+                return
+            }
+            let result = GetIdTokenResult(token: result?.token ?? "")
             completion(result, nil)
-            return
-        }
-        Auth.auth().signIn(with: credential) { (authResult, error) in
+        })
+    }
+
+    private func handleAuthStateChange() {
+        let user = Auth.auth().currentUser
+        plugin.notifyAuthStateChangeListeners(AuthStateChangeEvent(user: user))
+    }
+
+    private func handleIdTokenChange() {
+        getIdToken(Auth.auth(), forceRefresh: false, completion: { result, error in
             if let error = error {
-                completion(nil, error)
+                CAPLog.print("[", self.plugin.tag, "] ", error)
                 return
             }
-            if let authResult = authResult {
-                let result = SignInResult(authResult)
-                completion(result, nil)
+            if let result = result {
+                self.plugin.notifyIdTokenChangeListeners(IdTokenChangeEvent(token: result.token))
             }
-        }
-    }
-
-    @objc func linkWithCredential(
-        credential: AuthCredential,
-        completion: @escaping (Result?, Error?) -> Void
-    ) {
-        guard let user = getCurrentUser() else {
-            completion(nil, RuntimeError(plugin.errorNoUserSignedIn))
-            return
-        }
-        user.link(with: credential) { (authResult, error) in
-            if let error = error {
-                completion(nil, error)
-                return
-            }
-            if let authResult = authResult {
-                let result = SignInResult(authResult)
-                completion(result, nil)
-            }
-        }
-    }
-
-    func handleSuccessfulSignIn(credential: AuthCredential, idToken: String?, nonce: String?, accessToken: String?, displayName: String?, authorizationCode: String?, serverAuthCode: String?) {
-        guard let savedCall = self.savedCall else {
-            return
-        }
-        let skipNativeAuth = savedCall.getBool("skipNativeAuth", config.skipNativeAuth)
-        if skipNativeAuth == true {
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: credential, user: nil, idToken: idToken,
-                                                                         nonce: nonce, accessToken: accessToken, serverAuthCode: serverAuthCode,
-                                                                         additionalUserInfo: nil, displayName: displayName,
-                                                                         authorizationCode: authorizationCode)
-            savedCall.resolve(result)
-            return
-        }
-        Auth.auth().signIn(with: credential) { (authResult, error) in
-            if let error = error {
-                self.handleFailedSignIn(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
-                return
-            }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user, idToken: idToken,
-                                                                         nonce: nonce, accessToken: accessToken, serverAuthCode: serverAuthCode,
-                                                                         additionalUserInfo: authResult?.additionalUserInfo, displayName: displayName,
-                                                                         authorizationCode: authorizationCode)
-            savedCall.resolve(result)
-        }
-    }
-
-    func handleFailedSignIn(message: String?, error: Error?) {
-        guard let savedCall = self.savedCall else {
-            return
-        }
-        rejectCall(savedCall, message: message, error: error)
-    }
-
-    func handleSuccessfulLink(credential: AuthCredential, idToken: String?, nonce: String?, accessToken: String?, serverAuthCode: String?, displayName: String?, authorizationCode: String?) {
-        guard let user = getCurrentUser() else {
-            self.handleFailedLink(message: plugin.errorNoUserSignedIn, error: nil)
-            return
-        }
-        user.link(with: credential) { (authResult, error) in
-            if let error = error {
-                self.handleFailedLink(message: nil, error: error)
-                return
-            }
-            guard let savedCall = self.savedCall else {
-                return
-            }
-            let result = FirebaseAuthenticationHelper.createSignInResult(credential: authResult?.credential, user: authResult?.user, idToken: idToken,
-                                                                         nonce: nonce, accessToken: accessToken,
-                                                                         serverAuthCode: serverAuthCode, additionalUserInfo: authResult?.additionalUserInfo,
-                                                                         displayName: displayName, authorizationCode: authorizationCode)
-            savedCall.resolve(result)
-        }
-    }
-
-    func handleFailedLink(message: String?, error: Error?) {
-        guard let savedCall = self.savedCall else {
-            return
-        }
-        rejectCall(savedCall, message: message, error: error)
-    }
-
-    func handlePhoneVerificationFailed(_ error: Error) {
-        plugin.handlePhoneVerificationFailed(error)
-    }
-
-    func handlePhoneCodeSent(_ verificationId: String) {
-        plugin.handlePhoneCodeSent(verificationId)
-    }
-
-    func getPlugin() -> FirebaseAuthenticationPlugin {
-        return self.plugin
-    }
-
-    func getConfig() -> FirebaseAuthenticationConfig {
-        return self.config
-    }
-
-    func requestAppTrackingTransparencyPermission(completion: @escaping (CheckAppTrackingTransparencyPermissionResult) -> Void) {
-        ATTrackingManager.requestTrackingAuthorization { result in
-            completion(CheckAppTrackingTransparencyPermissionResult(result))
-        }
-    }
-
-    func checkAppTrackingTransparencyPermission(completion: @escaping (CheckAppTrackingTransparencyPermissionResult) -> Void) {
-        completion(CheckAppTrackingTransparencyPermissionResult(ATTrackingManager.trackingAuthorizationStatus))
+        })
     }
 
     private func createProviderNotEnabledErrorMessage(_ providerName: String) -> String {

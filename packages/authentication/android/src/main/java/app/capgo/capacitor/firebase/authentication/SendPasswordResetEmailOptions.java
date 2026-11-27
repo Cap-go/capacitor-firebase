@@ -3,21 +3,35 @@ package app.capgo.capacitor.firebase.authentication.classes.options;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import app.capgo.capacitor.firebase.authentication.FirebaseAuthenticationHelper;
+import app.capgo.capacitor.firebase.authentication.classes.CustomExceptions;
 import com.getcapacitor.JSObject;
-import com.google.firebase.auth.ActionCodeSettings;
-import org.json.JSONException;
+import com.getcapacitor.PluginCall;
 
 public class SendPasswordResetEmailOptions {
 
-    @NonNull
-    private String email;
+    @Nullable
+    private final JSObject actionCodeSettings;
 
     @Nullable
-    private ActionCodeSettings actionCodeSettings;
+    private final String appName;
 
-    public SendPasswordResetEmailOptions(@NonNull String email, @Nullable JSObject actionCodeSettings) throws JSONException {
-        this.email = email;
-        this.actionCodeSettings = FirebaseAuthenticationHelper.createActionCodeSettings(actionCodeSettings);
+    @NonNull
+    private final String email;
+
+    public SendPasswordResetEmailOptions(@NonNull PluginCall call) throws Exception {
+        this.email = SendPasswordResetEmailOptions.getEmailFromCall(call);
+        this.actionCodeSettings = SendPasswordResetEmailOptions.getActionCodeSettingsFromCall(call);
+        this.appName = SendPasswordResetEmailOptions.getAppNameFromCall(call);
+    }
+
+    @Nullable
+    public JSObject getActionCodeSettings() {
+        return actionCodeSettings;
+    }
+
+    @Nullable
+    public String getAppName() {
+        return appName;
     }
 
     @NonNull
@@ -26,7 +40,21 @@ public class SendPasswordResetEmailOptions {
     }
 
     @Nullable
-    public ActionCodeSettings getActionCodeSettings() {
-        return actionCodeSettings;
+    private static JSObject getActionCodeSettingsFromCall(@NonNull PluginCall call) {
+        return call.getObject("actionCodeSettings");
+    }
+
+    @Nullable
+    private static String getAppNameFromCall(@NonNull PluginCall call) {
+        return call.getString("appName");
+    }
+
+    @NonNull
+    private static String getEmailFromCall(@NonNull PluginCall call) throws Exception {
+        String email = call.getString("email");
+        if (email == null) {
+            throw CustomExceptions.EMAIL_MISSING;
+        }
+        return email;
     }
 }

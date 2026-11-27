@@ -22,10 +22,6 @@ let package = Package(
                 .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseFirestore", package: "firebase-ios-sdk")
             ],
-            path: "ios/Plugin"),
-        .testTarget(
-            name: "CapgoFirebaseFirestorePluginTests",
-            dependencies: ["CapgoFirebaseFirestorePlugin"],
-            path: "ios/PluginTests")
+            path: "ios/Plugin")
     ]
 )
