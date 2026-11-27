@@ -28,6 +28,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "removeSnapshotListener", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setDocument", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "terminate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "updateDocument", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "useEmulator", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "writeBatch", returnType: CAPPluginReturnPromise)
