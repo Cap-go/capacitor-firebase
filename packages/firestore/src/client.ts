@@ -30,9 +30,9 @@ import type {
   UpdateDocumentOptions,
   UseEmulatorOptions,
   WriteBatchOptions,
-} from './definitions';
-import { DocumentReference } from './document-reference';
-import { deserializeData, serializeData } from './utils';
+} from './definitions.js';
+import { DocumentReference } from './document-reference.js';
+import { deserializeData, serializeData } from './utils.js';
 
 export class FirebaseFirestoreClient implements FirebaseFirestorePlugin {
   private readonly plugin: FirebaseFirestorePlugin;

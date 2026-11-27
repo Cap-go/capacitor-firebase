@@ -1,12 +1,12 @@
-import { Bytes } from './bytes';
-import { DocumentReference } from './document-reference';
-import { FieldValue } from './field-value';
-import { GeoPoint } from './geopoint';
+import { Bytes } from './bytes.js';
+import { DocumentReference } from './document-reference.js';
+import { FieldValue } from './field-value.js';
+import { GeoPoint } from './geopoint.js';
 import {
   deserializeSpecialNumber,
   serializeSpecialNumber,
-} from './special-number';
-import { Timestamp } from './timestamp';
+} from './special-number.js';
+import { Timestamp } from './timestamp.js';
 
 export function serializeData(data: any): any {
   if (data === null || data === undefined) {

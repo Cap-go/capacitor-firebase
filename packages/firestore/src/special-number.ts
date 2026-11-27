@@ -1,4 +1,4 @@
-import type { FirestoreNumber } from './definitions';
+import type { FirestoreNumber } from './definitions.js';
 
 export function serializeSpecialNumber(value: number): FirestoreNumber {
   if (Number.isNaN(value)) {

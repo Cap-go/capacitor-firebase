@@ -1,6 +1,6 @@
 /// <reference types="@capacitor/cli" />
 
-import type { DocumentReference } from './document-reference';
+import type { DocumentReference } from './document-reference.js';
 
 declare module '@capacitor/cli' {
   export interface PluginsConfig {

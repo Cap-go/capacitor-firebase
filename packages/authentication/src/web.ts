@@ -108,8 +108,8 @@ import type {
   UserInfo,
   UserMetadata,
   VerifyBeforeUpdateEmailOptions,
-} from './definitions';
-import { Persistence, ProviderId } from './definitions';
+} from './definitions.js';
+import { Persistence, ProviderId } from './definitions.js';
 
 export class FirebaseAuthenticationWeb
   extends WebPlugin
