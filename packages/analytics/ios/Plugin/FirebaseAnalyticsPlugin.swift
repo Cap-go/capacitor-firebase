@@ -11,6 +11,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "FirebaseAnalytics"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getAppInstanceId", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getSessionId", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithEmailAddress", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedEmailAddress", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "initiateOnDeviceConversionMeasurementWithHashedPhoneNumber", returnType: CAPPluginReturnPromise),
@@ -24,9 +25,11 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setEnabled", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSessionTimeoutDuration", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserId", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setUserProperty", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setUserProperty", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseAnalytics"
+    private let pluginVersion = "8.6.1"
     private var implementation: FirebaseAnalytics?
 
     override public func load() {
@@ -44,26 +47,22 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         })
     }
 
-    @objc func logTransaction(_ call: CAPPluginCall) {
-        guard let transactionId = call.getString("transactionId") else {
-            call.reject(errorTransactionIdMissing)
+    @objc func getSessionId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject("Firebase Analytics not initialized.")
             return
         }
-        guard let transactionIdUInt64 = UInt64(transactionId) else {
-            call.reject(errorInvalidTransactionId)
-            return
-        }
-        if #available(iOS 15.0, *) {
-            implementation?.logTransaction(transactionId: transactionIdUInt64) { errorMessage in
-                if let errorMessage = errorMessage {
-                    call.reject(errorMessage)
-                } else {
-                    call.resolve()
-                }
+        implementation.getSessionId(completion: { sessionId, error in
+            if let error = error {
+                self.rejectCall(call, error)
+                return
             }
-        } else {
-            call.unavailable("Not available on iOS < 15.0.")
-        }
+            var result = JSObject()
+            if let sessionId = sessionId {
+                result["sessionId"] = Double(sessionId)
+            }
+            call.resolve(result)
+        })
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithEmailAddress(_ call: CAPPluginCall) {
@@ -291,5 +290,9 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         } else {
             call.resolve()
         }
+    }
+
+    @objc func getPluginVersion(_ call: CAPPluginCall) {
+        call.resolve(["version": pluginVersion])
     }
 }

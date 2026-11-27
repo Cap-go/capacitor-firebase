@@ -161,6 +161,7 @@ Then pass the name as `appName` to the methods of a plugin that supports it, suc
 * [`getName()`](#getname)
 * [`getOptions()`](#getoptions)
 * [`initializeApp(...)`](#initializeapp)
+* [`getPluginVersion()`](#getpluginversion)
 * [Interfaces](#interfaces)
 
 </docgen-index>
@@ -239,6 +240,21 @@ so check `getApps()` first.
 --------------------
 
 
+### getPluginVersion()
+
+```typescript
+getPluginVersion() => Promise<GetPluginVersionResult>
+```
+
+Get the version of this plugin.
+
+**Returns:** <code>Promise&lt;<a href="#getpluginversionresult">GetPluginVersionResult</a>&gt;</code>
+
+**Since:** 8.0.1
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -293,6 +309,13 @@ so check `getApps()` first.
 | **`gcmSenderId`**   | <code>string</code> | The Project Number.                                                                                                                                                                       | 8.7.0 |
 | **`projectId`**     | <code>string</code> | The Google Cloud project ID.                                                                                                                                                              | 8.7.0 |
 | **`storageBucket`** | <code>string</code> | The Google Cloud Storage bucket name.                                                                                                                                                     | 8.7.0 |
+
+
+#### GetPluginVersionResult
+
+| Prop          | Type                | Description                          | Since |
+| ------------- | ------------------- | ------------------------------------ | ----- |
+| **`version`** | <code>string</code> | The semantic version of this plugin. | 8.0.1 |
 
 </docgen-api>
 

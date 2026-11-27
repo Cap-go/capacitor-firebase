@@ -6,10 +6,13 @@ import type {
   GetAppsResult,
   GetNameResult,
   GetOptionsResult,
+  GetPluginVersionResult,
   InitializeAppOptions,
 } from './definitions';
 
 export class FirebaseAppWeb extends WebPlugin implements FirebaseAppPlugin {
+  private readonly pluginVersion = '8.6.2';
+
   private static errorApiKeyMissing = 'options.apiKey must be provided.';
   private static errorAppAlreadyExists =
     'An app with this name already exists.';
@@ -22,6 +25,10 @@ export class FirebaseAppWeb extends WebPlugin implements FirebaseAppPlugin {
   private static errorNameMissing = 'name must be provided.';
   private static errorOptionsMissing = 'options must be provided.';
   private static errorProjectIdMissing = 'options.projectId must be provided.';
+
+  async getPluginVersion(): Promise<GetPluginVersionResult> {
+    return { version: this.pluginVersion };
+  }
 
   async getApps(): Promise<GetAppsResult> {
     const apps = getApps();

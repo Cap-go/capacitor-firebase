@@ -295,7 +295,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
             let savedCall = self.pluginCallMap[options.callbackId]
             if let savedCall = savedCall {
-                bridge?.releaseCall(savedCall)
+                bridge?.releaseCall(withID: savedCall.callbackId)
             }
             self.pluginCallMap.removeValue(forKey: options.callbackId)
 

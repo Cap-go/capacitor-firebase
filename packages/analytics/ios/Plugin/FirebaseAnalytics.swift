@@ -23,6 +23,17 @@ import FirebaseAnalytics
         completion(result, nil)
     }
 
+    @objc public func getSessionId(completion: @escaping (Int64?, Error?) -> Void) {
+        Task {
+            do {
+                let sessionId = try await Analytics.sessionID()
+                completion(sessionId, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+    }
+
     @objc public func initiateOnDeviceConversionMeasurementWithEmailAddress(
         _ options: InitiateOnDeviceConversionMeasurementWithEmailAddressOptions,
         completion: @escaping (Error?) -> Void

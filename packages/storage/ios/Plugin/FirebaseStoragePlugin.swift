@@ -108,7 +108,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
                 if releaseCall == true {
-                    self.bridge?.releaseCall(call)
+                    self.bridge?.releaseCall(withID: call.callbackId)
                 }
                 return
             }
@@ -116,7 +116,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
                 call.resolve(result)
             }
             if releaseCall == true {
-                self.bridge?.releaseCall(call)
+                self.bridge?.releaseCall(withID: call.callbackId)
             }
         })
     }
