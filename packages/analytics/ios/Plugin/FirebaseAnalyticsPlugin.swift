@@ -33,7 +33,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     private var implementation: FirebaseAnalytics?
 
     override public func load() {
-        let createdImplementation = FirebaseAnalytics(plugin: self)
+        let createdImplementation = FirebaseAnalytics()
         implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
