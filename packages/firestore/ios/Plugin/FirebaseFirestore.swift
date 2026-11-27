@@ -311,7 +311,6 @@ private actor ListenerRegistrationMap {
             await listenerRegistrationMap.removeAll()
             completion()
         }
-        return Firestore.firestore()
     }
 
     @objc public func removeSnapshotListener(_ options: RemoveSnapshotListenerOptions, completion: @escaping () -> Void) {
