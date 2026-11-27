@@ -2,6 +2,7 @@
   "name": "@capgo/capacitor-firebase-crashlytics",
   "version": "8.6.2",
   "description": "Capacitor plugin for Firebase Crashlytics on Android and iOS.",
+  "type": "module",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
