@@ -810,10 +810,6 @@ public typealias AuthStateChangedObserver = () -> Void
         })
     }
 
-    private func createProviderNotEnabledErrorMessage(_ providerName: String) -> String {
-        return "\(providerName) sign-in provider is not enabled. Make sure to add the provider to the 'providers' list in the Capacitor configuration."
-    }
-
     private func initAuthProviderHandlers(config: FirebaseAuthenticationConfig) {
         if config.providers.contains(ProviderId.apple) {
             self.appleAuthProviderHandler = AppleAuthProviderHandler(self)
