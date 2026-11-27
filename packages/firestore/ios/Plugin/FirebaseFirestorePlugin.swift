@@ -41,15 +41,6 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         self.implementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
     }
 
-    @objc func setDocument(_ call: CAPPluginCall) {
-        do {
-            let options = try SetDocumentOptions(call)
-
-        implementation?.removeAllListeners {
-            self.resolveCall(call)
-        }
-    }
-
     @objc func addCollectionGroupSnapshotListener(_ call: CAPPluginCall) {
         call.keepAlive = true
 
