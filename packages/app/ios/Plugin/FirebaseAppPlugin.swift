@@ -21,6 +21,8 @@ public class FirebaseAppPlugin: CAPPlugin, CAPBridgedPlugin {
     public static let tag = "FirebaseApp"
 
     private let pluginVersion = "8.6.2"
+    private let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
+
     private var implementation: FirebaseApp?
 
     override public func load() {
