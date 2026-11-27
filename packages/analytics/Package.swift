@@ -20,17 +20,6 @@ let package = Package(
             description: "Disables IDFA collection."
         )
     ],
-    traits: [
-        .default(enabledTraits: ["Analytics"]),
-        .trait(
-            name: "Analytics",
-            description: "Includes IDFA collection support."
-        ),
-        .trait(
-            name: "AnalyticsWithoutAdIdSupport",
-            description: "Disables IDFA collection."
-        )
-    ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "12.9.0"))
@@ -47,7 +36,11 @@ let package = Package(
                          condition: .when(traits: ["AnalyticsWithoutAdIdSupport"])),
                 .product(name: "FirebaseCore", package: "firebase-ios-sdk")
             ],
-            path: "ios/Plugin")
+            path: "ios/Plugin"),
+        .testTarget(
+            name: "CapgoFirebaseAnalyticsPluginTests",
+            dependencies: ["CapgoFirebaseAnalyticsPlugin"],
+            path: "ios/PluginTests")
     ],
     swiftLanguageModes: [.v5]
 )
