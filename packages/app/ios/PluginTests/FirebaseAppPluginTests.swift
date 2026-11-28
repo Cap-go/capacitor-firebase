@@ -1,16 +1,129 @@
 import XCTest
+import Capacitor
+#if canImport(Plugin)
 @testable import Plugin
+#elseif canImport(CapgoFirebaseAppPlugin)
+@testable import CapgoFirebaseAppPlugin
+#endif
 
-class FirebaseAppTests: XCTestCase {
-
-    func testEcho() {
-        // This is an example of a functional test case for a plugin.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-
-        let implementation = FirebaseApp()
-        let value = "Hello, World!"
-        let result = implementation.echo(value)
-
-        XCTAssertEqual(value, result)
+final class FirebaseAppPluginTests: XCTestCase {
+    func testRegistersExpectedMethods() {
+        let plugin = FirebaseAppPlugin()
+        XCTAssertEqual(plugin.identifier, "FirebaseAppPlugin")
+        XCTAssertEqual(plugin.jsName, "FirebaseApp")
+        XCTAssertEqual(plugin.pluginMethods.map(\.name), [
+            "getApps",
+            "getName",
+            "getOptions",
+            "initializeApp",
+            "getPluginVersion"
+        ])
     }
+
+    func testGetPluginVersionResolvesWithNonEmptyVersion() {
+        let plugin = FirebaseAppPlugin()
+        let outcome = invoke(plugin.getPluginVersion, method: "getPluginVersion")
+        XCTAssertNil(outcome.message)
+        let version = outcome.data?["version"] as? String
+        XCTAssertEqual(version?.isEmpty, false)
+        XCTAssertNotNil(version?.range(of: #"^\d+\.\d+\.\d+"#, options: .regularExpression))
+    }
+
+    func testGetNameRejectsWhenFirebaseIsNotConfigured() {
+        let plugin = FirebaseAppPlugin()
+        let outcome = invoke(plugin.getName, method: "getName")
+        XCTAssertEqual(
+            outcome.message,
+            "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
+        )
+    }
+
+    func testInitializeAppOptionsRejectsMissingName() throws {
+        let call = try makeCall(method: "initializeApp")
+        XCTAssertThrowsError(try InitializeAppOptions(call)) { error in
+            XCTAssertEqual(
+                (error as? CustomError)?.localizedDescription,
+                CustomError.nameMissing.localizedDescription
+            )
+        }
+    }
+
+    func testInitializeAppOptionsRejectsInvalidName() throws {
+        let call = try makeCall(method: "initializeApp", options: ["name": "bad name"])
+        XCTAssertThrowsError(try InitializeAppOptions(call)) { error in
+            XCTAssertEqual(
+                (error as? CustomError)?.localizedDescription,
+                CustomError.nameInvalid.localizedDescription
+            )
+        }
+    }
+
+    func testInitializeAppOptionsRejectsInvalidApplicationId() throws {
+        let apiKey = "A" + String(repeating: "a", count: 38)
+        let call = try makeCall(method: "initializeApp", options: [
+            "name": "default",
+            "options": [
+                "apiKey": apiKey,
+                "applicationId": "not-an-ios-app-id",
+                "gcmSenderId": "123",
+                "projectId": "proj"
+            ]
+        ])
+        XCTAssertThrowsError(try InitializeAppOptions(call)) { error in
+            XCTAssertEqual(
+                (error as? CustomError)?.localizedDescription,
+                CustomError.applicationIdInvalid.localizedDescription
+            )
+        }
+    }
+
 }
+
+private final class PluginCallOutcome {
+    var data: [String: Any]?
+    var message: String?
+}
+
+private func invoke(
+    _ method: (CAPPluginCall) -> Void,
+    method methodName: String,
+    options: [String: Any] = [:]
+) -> PluginCallOutcome {
+    let outcome = PluginCallOutcome()
+    let settled = XCTestExpectation(description: methodName)
+    guard let call = CAPPluginCall(
+        callbackId: "test",
+        methodName: methodName,
+        options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
+        success: { result, _ in
+            outcome.data = result?.data
+            settled.fulfill()
+        },
+        error: { err in
+            outcome.message = err?.message
+            settled.fulfill()
+        }
+    ) else {
+        XCTFail("failed to create CAPPluginCall for \(methodName)")
+        return outcome
+    }
+    method(call)
+    if XCTWaiter.wait(for: [settled], timeout: 5) != .completed {
+        XCTFail("\(methodName) did not settle")
+    }
+    return outcome
+}
+
+private func makeCall(method: String, options: [String: Any] = [:]) throws -> CAPPluginCall {
+    try XCTUnwrap(
+        CAPPluginCall(
+            callbackId: "test",
+            methodName: method,
+            options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
+            success: { _, _ in },
+            error: { _ in }
+        ),
+        "failed to create CAPPluginCall"
+    )
+}
+

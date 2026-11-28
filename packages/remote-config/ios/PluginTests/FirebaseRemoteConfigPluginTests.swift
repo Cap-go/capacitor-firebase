@@ -1,16 +1,109 @@
 import XCTest
+import Capacitor
+import FirebaseRemoteConfig
+#if canImport(Plugin)
 @testable import Plugin
+#elseif canImport(CapgoFirebaseRemoteConfigPlugin)
+@testable import CapgoFirebaseRemoteConfigPlugin
+#endif
 
-class FirebaseRemoteConfigTests: XCTestCase {
-
-    func testEcho() {
-        // This is an example of a functional test case for a plugin.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-
-        let implementation = FirebaseRemoteConfig()
-        let value = "Hello, World!"
-        let result = implementation.echo(value)
-
-        XCTAssertEqual(value, result)
+final class FirebaseRemoteConfigPluginTests: XCTestCase {
+    func testRegistersExpectedMethods() {
+        let plugin = FirebaseRemoteConfigPlugin()
+        XCTAssertEqual(plugin.identifier, "FirebaseRemoteConfigPlugin")
+        XCTAssertEqual(plugin.jsName, "FirebaseRemoteConfig")
+        XCTAssertEqual(plugin.pluginMethods.map(\.name), [
+            "activate",
+            "fetchAndActivate",
+            "fetchConfig",
+            "getInfo",
+            "getBoolean",
+            "getNumber",
+            "getString",
+            "getAll",
+            "setMinimumFetchInterval",
+            "setDefaults",
+            "setSettings",
+            "addConfigUpdateListener",
+            "removeConfigUpdateListener",
+            "getPluginVersion"
+        ])
     }
+
+    func testGetPluginVersionResolvesWithNonEmptyVersion() {
+        let plugin = FirebaseRemoteConfigPlugin()
+        let outcome = invoke(plugin.getPluginVersion, method: "getPluginVersion")
+        XCTAssertNil(outcome.message)
+        let version = outcome.data?["version"] as? String
+        XCTAssertEqual(version?.isEmpty, false)
+        XCTAssertNotNil(version?.range(of: #"^\d+\.\d+\.\d+"#, options: .regularExpression))
+    }
+
+    func testGetBooleanRejectsWhenKeyIsMissing() {
+        let plugin = FirebaseRemoteConfigPlugin()
+        let outcome = invoke(plugin.getBoolean, method: "getBoolean")
+        XCTAssertEqual(outcome.message, plugin.errorKeyMissing)
+    }
+
+    func testSetDefaultsRejectsWhenDefaultsAreMissing() {
+        let plugin = FirebaseRemoteConfigPlugin()
+        let outcome = invoke(plugin.setDefaults, method: "setDefaults")
+        XCTAssertEqual(outcome.message, plugin.errorDefaultsMissing)
+    }
+
+    func testMapRemoteConfigSourceToInt() throws {
+        XCTAssertEqual(FirebaseRemoteConfigHelper.mapRemoteConfigSourceToInt(.static), 0)
+        XCTAssertEqual(FirebaseRemoteConfigHelper.mapRemoteConfigSourceToInt(.remote), 2)
+        XCTAssertEqual(FirebaseRemoteConfigHelper.mapRemoteConfigSourceToInt(.default), 1)
+    }
+
 }
+
+private final class PluginCallOutcome {
+    var data: [String: Any]?
+    var message: String?
+}
+
+private func invoke(
+    _ method: (CAPPluginCall) -> Void,
+    method methodName: String,
+    options: [String: Any] = [:]
+) -> PluginCallOutcome {
+    let outcome = PluginCallOutcome()
+    let settled = XCTestExpectation(description: methodName)
+    guard let call = CAPPluginCall(
+        callbackId: "test",
+        methodName: methodName,
+        options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
+        success: { result, _ in
+            outcome.data = result?.data
+            settled.fulfill()
+        },
+        error: { err in
+            outcome.message = err?.message
+            settled.fulfill()
+        }
+    ) else {
+        XCTFail("failed to create CAPPluginCall for \(methodName)")
+        return outcome
+    }
+    method(call)
+    if XCTWaiter.wait(for: [settled], timeout: 5) != .completed {
+        XCTFail("\(methodName) did not settle")
+    }
+    return outcome
+}
+
+private func makeCall(method: String, options: [String: Any] = [:]) throws -> CAPPluginCall {
+    try XCTUnwrap(
+        CAPPluginCall(
+            callbackId: "test",
+            methodName: method,
+            options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
+            success: { _, _ in },
+            error: { _ in }
+        ),
+        "failed to create CAPPluginCall"
+    )
+}
+
