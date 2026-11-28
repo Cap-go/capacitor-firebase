@@ -20,7 +20,7 @@
     },
     "packages/analytics": {
       "name": "@capgo/capacitor-firebase-analytics",
-      "version": "8.6.1",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -46,7 +46,7 @@
     },
     "packages/app": {
       "name": "@capgo/capacitor-firebase-app",
-      "version": "8.6.2",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -72,7 +72,7 @@
     },
     "packages/appcheck": {
       "name": "@capgo/capacitor-firebase-app-check",
-      "version": "8.6.1",
+      "version": "8.8.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -97,7 +97,7 @@
     },
     "packages/authentication": {
       "name": "@capgo/capacitor-firebase-authentication",
-      "version": "8.6.2",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -123,7 +123,7 @@
     },
     "packages/crashlytics": {
       "name": "@capgo/capacitor-firebase-crashlytics",
-      "version": "8.6.2",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -149,7 +149,7 @@
     },
     "packages/firestore": {
       "name": "@capgo/capacitor-firebase-firestore",
-      "version": "8.6.2",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -175,7 +175,7 @@
     },
     "packages/functions": {
       "name": "@capgo/capacitor-firebase-functions",
-      "version": "8.6.1",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -201,7 +201,7 @@
     },
     "packages/messaging": {
       "name": "@capgo/capacitor-firebase-messaging",
-      "version": "8.6.2",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -227,7 +227,7 @@
     },
     "packages/performance": {
       "name": "@capgo/capacitor-firebase-performance",
-      "version": "8.6.1",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -253,7 +253,7 @@
     },
     "packages/remote-config": {
       "name": "@capgo/capacitor-firebase-remote-config",
-      "version": "8.6.1",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
@@ -279,7 +279,7 @@
     },
     "packages/storage": {
       "name": "@capgo/capacitor-firebase-storage",
-      "version": "8.6.1",
+      "version": "8.7.0",
       "devDependencies": {
         "@capacitor/android": "8.0.0",
         "@capacitor/cli": "8.0.0",
