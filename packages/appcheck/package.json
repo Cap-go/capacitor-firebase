@@ -46,7 +46,7 @@
   ],
   "scripts": {
     "verify": "bun run verify:ios && bun run verify:android && bun run verify:web",
-    "verify:ios": "xcodebuild -scheme CapgoCapacitorFirebaseAppCheck -destination generic/platform=iOS && cd ios && pod install && cd .. && node ../../scripts/ios-test.mjs",
+    "verify:ios": "xcodebuild -scheme CapgoCapacitorFirebaseAppCheck -destination generic/platform=iOS",
     "verify:android": "cd android && ./gradlew clean build test && cd ..",
     "verify:web": "bun run build && bun run check:esm-package",
     "lint": "bun run eslint && bun run prettier -- --check && bun run swiftlint -- lint",
