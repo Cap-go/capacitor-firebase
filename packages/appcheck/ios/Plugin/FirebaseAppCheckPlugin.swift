@@ -32,12 +32,13 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getToken(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
+
         let forceRefresh = call.getBool("forceRefresh") ?? false
-        implementation?.getToken(forceRefresh: forceRefresh, completion: { token, expireTimeMillis, error in
+        implementation.getToken(forceRefresh: forceRefresh, completion: { token, expireTimeMillis, error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription)
@@ -55,6 +56,11 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func initialize(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         let debugToken: Any? = call.getValue("debugToken")
 
         let hasDebugToken: Bool
@@ -67,17 +73,22 @@ public class FirebaseAppCheckPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         let isTokenAutoRefreshEnabled = call.getBool("isTokenAutoRefreshEnabled") ?? false
-        implementation?.initialize(debug: hasDebugToken)
-        implementation?.setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled)
+        implementation.initialize(debug: hasDebugToken)
+        implementation.setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled)
         call.resolve()
     }
 
     @objc func setTokenAutoRefreshEnabled(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let enabled = call.getBool("enabled") else {
             call.reject(errorEnabledMissing)
             return
         }
-        implementation?.setTokenAutoRefreshEnabled(enabled)
+        implementation.setTokenAutoRefreshEnabled(enabled)
         call.resolve()
     }
 

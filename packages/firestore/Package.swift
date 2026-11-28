@@ -26,6 +26,7 @@ let package = Package(
         .testTarget(
             name: "CapgoFirebaseFirestorePluginTests",
             dependencies: ["CapgoFirebaseFirestorePlugin"],
-            path: "ios/PluginTests")
+            path: "ios/PluginTests",
+            exclude: ["Info.plist"])
     ]
 )

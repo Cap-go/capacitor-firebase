@@ -11,7 +11,7 @@ import type {
 } from './definitions.js';
 
 export class FirebaseAppWeb extends WebPlugin implements FirebaseAppPlugin {
-  private readonly pluginVersion = '8.6.1';
+  private readonly pluginVersion = '8.6.2';
 
   private static errorApiKeyMissing = 'options.apiKey must be provided.';
   private static errorAppAlreadyExists =

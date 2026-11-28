@@ -1,16 +1,21 @@
 import Foundation
+import Capacitor
 
 @objc public class CallOptions: NSObject {
-    private var data: Any?
-    private var timeout: Int?
+    let data: Any?
+    let timeout: Int?
 
-    init(data: Any?, timeout: Int?) {
-        self.data = data
-        self.timeout = timeout
+    init(_ call: CAPPluginCall) throws {
+        self.data = CallOptions.getDataFromCall(call)
+        self.timeout = CallOptions.getTimeoutFromCall(call)
     }
 
-    func getData() -> Any? {
-        return data
+    private static func getDataFromCall(_ call: CAPPluginCall) -> Any? {
+        return call.getValue("data")
+    }
+
+    private static func getTimeoutFromCall(_ call: CAPPluginCall) -> Int? {
+        return call.getInt("timeout")
     }
 
     func getTimeout() -> Int? {

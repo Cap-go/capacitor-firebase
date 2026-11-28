@@ -18,8 +18,6 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private let pluginVersion: String = "8.6.2"
     public let tag = "FirebaseFunctions"
-    public let errorNameMissing = "name must be provided."
-    public let errorHostMissing = "host must be provided."
     public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private var implementation: FirebaseFunctions?
 
@@ -29,71 +27,87 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByName(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
-        guard let name = call.getString("name") else {
-            call.reject(errorNameMissing)
-            return
+
+        do {
+            let options = try CallByNameOptions(call)
+
+            implementation.callByName(options, completion: { result, error in
+                if let error = error {
+                    self.rejectCall(call, error)
+                } else {
+                    self.resolveCall(call, result)
+                }
+            })
+        } catch {
+            rejectCall(call, error)
         }
-        let region = call.getString("region")
-        let data = call.getValue("data")
-        let timeout = call.getInt("timeout")
-
-        let options = CallByNameOptions(name: name, region: region, data: data, timeout: timeout)
-
-        implementation?.callByName(options, completion: { result, error in
-            if let error = error {
-                CAPLog.print("[", self.tag, "] ", error)
-                call.reject(error.localizedDescription)
-                return
-            }
-            if let result = result?.toJSObject() as? JSObject {
-                call.resolve(result)
-            }
-        })
     }
 
     @objc func callByUrl(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
-        guard let url = call.getString("url") else {
-            call.reject("url must be provided.")
-            return
-        }
-        let data = call.getValue("data")
-        let timeout = call.getInt("timeout")
 
-        guard let options = CallByUrlOptions(url: url, data: data, timeout: timeout) else {
-            call.reject("Invalid URL.")
-            return
-        }
+        do {
+            let options = try CallByUrlOptions(call)
 
-        implementation?.callByUrl(options, completion: { result, error in
-            if let error = error {
-                CAPLog.print("[", self.tag, "] ", error)
-                call.reject(error.localizedDescription)
-                return
-            }
-            if let result = result?.toJSObject() as? JSObject {
-                call.resolve(result)
-            }
-        })
+            implementation.callByUrl(options, completion: { result, error in
+                if let error = error {
+                    self.rejectCall(call, error)
+                } else {
+                    self.resolveCall(call, result)
+                }
+            })
+        } catch {
+            rejectCall(call, error)
+        }
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
-        guard let host = call.getString("host") else {
-            call.reject(errorHostMissing)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
             return
         }
-        let port = call.getInt("port") ?? 5001
-        let regionOrCustomDomain = call.getString("regionOrCustomDomain") ?? nil
 
-        implementation?.useEmulator(host, port, regionOrCustomDomain)
+        do {
+            let options = try UseEmulatorOptions(call)
+
+            implementation.useEmulator(options, completion: { error in
+                if let error = error {
+                    self.rejectCall(call, error)
+                } else {
+                    self.resolveCall(call)
+                }
+            })
+        } catch {
+            rejectCall(call, error)
+        }
+    }
+
+    private func rejectCall(_ call: CAPPluginCall, _ error: Error) {
+        CAPLog.print("[", self.tag, "] ", error)
+        if let error = error as? CustomError {
+            call.reject(error.localizedDescription, error.code)
+        } else {
+            call.reject(error.localizedDescription, FirebaseFunctionsHelper.createErrorCode(error: error))
+        }
+    }
+
+    private func resolveCall(_ call: CAPPluginCall) {
         call.resolve()
+    }
+
+    private func resolveCall(_ call: CAPPluginCall, _ result: Result?) {
+        if let result = result?.toJSObject() as? JSObject {
+            call.resolve(result)
+        } else {
+            call.resolve()
+        }
     }
 
     @objc func getPluginVersion(_ call: CAPPluginCall) {

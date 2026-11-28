@@ -38,12 +38,13 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func downloadFile(_ call: CAPPluginCall) {
-        call.keepAlive = true
-
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
+
+        call.keepAlive = true
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -63,7 +64,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = DownloadFileOptions(path: path, uri: url, callbackId: callbackId)
 
-        implementation?.downloadFile(options, completion: { result, error, releaseCall in
+        implementation.downloadFile(options, completion: { result, error, releaseCall in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -82,6 +83,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func deleteFile(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -89,7 +95,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = DeleteFileOptions(path: path)
 
-        implementation?.deleteFile(options, completion: { error in
+        implementation.deleteFile(options, completion: { error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -100,6 +106,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getDownloadUrl(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -107,7 +118,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = GetDownloadUrlOptions(path: path)
 
-        implementation?.getDownloadUrl(options, completion: { result, error in
+        implementation.getDownloadUrl(options, completion: { result, error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -120,6 +131,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getMetadata(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -127,7 +143,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = GetMetadataOptions(path: path)
 
-        implementation?.getMetadata(options, completion: { result, error in
+        implementation.getMetadata(options, completion: { result, error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -140,6 +156,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func listFiles(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -149,7 +170,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = ListFilesOptions(path: path, maxResults: maxResults, pageToken: pageToken)
 
-        implementation?.listFiles(options, completion: { result, error in
+        implementation.listFiles(options, completion: { result, error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -162,6 +183,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func updateMetadata(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let path = call.getString("path") else {
             call.reject(errorPathMissing)
             return
@@ -173,7 +199,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = UpdateMetadataOptions(path: path, metadata: metadata)
 
-        implementation?.updateMetadata(options, completion: { error in
+        implementation.updateMetadata(options, completion: { error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -184,6 +210,11 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func uploadFile(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         call.keepAlive = true
 
         guard let path = call.getString("path") else {
@@ -206,7 +237,7 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
 
         let options = UploadFileOptions(path: path, uri: url, metadata: metadata, callbackId: callbackId)
 
-        implementation?.uploadFile(options, completion: { result, error, releaseCall in
+        implementation.uploadFile(options, completion: { result, error, releaseCall in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 call.reject(error.localizedDescription, FirebaseStorageHelper.createErrorCode(error: error))
@@ -222,13 +253,18 @@ public class FirebaseStoragePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let host = call.getString("host") else {
             call.reject(errorHostMissing)
             return
         }
         let port = call.getInt("port") ?? 9199
 
-        implementation?.useEmulator(host, port)
+        implementation.useEmulator(host, port)
         call.resolve()
     }
 

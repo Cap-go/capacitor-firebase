@@ -15,7 +15,7 @@
    Refer to [Authenticating Your Client](https://developers.google.com/android/guides/client-auth) for details on how to get your app's SHA-1 fingerprint.
 
    **Attention**: If you distribute your app via Google Play, [Play App Signing](https://developer.android.com/studio/publish/app-signing#app-signing-google-play) re-signs your app with a different certificate than your upload key.
-   You must therefore also add the SHA-1 fingerprint of the **app signing key certificate**, which you find on the **App signing** page of the [Play Console](https://play.google.com/console), download the updated `google-services.json` file, and replace the existing file at `android/app/google-services.json`.
+   You must therefore also add the SHA-1 fingerprint of the **app signing key certificate**, which you find on the **App signing** page of the [Play Console](https://play.google.com/console), and download the updated `google-services.json` file afterwards.
    Otherwise, sign-in only works for locally signed builds and fails for builds installed from Google Play.
 1. Enable Google Sign-In in the Firebase console:
    1. Open the **Auth** section in the [Firebase console](https://console.firebase.google.com/).
@@ -38,7 +38,7 @@
 
    Run [`npx cap update`](https://capacitorjs.com/docs/cli/update) to update the native plugins and dependencies.
 
-1. If you are using **Swift Package Manager** for your iOS project, no additional configuration is needed for the package dependencies. Capgo's `Package.swift` always includes the GoogleSignIn dependency required for Google sign-in.
+1. If you are using **Swift Package Manager** for your iOS project, no additional configuration is needed for the package dependencies. The `Google` package trait is enabled by default and includes the GoogleSignIn dependencies. See [Package traits](https://github.com/capawesome-team/capacitor-firebase/tree/main/packages/authentication#package-traits) if you want to exclude them.
 1. If you are using **CocoaPods** for your iOS project, add the following post install script to your `Podfile` (usually `ios/App/Podfile`) to disable code signing for bundles:
    ```ruby
    post_install do |installer|

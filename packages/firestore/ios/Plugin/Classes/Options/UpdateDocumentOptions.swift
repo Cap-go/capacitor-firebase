@@ -20,12 +20,18 @@ import Capacitor
         guard let data = call.getObject("data") else {
             throw CustomError.dataMissing
         }
+        guard data.keys.allSatisfy(FirebaseFirestoreHelper.isValidFieldPath) else {
+            throw CustomError.dataFieldPathInvalid
+        }
         return data
     }
 
     private static func getReferenceFromCall(_ call: CAPPluginCall) throws -> String {
         guard let reference = call.getString("reference") else {
             throw CustomError.referenceMissing
+        }
+        guard FirebaseFirestoreHelper.isValidDocumentPath(reference) else {
+            throw CustomError.referenceInvalid
         }
         return reference
     }

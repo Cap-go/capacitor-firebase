@@ -207,6 +207,6 @@ export class FirebaseStorageWeb
   }
 
   async getPluginVersion(): Promise<{ version: string }> {
-    return { version: '8.6.0' };
+    return { version: '8.6.1' };
   }
 }

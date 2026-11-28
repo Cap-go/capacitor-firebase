@@ -54,17 +54,6 @@ public class FirebaseFirestorePlugin extends Plugin {
 
     private Map<String, PluginCall> pluginCallMap = new HashMap<>();
 
-    @PluginMethod
-    public void getPluginVersion(final PluginCall call) {
-        try {
-            final JSObject ret = new JSObject();
-            ret.put("version", this.pluginVersion);
-            call.resolve(ret);
-        } catch (final Exception e) {
-            call.reject("Could not get plugin version", e);
-        }
-    }
-
     @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
     public void addCollectionGroupSnapshotListener(PluginCall call) {
         try {
@@ -237,9 +226,19 @@ public class FirebaseFirestorePlugin extends Plugin {
     public void disablePersistence(PluginCall call) {
         try {
             DisablePersistenceOptions options = new DisablePersistenceOptions(call);
+            EmptyResultCallback callback = new EmptyResultCallback() {
+                @Override
+                public void success() {
+                    resolveCall(call);
+                }
 
-            implementation.disablePersistence(options);
-            resolveCall(call);
+                @Override
+                public void error(@NonNull Exception exception) {
+                    rejectCall(call, exception);
+                }
+            };
+
+            implementation.disablePersistence(options, callback);
         } catch (Exception exception) {
             rejectCall(call, exception);
         }
@@ -271,9 +270,19 @@ public class FirebaseFirestorePlugin extends Plugin {
     public void enablePersistence(PluginCall call) {
         try {
             EnablePersistenceOptions options = new EnablePersistenceOptions(call);
+            EmptyResultCallback callback = new EmptyResultCallback() {
+                @Override
+                public void success() {
+                    resolveCall(call);
+                }
 
-            implementation.enablePersistence(options);
-            resolveCall(call);
+                @Override
+                public void error(@NonNull Exception exception) {
+                    rejectCall(call, exception);
+                }
+            };
+
+            implementation.enablePersistence(options, callback);
         } catch (Exception exception) {
             rejectCall(call, exception);
         }
@@ -383,8 +392,19 @@ public class FirebaseFirestorePlugin extends Plugin {
                 iterator.remove();
             }
 
-            implementation.removeAllListeners();
-            super.removeAllListeners(call);
+            EmptyResultCallback callback = new EmptyResultCallback() {
+                @Override
+                public void success() {
+                    FirebaseFirestorePlugin.super.removeAllListeners(call);
+                }
+
+                @Override
+                public void error(@NonNull Exception exception) {
+                    rejectCall(call, exception);
+                }
+            };
+
+            implementation.removeAllListeners(callback);
         } catch (Exception exception) {
             rejectCall(call, exception);
         }
@@ -400,8 +420,19 @@ public class FirebaseFirestorePlugin extends Plugin {
                 savedCall.release(this.bridge);
             }
 
-            implementation.removeSnapshotListener(options);
-            resolveCall(call);
+            EmptyResultCallback callback = new EmptyResultCallback() {
+                @Override
+                public void success() {
+                    resolveCall(call);
+                }
+
+                @Override
+                public void error(@NonNull Exception exception) {
+                    rejectCall(call, exception);
+                }
+            };
+
+            implementation.removeSnapshotListener(options, callback);
         } catch (Exception exception) {
             rejectCall(call, exception);
         }
@@ -477,9 +508,19 @@ public class FirebaseFirestorePlugin extends Plugin {
     public void useEmulator(PluginCall call) {
         try {
             UseEmulatorOptions options = new UseEmulatorOptions(call);
+            EmptyResultCallback callback = new EmptyResultCallback() {
+                @Override
+                public void success() {
+                    resolveCall(call);
+                }
 
-            implementation.useEmulator(options);
-            resolveCall(call);
+                @Override
+                public void error(@NonNull Exception exception) {
+                    rejectCall(call, exception);
+                }
+            };
+
+            implementation.useEmulator(options, callback);
         } catch (Exception exception) {
             rejectCall(call, exception);
         }
@@ -541,6 +582,17 @@ public class FirebaseFirestorePlugin extends Plugin {
             call.resolve();
         } else {
             call.resolve(result.toJSObject());
+        }
+    }
+
+    @PluginMethod
+    public void getPluginVersion(final PluginCall call) {
+        try {
+            final JSObject ret = new JSObject();
+            ret.put("version", this.pluginVersion);
+            call.resolve(ret);
+        } catch (final Exception e) {
+            call.reject("Could not get plugin version", e);
         }
     }
 }

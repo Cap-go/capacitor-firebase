@@ -91,7 +91,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 1.3.0
    */
-  deleteUser(): Promise<void>;
+  deleteUser(options?: DeleteUserOptions): Promise<void>;
   /**
    * Fetches the sign-in methods for an email address.
    *
@@ -107,7 +107,9 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 0.1.0
    */
-  getCurrentUser(): Promise<GetCurrentUserResult>;
+  getCurrentUser(
+    options?: GetCurrentUserOptions,
+  ): Promise<GetCurrentUserResult>;
   /**
    * Returns the `SignInResult` if your app launched a web sign-in flow and the OS cleans up the app while in the background.
    *
@@ -146,7 +148,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 1.1.0
    */
-  getTenantId(): Promise<GetTenantIdResult>;
+  getTenantId(options?: GetTenantIdOptions): Promise<GetTenantIdResult>;
   /**
    * Checks if an incoming link is a sign-in with email link suitable for `signInWithEmailLink`.
    *
@@ -286,7 +288,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 1.3.0
    */
-  reload(): Promise<void>;
+  reload(options?: ReloadOptions): Promise<void>;
   /**
    * Revokes the given access token. Currently only supports Apple OAuth access tokens.
    *
@@ -338,7 +340,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 1.1.0
    */
-  signInAnonymously(): Promise<SignInResult>;
+  signInAnonymously(options?: SignInAnonymouslyOptions): Promise<SignInResult>;
   /**
    * Starts the Apple sign-in flow.
    *
@@ -453,7 +455,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 0.1.0
    */
-  signOut(): Promise<void>;
+  signOut(options?: SignOutOptions): Promise<void>;
   /**
    * Unlinks a provider from a user account.
    *
@@ -483,7 +485,7 @@ export interface FirebaseAuthenticationPlugin {
    *
    * @since 0.1.0
    */
-  useAppLanguage(): Promise<void>;
+  useAppLanguage(options?: UseAppLanguageOptions): Promise<void>;
   /**
    * Instrument your app to talk to the Authentication emulator.
    *
@@ -518,6 +520,7 @@ export interface FirebaseAuthenticationPlugin {
   requestAppTrackingTransparencyPermission(): Promise<RequestAppTrackingTransparencyPermissionResult>;
   /**
    * Listen for the user's sign-in state changes.
+   * This listener is only triggered for the default app.
    *
    * **Attention:** This listener is not triggered when the `skipNativeAuth` is used. Use the Firebase JavaScript SDK instead.
    *
@@ -529,6 +532,7 @@ export interface FirebaseAuthenticationPlugin {
   ): Promise<PluginListenerHandle>;
   /**
    * Listen to ID token changes for the currently signed-in user.
+   * This listener is only triggered for the default app.
    *
    * **Attention:** This listener is not triggered when the `skipNativeAuth` is used. Use the Firebase JavaScript SDK instead.
    *
@@ -610,6 +614,16 @@ export interface ApplyActionCodeOptions {
    * @since 0.2.2
    */
   oobCode: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -628,6 +642,16 @@ export interface ConfirmPasswordResetOptions {
    * @since 0.2.2
    */
   newPassword: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -664,6 +688,32 @@ export interface CreateUserWithEmailAndPasswordOptions {
    * @since 0.2.2
    */
   password: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface DeleteUserOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -676,6 +726,16 @@ export interface FetchSignInMethodsForEmailOptions {
    * @since 6.0.0
    */
   email: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -691,6 +751,22 @@ export interface FetchSignInMethodsForEmailResult {
    * @since 6.0.0
    */
   signInMethods: string[];
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface GetCurrentUserOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -713,8 +789,19 @@ export interface GetIdTokenOptions {
    * Force refresh regardless of token expiration.
    *
    * @since 0.1.0
+   * @default false
    */
-  forceRefresh: boolean;
+  forceRefresh?: boolean;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -725,8 +812,19 @@ export interface GetIdTokenResultOptions {
    * Force refresh regardless of token expiration.
    *
    * @since 7.4.0
+   * @default false
    */
-  forceRefresh: boolean;
+  forceRefresh?: boolean;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -785,6 +883,22 @@ export interface GetIdTokenResultResult {
 }
 
 /**
+ * @since 8.7.0
+ */
+export interface GetTenantIdOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
  * @since 1.1.0
  */
 export interface GetTenantIdResult {
@@ -798,6 +912,22 @@ export interface GetTenantIdResult {
 }
 
 /**
+ * @since 8.7.0
+ */
+export interface ReloadOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
  * @since 6.1.0
  */
 export interface RevokeAccessTokenOptions {
@@ -807,6 +937,16 @@ export interface RevokeAccessTokenOptions {
    * @since 6.1.0
    */
   token: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -819,6 +959,16 @@ export interface SendEmailVerificationOptions {
    * @since 6.1.0
    */
   actionCodeSettings?: ActionCodeSettings;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -835,6 +985,16 @@ export interface SendPasswordResetEmailOptions {
    * @since 6.1.0
    */
   actionCodeSettings?: ActionCodeSettings;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -848,6 +1008,16 @@ export interface SetLanguageCodeOptions {
    * @since 0.1.0
    */
   languageCode: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -860,6 +1030,16 @@ export interface SetPersistenceOptions {
    * @since 5.2.0
    */
   persistence: Persistence;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -902,6 +1082,48 @@ export interface SetTenantIdOptions {
    * @since 1.1.0
    */
   tenantId: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface SignInAnonymouslyOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface SignOutOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -914,6 +1136,16 @@ export interface UpdateEmailOptions {
    * @since 0.2.2
    */
   newEmail: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -932,6 +1164,16 @@ export interface VerifyBeforeUpdateEmailOptions {
    * @since 6.3.0
    */
   actionCodeSettings?: ActionCodeSettings;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -944,6 +1186,16 @@ export interface UpdatePasswordOptions {
    * @since 0.2.2
    */
   newPassword: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -962,6 +1214,16 @@ export interface UpdateProfileOptions {
    * @since 1.3.0
    */
   photoUrl?: string | null;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -990,6 +1252,16 @@ export interface LinkWithEmailAndPasswordOptions {
    * @since 1.1.0
    */
   password: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1008,6 +1280,16 @@ export interface LinkWithEmailLinkOptions {
    * @since 1.1.0
    */
   emailLink: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1235,6 +1517,16 @@ export interface SignInWithEmailAndPasswordOptions extends SignInOptions {
    * @since 0.2.2
    */
   password: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1253,6 +1545,16 @@ export interface SendSignInLinkToEmailOptions {
    * @since 1.1.0
    */
   actionCodeSettings: ActionCodeSettings;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1292,6 +1594,16 @@ export interface SignInWithEmailLinkOptions extends SignInOptions {
    * @since 1.1.0
    */
   emailLink: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1304,6 +1616,16 @@ export interface SignInWithCustomTokenOptions extends SignInOptions {
    * @since 0.1.0
    */
   token: string;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1340,6 +1662,16 @@ export interface UnlinkOptions {
    * @since 1.1.0
    */
   providerId: ProviderId;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1352,6 +1684,22 @@ export interface UnlinkResult {
    * @since 1.1.0
    */
   user: User | null;
+}
+
+/**
+ * @since 8.7.0
+ */
+export interface UseAppLanguageOptions {
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1383,6 +1731,25 @@ export interface UseEmulatorOptions {
    * @example "https"
    */
   scheme?: string;
+  /**
+   * Whether to disable the Firebase Auth emulator warning banner.
+   *
+   * Only available for Web.
+   *
+   * @since 8.6.0
+   * @see https://firebase.google.com/docs/reference/js/auth.md#connectauthemulator
+   */
+  disableWarnings?: boolean;
+  /**
+   * The name of the Firebase app to use.
+   * Initialize the app with the `initializeApp(...)` method of the Firebase App plugin first.
+   *
+   * If not set, the default app is used.
+   *
+   * @since 8.7.0
+   * @example 'secondary'
+   */
+  appName?: string;
 }
 
 /**
@@ -1655,6 +2022,15 @@ export interface PhoneVerificationFailedEvent {
    * @since 1.3.0
    */
   message: string;
+  /**
+   * The error code.
+   *
+   * Only available if the error is a Firebase Authentication error.
+   *
+   * @since 8.6.0
+   * @example 'auth/invalid-phone-number'
+   */
+  code?: string;
 }
 
 /**
