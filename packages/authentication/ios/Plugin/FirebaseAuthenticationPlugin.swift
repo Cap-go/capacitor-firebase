@@ -94,7 +94,8 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
 
     override public func load() {
         self.config = firebaseAuthenticationConfig()
-        self.implementation = FirebaseAuthentication(plugin: self, config: config)
+        let createdImplementation = FirebaseAuthentication(plugin: self, config: config)
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
     }
 
     @objc public func notifyAuthStateChangeListeners(_ event: AuthStateChangeEvent) {
