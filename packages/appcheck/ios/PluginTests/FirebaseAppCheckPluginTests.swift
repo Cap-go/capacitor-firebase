@@ -1,16 +1,88 @@
 import XCTest
+import Capacitor
+#if canImport(Plugin)
 @testable import Plugin
+#elseif canImport(CapgoFirebaseAppCheckPlugin)
+@testable import CapgoFirebaseAppCheckPlugin
+#endif
 
-class FirebaseAppCheckTests: XCTestCase {
-
-    func testEcho() {
-        // This is an example of a functional test case for a plugin.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-
-        let implementation = FirebaseAppCheck()
-        let value = "Hello, World!"
-        let result = implementation.echo(value)
-
-        XCTAssertEqual(value, result)
+final class FirebaseAppCheckPluginTests: XCTestCase {
+    func testRegistersExpectedMethods() {
+        let plugin = FirebaseAppCheckPlugin()
+        XCTAssertEqual(plugin.identifier, "FirebaseAppCheckPlugin")
+        XCTAssertEqual(plugin.jsName, "FirebaseAppCheck")
+        XCTAssertEqual(plugin.pluginMethods.map(\.name), [
+            "getToken",
+            "initialize",
+            "setTokenAutoRefreshEnabled",
+            "getPluginVersion"
+        ])
     }
+
+    func testGetPluginVersionResolvesWithNonEmptyVersion() {
+        let plugin = FirebaseAppCheckPlugin()
+        let outcome = invoke(plugin.getPluginVersion, method: "getPluginVersion")
+        XCTAssertNil(outcome.message)
+        let version = outcome.data?["version"] as? String
+        XCTAssertEqual(version?.isEmpty, false)
+        XCTAssertNotNil(version?.range(of: #"^\d+\.\d+\.\d+"#, options: .regularExpression))
+    }
+
+    func testGetTokenRejectsWhenFirebaseIsNotConfigured() {
+        let plugin = FirebaseAppCheckPlugin()
+        let outcome = invoke(plugin.getToken, method: "getToken", options: ["forceRefresh": false])
+        XCTAssertEqual(outcome.message, plugin.errorFirebaseNotConfigured)
+        XCTAssertNil(outcome.data)
+    }
+
+    func testSetTokenAutoRefreshEnabledRejectsWhenEnabledIsMissing() {
+        let plugin = FirebaseAppCheckPlugin()
+        let outcome = invoke(plugin.setTokenAutoRefreshEnabled, method: "setTokenAutoRefreshEnabled")
+        XCTAssertEqual(outcome.message, plugin.errorEnabledMissing)
+        XCTAssertNil(outcome.data)
+    }
+
 }
+
+private final class PluginCallOutcome {
+    var data: [String: Any]?
+    var message: String?
+}
+
+private func invoke(
+    _ method: (CAPPluginCall) -> Void,
+    method methodName: String,
+    options: [String: Any] = [:]
+) -> PluginCallOutcome {
+    let outcome = PluginCallOutcome()
+    let settled = XCTestExpectation(description: methodName)
+    let call = CAPPluginCall(
+        callbackId: "test",
+        methodName: methodName,
+        options: options,
+        success: { result, _ in
+            outcome.data = result?.data
+            settled.fulfill()
+        },
+        error: { err in
+            outcome.message = err?.message
+            settled.fulfill()
+        }
+    )
+    method(call)
+    if XCTWaiter.wait(for: [settled], timeout: 5) != .completed {
+        XCTFail("\(methodName) did not settle")
+    }
+    return outcome
+}
+
+private func makeCall(method: String, options: [String: Any] = [:]) -> CAPPluginCall {
+    CAPPluginCall(
+        callbackId: "test",
+        methodName: method,
+        options: options,
+        success: { _, _ in },
+        error: { _ in }
+    )
+}
+
