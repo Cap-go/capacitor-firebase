@@ -59,7 +59,7 @@ private func invoke(
     guard let call = CAPPluginCall(
         callbackId: "test",
         methodName: methodName,
-        options: options,
+        options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
         success: { result, _ in
             outcome.data = result?.data
             settled.fulfill()
@@ -84,7 +84,7 @@ private func makeCall(method: String, options: [String: Any] = [:]) throws -> CA
         CAPPluginCall(
             callbackId: "test",
             methodName: method,
-            options: options,
+            options: JSTypes.coerceDictionaryToJSObject(options as NSDictionary) ?? [:],
             success: { _, _ in },
             error: { _ in }
         ),
