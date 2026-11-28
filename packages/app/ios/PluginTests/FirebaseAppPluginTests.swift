@@ -38,8 +38,8 @@ final class FirebaseAppPluginTests: XCTestCase {
         )
     }
 
-    func testInitializeAppOptionsRejectsMissingName() {
-        let call = makeCall(method: "initializeApp")
+    func testInitializeAppOptionsRejectsMissingName() throws {
+        let call = try makeCall(method: "initializeApp")
         XCTAssertThrowsError(try InitializeAppOptions(call)) { error in
             XCTAssertEqual(
                 (error as? CustomError)?.localizedDescription,
@@ -48,8 +48,8 @@ final class FirebaseAppPluginTests: XCTestCase {
         }
     }
 
-    func testInitializeAppOptionsRejectsInvalidName() {
-        let call = makeCall(method: "initializeApp", options: ["name": "bad name"])
+    func testInitializeAppOptionsRejectsInvalidName() throws {
+        let call = try makeCall(method: "initializeApp", options: ["name": "bad name"])
         XCTAssertThrowsError(try InitializeAppOptions(call)) { error in
             XCTAssertEqual(
                 (error as? CustomError)?.localizedDescription,
@@ -58,9 +58,9 @@ final class FirebaseAppPluginTests: XCTestCase {
         }
     }
 
-    func testInitializeAppOptionsRejectsInvalidApplicationId() {
+    func testInitializeAppOptionsRejectsInvalidApplicationId() throws {
         let apiKey = "A" + String(repeating: "a", count: 38)
-        let call = makeCall(method: "initializeApp", options: [
+        let call = try makeCall(method: "initializeApp", options: [
             "name": "default",
             "options": [
                 "apiKey": apiKey,
@@ -91,7 +91,7 @@ private func invoke(
 ) -> PluginCallOutcome {
     let outcome = PluginCallOutcome()
     let settled = XCTestExpectation(description: methodName)
-    let call = CAPPluginCall(
+    guard let call = CAPPluginCall(
         callbackId: "test",
         methodName: methodName,
         options: options,
@@ -103,7 +103,10 @@ private func invoke(
             outcome.message = err?.message
             settled.fulfill()
         }
-    )
+    ) else {
+        XCTFail("failed to create CAPPluginCall for \(methodName)")
+        return outcome
+    }
     method(call)
     if XCTWaiter.wait(for: [settled], timeout: 5) != .completed {
         XCTFail("\(methodName) did not settle")
@@ -111,13 +114,16 @@ private func invoke(
     return outcome
 }
 
-private func makeCall(method: String, options: [String: Any] = [:]) -> CAPPluginCall {
-    CAPPluginCall(
-        callbackId: "test",
-        methodName: method,
-        options: options,
-        success: { _, _ in },
-        error: { _ in }
+private func makeCall(method: String, options: [String: Any] = [:]) throws -> CAPPluginCall {
+    try XCTUnwrap(
+        CAPPluginCall(
+            callbackId: "test",
+            methodName: method,
+            options: options,
+            success: { _, _ in },
+            error: { _ in }
+        ),
+        "failed to create CAPPluginCall"
     )
 }
 

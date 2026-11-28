@@ -53,7 +53,7 @@ final class FirebaseAnalyticsPluginTests: XCTestCase {
         XCTAssertEqual(outcome.message, plugin.errorEnabledMissing)
     }
 
-    func testNormalizeEmailFollowsAnalyticsHashingRules() {
+    func testNormalizeEmailFollowsAnalyticsHashingRules() throws {
         XCTAssertEqual(
             FirebaseAnalyticsHelper.normalizeEmail("an.email.user0125@googlemail.com"),
             "anemalluserolzs@gmail.com"
@@ -86,7 +86,7 @@ private func invoke(
 ) -> PluginCallOutcome {
     let outcome = PluginCallOutcome()
     let settled = XCTestExpectation(description: methodName)
-    let call = CAPPluginCall(
+    guard let call = CAPPluginCall(
         callbackId: "test",
         methodName: methodName,
         options: options,
@@ -98,7 +98,10 @@ private func invoke(
             outcome.message = err?.message
             settled.fulfill()
         }
-    )
+    ) else {
+        XCTFail("failed to create CAPPluginCall for \(methodName)")
+        return outcome
+    }
     method(call)
     if XCTWaiter.wait(for: [settled], timeout: 5) != .completed {
         XCTFail("\(methodName) did not settle")
@@ -106,13 +109,16 @@ private func invoke(
     return outcome
 }
 
-private func makeCall(method: String, options: [String: Any] = [:]) -> CAPPluginCall {
-    CAPPluginCall(
-        callbackId: "test",
-        methodName: method,
-        options: options,
-        success: { _, _ in },
-        error: { _ in }
+private func makeCall(method: String, options: [String: Any] = [:]) throws -> CAPPluginCall {
+    try XCTUnwrap(
+        CAPPluginCall(
+            callbackId: "test",
+            methodName: method,
+            options: options,
+            success: { _, _ in },
+            error: { _ in }
+        ),
+        "failed to create CAPPluginCall"
     )
 }
 
