@@ -33,6 +33,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "writeBatch", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseFirestore"
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     public let errorImplementationMissing = "implementation is not initialized."
     private let pluginVersion = "8.6.1"
     private var implementation: FirebaseFirestore?
@@ -44,18 +45,28 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc override public func removeAllListeners(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         for (_, savedCall) in self.pluginCallMap {
             bridge?.releaseCall(withID: savedCall.callbackId)
         }
         self.pluginCallMap.removeAll()
         self.eventListeners?.removeAllObjects()
 
-        implementation?.removeAllListeners {
+        implementation.removeAllListeners {
             self.resolveCall(call)
         }
     }
 
     @objc func addCollectionGroupSnapshotListener(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         call.keepAlive = true
 
         var callbackId: String?
@@ -65,7 +76,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
             self.pluginCallMap[options.callbackId] = call
 
-            try implementation?.addCollectionGroupSnapshotListener(options, completion: { result, error in
+            try implementation.addCollectionGroupSnapshotListener(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -78,6 +89,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func addCollectionSnapshotListener(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         call.keepAlive = true
 
         var callbackId: String?
@@ -87,7 +103,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
             self.pluginCallMap[options.callbackId] = call
 
-            try implementation?.addCollectionSnapshotListener(options, completion: { result, error in
+            try implementation.addCollectionSnapshotListener(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -100,10 +116,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func addDocument(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try AddDocumentOptions(call)
 
-            try implementation?.addDocument(options, completion: { result, error in
+            try implementation.addDocument(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -116,6 +137,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func addDocumentSnapshotListener(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         call.keepAlive = true
 
         var callbackId: String?
@@ -125,7 +151,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
 
             self.pluginCallMap[options.callbackId] = call
 
-            try implementation?.addDocumentSnapshotListener(options, completion: { result, error in
+            try implementation.addDocumentSnapshotListener(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -138,10 +164,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func clearPersistence(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = ClearPersistenceOptions(call)
 
-            try implementation?.clearPersistence(options, completion: { error in
+            try implementation.clearPersistence(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -154,10 +185,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func deleteDocument(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try DeleteDocumentOptions(call)
 
-            try implementation?.deleteDocument(options, completion: { error in
+            try implementation.deleteDocument(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -170,10 +206,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func disableNetwork(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = DisableNetworkOptions(call)
 
-            try implementation?.disableNetwork(options, completion: { error in
+            try implementation.disableNetwork(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -186,10 +227,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func disablePersistence(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = DisablePersistenceOptions(call)
 
-            try implementation?.disablePersistence(options, completion: { error in
+            try implementation.disablePersistence(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -202,10 +248,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func enableNetwork(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = EnableNetworkOptions(call)
 
-            try implementation?.enableNetwork(options, completion: { error in
+            try implementation.enableNetwork(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -218,10 +269,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func enablePersistence(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = EnablePersistenceOptions(call)
 
-            try implementation?.enablePersistence(options, completion: { error in
+            try implementation.enablePersistence(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -234,10 +290,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getCollection(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try GetCollectionOptions(call)
 
-            try implementation?.getCollection(options, completion: { result, error in
+            try implementation.getCollection(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -250,10 +311,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getCollectionGroup(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try GetCollectionGroupOptions(call)
 
-            try implementation?.getCollectionGroup(options, completion: { result, error in
+            try implementation.getCollectionGroup(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -266,10 +332,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getCountFromServer(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try GetCountFromServerOptions(call)
 
-            try implementation?.getCountFromServer(options, completion: { result, error in
+            try implementation.getCountFromServer(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -282,10 +353,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getDocument(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try GetDocumentOptions(call)
 
-            try implementation?.getDocument(options, completion: { result, error in
+            try implementation.getDocument(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -298,6 +374,11 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func removeSnapshotListener(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try RemoveSnapshotListenerOptions(call)
 
@@ -307,7 +388,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
             }
             self.pluginCallMap.removeValue(forKey: options.callbackId)
 
-            implementation?.removeSnapshotListener(options) {
+            implementation.removeSnapshotListener(options) {
                 self.resolveCall(call)
             }
         } catch {
@@ -316,10 +397,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setDocument(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SetDocumentOptions(call)
 
-            try implementation?.setDocument(options, completion: { error in
+            try implementation.setDocument(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -332,14 +418,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func terminate(_ call: CAPPluginCall) {
-        guard implementation != nil else {
-            call.reject(errorImplementationMissing)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
             return
         }
+
         do {
             let options = TerminateOptions(call)
 
-            try implementation?.terminate(options, completion: { error in
+            try implementation.terminate(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -352,10 +439,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func updateDocument(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UpdateDocumentOptions(call)
 
-            try implementation?.updateDocument(options, completion: { error in
+            try implementation.updateDocument(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -368,10 +460,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UseEmulatorOptions(call)
 
-            try implementation?.useEmulator(options, completion: { error in
+            try implementation.useEmulator(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -384,10 +481,15 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func writeBatch(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try WriteBatchOptions(call)
 
-            try implementation?.writeBatch(options, completion: { error in
+            try implementation.writeBatch(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {

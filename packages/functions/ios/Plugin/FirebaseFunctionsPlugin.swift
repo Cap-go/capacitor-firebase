@@ -27,14 +27,15 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByName(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
+
         do {
             let options = try CallByNameOptions(call)
 
-            implementation?.callByName(options, completion: { result, error in
+            implementation.callByName(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -47,14 +48,15 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByUrl(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
+
         do {
             let options = try CallByUrlOptions(call)
 
-            implementation?.callByUrl(options, completion: { result, error in
+            implementation.callByUrl(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -67,10 +69,15 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UseEmulatorOptions(call)
 
-            implementation?.useEmulator(options, completion: { error in
+            implementation.useEmulator(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {

@@ -87,6 +87,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private let pluginVersion: String = "8.6.3"
     public let tag = "FirebaseAuthentication"
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     static let eventAuthStateChange = "authStateChange"
     static let eventIdTokenChange = "idTokenChange"
     private var config = FirebaseAuthenticationConfig()
@@ -107,10 +108,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func applyActionCode(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try ApplyActionCodeOptions(call)
 
-            try implementation?.applyActionCode(options, completion: { error in
+            try implementation.applyActionCode(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -123,7 +129,12 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func checkAppTrackingTransparencyPermission(_ call: CAPPluginCall) {
-        implementation?.checkAppTrackingTransparencyPermission(completion: { result, error in
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.checkAppTrackingTransparencyPermission(completion: { result, error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -133,10 +144,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func confirmPasswordReset(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try ConfirmPasswordResetOptions(call)
 
-            try implementation?.confirmPasswordReset(options, completion: { error in
+            try implementation.confirmPasswordReset(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -149,6 +165,11 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func confirmVerificationCode(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let verificationId = call.getString("verificationId") else {
             call.reject(errorVerificationIdMissing)
             return
@@ -159,7 +180,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         let options = ConfirmVerificationCodeOptions(verificationId: verificationId, verificationCode: verificationCode)
 
-        implementation?.confirmVerificationCode(options, completion: { result, error in
+        implementation.confirmVerificationCode(options, completion: { result, error in
             if let error = error {
                 CAPLog.print("[", self.tag, "] ", error)
                 let code = FirebaseAuthenticationHelper.createErrorCode(error: error)
@@ -173,10 +194,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func createUserWithEmailAndPassword(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try CreateUserWithEmailAndPasswordOptions(call, config: config)
 
-            try implementation?.createUserWithEmailAndPassword(options, completion: { result, error in
+            try implementation.createUserWithEmailAndPassword(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -189,10 +215,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func deleteUser(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = DeleteUserOptions(call)
 
-            try implementation?.deleteUser(options, completion: { error in
+            try implementation.deleteUser(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -205,10 +236,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func fetchSignInMethodsForEmail(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try FetchSignInMethodsForEmailOptions(call)
 
-            try implementation?.fetchSignInMethodsForEmail(options, completion: { result, error in
+            try implementation.fetchSignInMethodsForEmail(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -221,10 +257,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getCurrentUser(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = GetCurrentUserOptions(call)
 
-            try implementation?.getCurrentUser(options, completion: { result, error in
+            try implementation.getCurrentUser(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -237,10 +278,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getIdToken(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = GetIdTokenOptions(call)
 
-            try implementation?.getIdToken(options, completion: { result, error in
+            try implementation.getIdToken(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -253,10 +299,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getIdTokenResult(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = GetIdTokenResultOptions(call)
 
-            try implementation?.getIdTokenResult(options, completion: { result, error in
+            try implementation.getIdTokenResult(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -277,10 +328,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getTenantId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = GetTenantIdOptions(call)
 
-            try implementation?.getTenantId(options, completion: { result, error in
+            try implementation.getTenantId(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -307,10 +363,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func isSignInWithEmailLink(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try IsSignInWithEmailLinkOptions(call)
 
-            implementation?.isSignInWithEmailLink(options, completion: { result, error in
+            implementation.isSignInWithEmailLink(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -323,14 +384,24 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func linkWithApple(_ call: CAPPluginCall) {
-        implementation?.linkWithApple(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithApple(call)
     }
 
     @objc func linkWithEmailAndPassword(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = LinkWithEmailAndPasswordOptions(call, config: config)
 
-            try implementation?.linkWithEmailAndPassword(options, completion: { result, error in
+            try implementation.linkWithEmailAndPassword(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -343,10 +414,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func linkWithEmailLink(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = LinkWithEmailLinkOptions(call)
 
-            try implementation?.linkWithEmailLink(options, completion: { result, error in
+            try implementation.linkWithEmailLink(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -359,35 +435,70 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func linkWithFacebook(_ call: CAPPluginCall) {
-        implementation?.linkWithFacebook(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithFacebook(call)
     }
 
     @objc func linkWithGameCenter(_ call: CAPPluginCall) {
-        implementation?.linkWithGameCenter(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithGameCenter(call)
     }
 
     @objc func linkWithGithub(_ call: CAPPluginCall) {
-        implementation?.linkWithGithub(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithGithub(call)
     }
 
     @objc func linkWithGoogle(_ call: CAPPluginCall) {
-        implementation?.linkWithGoogle(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithGoogle(call)
     }
 
     @objc func linkWithMicrosoft(_ call: CAPPluginCall) {
-        implementation?.linkWithMicrosoft(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithMicrosoft(call)
     }
 
     @objc func linkWithOpenIdConnect(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let providerId = call.getString("providerId") else {
             call.reject(errorProviderIdMissing)
             return
         }
 
-        implementation?.linkWithOpenIdConnect(call, providerId: providerId)
+        implementation.linkWithOpenIdConnect(call, providerId: providerId)
     }
 
     @objc func linkWithPhoneNumber(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let phoneNumber = call.getString("phoneNumber") else {
             call.reject(errorPhoneNumberMissing)
             return
@@ -395,7 +506,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         let options = LinkWithPhoneNumberOptions(phoneNumber: phoneNumber)
 
         do {
-            try implementation?.linkWithPhoneNumber(options)
+            try implementation.linkWithPhoneNumber(options)
             call.resolve()
         } catch {
             CAPLog.print("[", self.tag, "] ", error)
@@ -408,18 +519,33 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func linkWithTwitter(_ call: CAPPluginCall) {
-        implementation?.linkWithTwitter(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithTwitter(call)
     }
 
     @objc func linkWithYahoo(_ call: CAPPluginCall) {
-        implementation?.linkWithYahoo(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.linkWithYahoo(call)
     }
 
     @objc func reload(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = ReloadOptions(call)
 
-            try implementation?.reload(options, completion: { error in
+            try implementation.reload(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -432,7 +558,12 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func requestAppTrackingTransparencyPermission(_ call: CAPPluginCall) {
-        implementation?.requestAppTrackingTransparencyPermission(completion: { result, error in
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.requestAppTrackingTransparencyPermission(completion: { result, error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -442,10 +573,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func revokeAccessToken(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try RevokeAccessTokenOptions(call)
 
-            try implementation?.revokeAccessToken(options, completion: { error in
+            try implementation.revokeAccessToken(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -458,10 +594,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func sendEmailVerification(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SendEmailVerificationOptions(call)
 
-            try implementation?.sendEmailVerification(options, completion: { error in
+            try implementation.sendEmailVerification(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -474,10 +615,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func sendPasswordResetEmail(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SendPasswordResetEmailOptions(call)
 
-            try implementation?.sendPasswordResetEmail(options, completion: { error in
+            try implementation.sendPasswordResetEmail(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -490,10 +636,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func sendSignInLinkToEmail(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SendSignInLinkToEmailOptions(call)
 
-            try implementation?.sendSignInLinkToEmail(options, completion: { error in
+            try implementation.sendSignInLinkToEmail(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -506,10 +657,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setLanguageCode(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SetLanguageCodeOptions(call)
 
-            try implementation?.setLanguageCode(options, completion: { error in
+            try implementation.setLanguageCode(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -526,10 +682,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setTenantId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SetTenantIdOptions(call)
 
-            try implementation?.setTenantId(options, completion: { error in
+            try implementation.setTenantId(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -542,10 +703,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInAnonymously(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SignInAnonymouslyOptions(call)
 
-            try implementation?.signInAnonymously(options, completion: { result, error in
+            try implementation.signInAnonymously(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -558,14 +724,24 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInWithApple(_ call: CAPPluginCall) {
-        implementation?.signInWithApple(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithApple(call)
     }
 
     @objc func signInWithCustomToken(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SignInWithCustomTokenOptions(call, config: config)
 
-            try implementation?.signInWithCustomToken(options, completion: { result, error in
+            try implementation.signInWithCustomToken(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -578,10 +754,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInWithEmailAndPassword(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SignInWithEmailAndPasswordOptions(call)
 
-            try implementation?.signInWithEmailAndPassword(options, completion: { result, error in
+            try implementation.signInWithEmailAndPassword(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -594,10 +775,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInWithEmailLink(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SignInWithEmailLinkOptions(call)
 
-            try implementation?.signInWithEmailLink(options, completion: { result, error in
+            try implementation.signInWithEmailLink(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -610,35 +796,70 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInWithFacebook(_ call: CAPPluginCall) {
-        implementation?.signInWithFacebook(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithFacebook(call)
     }
 
     @objc func signInWithGameCenter(_ call: CAPPluginCall) {
-        implementation?.signInWithGameCenter(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithGameCenter(call)
     }
 
     @objc func signInWithGithub(_ call: CAPPluginCall) {
-        implementation?.signInWithGithub(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithGithub(call)
     }
 
     @objc func signInWithGoogle(_ call: CAPPluginCall) {
-        implementation?.signInWithGoogle(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithGoogle(call)
     }
 
     @objc func signInWithMicrosoft(_ call: CAPPluginCall) {
-        implementation?.signInWithMicrosoft(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithMicrosoft(call)
     }
 
     @objc func signInWithOpenIdConnect(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let providerId = call.getString("providerId") else {
             call.reject(errorProviderIdMissing)
             return
         }
 
-        implementation?.signInWithOpenIdConnect(call, providerId: providerId)
+        implementation.signInWithOpenIdConnect(call, providerId: providerId)
     }
 
     @objc func signInWithPhoneNumber(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         let skipNativeAuth = call.getBool("skipNativeAuth", firebaseAuthenticationConfig().skipNativeAuth)
         guard let phoneNumber = call.getString("phoneNumber") else {
             call.reject(errorPhoneNumberMissing)
@@ -647,7 +868,7 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
         let options = SignInWithPhoneNumberOptions(skipNativeAuth: skipNativeAuth, phoneNumber: phoneNumber)
 
         do {
-            try implementation?.signInWithPhoneNumber(options)
+            try implementation.signInWithPhoneNumber(options)
             call.resolve()
         } catch {
             CAPLog.print("[", self.tag, "] ", error)
@@ -660,18 +881,33 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func signInWithTwitter(_ call: CAPPluginCall) {
-        implementation?.signInWithTwitter(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithTwitter(call)
     }
 
     @objc func signInWithYahoo(_ call: CAPPluginCall) {
-        implementation?.signInWithYahoo(call)
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.signInWithYahoo(call)
     }
 
     @objc func signOut(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = SignOutOptions(call)
 
-            try implementation?.signOut(options, completion: { error in
+            try implementation.signOut(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -684,10 +920,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func unlink(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UnlinkOptions(call)
 
-            try implementation?.unlink(options, completion: { result, error in
+            try implementation.unlink(options, completion: { result, error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -700,10 +941,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func updateEmail(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UpdateEmailOptions(call)
 
-            try implementation?.updateEmail(options, completion: { error in
+            try implementation.updateEmail(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -716,10 +962,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func updatePassword(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UpdatePasswordOptions(call)
 
-            try implementation?.updatePassword(options, completion: { error in
+            try implementation.updatePassword(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -732,10 +983,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func updateProfile(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = UpdateProfileOptions(call)
 
-            try implementation?.updateProfile(options, completion: { error in
+            try implementation.updateProfile(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -748,10 +1004,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func useAppLanguage(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = UseAppLanguageOptions(call)
 
-            try implementation?.useAppLanguage(options, completion: { error in
+            try implementation.useAppLanguage(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -764,10 +1025,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func useEmulator(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try UseEmulatorOptions(call)
 
-            try implementation?.useEmulator(options, completion: { error in
+            try implementation.useEmulator(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -780,10 +1046,15 @@ public class FirebaseAuthenticationPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func verifyBeforeUpdateEmail(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try VerifyBeforeUpdateEmailOptions(call)
 
-            try implementation?.verifyBeforeUpdateEmail(options, completion: { error in
+            try implementation.verifyBeforeUpdateEmail(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {

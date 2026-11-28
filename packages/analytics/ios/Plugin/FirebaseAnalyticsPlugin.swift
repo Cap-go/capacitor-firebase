@@ -29,6 +29,7 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getPluginVersion", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseAnalytics"
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private let pluginVersion: String = "8.6.2"
     private var implementation: FirebaseAnalytics?
 
@@ -38,7 +39,12 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getAppInstanceId(_ call: CAPPluginCall) {
-        implementation?.getAppInstanceId(completion: { result, error in
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.getAppInstanceId(completion: { result, error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -66,10 +72,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithEmailAddress(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try InitiateOnDeviceConversionMeasurementWithEmailAddressOptions(call)
 
-            implementation?.initiateOnDeviceConversionMeasurementWithEmailAddress(options, completion: { error in
+            implementation.initiateOnDeviceConversionMeasurementWithEmailAddress(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -82,10 +93,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithHashedEmailAddress(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try InitiateOnDeviceConversionMeasurementWithHashedEmailAddressOptions(call)
 
-            implementation?.initiateOnDeviceConversionMeasurementWithHashedEmailAddress(options, completion: { error in
+            implementation.initiateOnDeviceConversionMeasurementWithHashedEmailAddress(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -98,10 +114,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try InitiateOnDeviceConversionMeasurementWithHashedPhoneNumberOptions(call)
 
-            implementation?.initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(options, completion: { error in
+            implementation.initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -114,10 +135,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func initiateOnDeviceConversionMeasurementWithPhoneNumber(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try InitiateOnDeviceConversionMeasurementWithPhoneNumberOptions(call)
 
-            implementation?.initiateOnDeviceConversionMeasurementWithPhoneNumber(options, completion: { error in
+            implementation.initiateOnDeviceConversionMeasurementWithPhoneNumber(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -134,10 +160,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func logEvent(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try LogEventOptions(call)
 
-            implementation?.logEvent(options, completion: { error in
+            implementation.logEvent(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -150,11 +181,16 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func logTransaction(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try LogTransactionOptions(call)
 
             if #available(iOS 15.0, *) {
-                implementation?.logTransaction(options, completion: { error in
+                implementation.logTransaction(options, completion: { error in
                     if let error = error {
                         self.rejectCall(call, error)
                     } else {
@@ -170,7 +206,12 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func resetAnalyticsData(_ call: CAPPluginCall) {
-        implementation?.resetAnalyticsData(completion: { error in
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        implementation.resetAnalyticsData(completion: { error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -180,10 +221,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setConsent(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SetConsentOptions(call)
 
-            implementation?.setConsent(options, completion: { error in
+            implementation.setConsent(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -196,9 +242,14 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setCurrentScreen(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         let options = SetCurrentScreenOptions(call)
 
-        implementation?.setCurrentScreen(options, completion: { error in
+        implementation.setCurrentScreen(options, completion: { error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -208,10 +259,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setEnabled(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SetEnabledOptions(call)
 
-            implementation?.setEnabled(options, completion: { error in
+            implementation.setEnabled(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {
@@ -224,9 +280,14 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setSessionTimeoutDuration(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         let options = SetSessionTimeoutDurationOptions(call)
 
-        implementation?.setSessionTimeoutDuration(options, completion: { error in
+        implementation.setSessionTimeoutDuration(options, completion: { error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -236,9 +297,14 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setUserId(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         let options = SetUserIdOptions(call)
 
-        implementation?.setUserId(options, completion: { error in
+        implementation.setUserId(options, completion: { error in
             if let error = error {
                 self.rejectCall(call, error)
             } else {
@@ -248,10 +314,15 @@ public class FirebaseAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func setUserProperty(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         do {
             let options = try SetUserPropertyOptions(call)
 
-            implementation?.setUserProperty(options, completion: { error in
+            implementation.setUserProperty(options, completion: { error in
                 if let error = error {
                     self.rejectCall(call, error)
                 } else {

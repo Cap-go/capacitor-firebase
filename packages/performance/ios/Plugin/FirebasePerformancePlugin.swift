@@ -46,10 +46,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func startTrace(_ call: CAPPluginCall) {
-        guard implementation != nil else {
+        guard let implementation = implementation else {
             call.reject(errorFirebaseNotConfigured)
             return
         }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -59,30 +60,40 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace == nil else {
             call.reject(errorTraceNameAlreadyAssigned)
             return
         }
-        implementation?.startTrace(traceName)
+        implementation.startTrace(traceName)
         call.resolve()
     }
 
     @objc func stopTrace(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
         }
-        implementation?.stopTrace(traceName)
+        implementation.stopTrace(traceName)
         call.resolve()
     }
 
     @objc func incrementMetric(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -91,33 +102,48 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorMetricNameMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
         }
         let incrementBy = call.getInt("incrementBy") ?? 1
-        implementation?.incrementMetric(traceName, metricName, incrementBy)
+        implementation.incrementMetric(traceName, metricName, incrementBy)
         call.resolve()
     }
 
     @objc func setEnabled(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let enabled = call.getBool("enabled") else {
             call.reject(errorEnabledMissing)
             return
         }
-        implementation?.setEnabled(enabled)
+        implementation.setEnabled(enabled)
         call.resolve()
     }
 
     @objc func isEnabled(_ call: CAPPluginCall) {
-        let enabled = implementation?.isEnabled()
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
+        let enabled = implementation.isEnabled()
         var result = JSObject()
         result["enabled"] = enabled
         call.resolve(result)
     }
 
     @objc func putAttribute(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -130,7 +156,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorValueMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
@@ -140,6 +166,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getAttribute(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -148,7 +179,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorAttributeMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
@@ -159,11 +190,16 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getAttributes(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
@@ -174,6 +210,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func removeAttribute(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -182,7 +223,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorAttributeMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
@@ -192,6 +233,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func putMetric(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -204,7 +250,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorNumMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
@@ -218,6 +264,11 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getMetric(_ call: CAPPluginCall) {
+        guard let implementation = implementation else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
+
         guard let traceName = call.getString("traceName") else {
             call.reject(errorTraceNameMissing)
             return
@@ -226,7 +277,7 @@ public class FirebasePerformancePlugin: CAPPlugin, CAPBridgedPlugin {
             call.reject(errorMetricNameMissing)
             return
         }
-        let trace = implementation?.getTraceByName(traceName)
+        let trace = implementation.getTraceByName(traceName)
         guard trace != nil else {
             call.reject(errorTraceNotFound)
             return
