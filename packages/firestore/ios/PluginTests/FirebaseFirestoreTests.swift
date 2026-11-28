@@ -1,6 +1,10 @@
 import XCTest
 import Capacitor
+#if canImport(CapgoFirebaseFirestorePlugin)
+@testable import CapgoFirebaseFirestorePlugin
+#else
 @testable import Plugin
+#endif
 
 /// Runs in a test bundle that has no GoogleService-Info.plist and no default FirebaseApp, so the
 /// plugin has no native implementation, exactly the state `load()` leaves behind in an app without

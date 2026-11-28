@@ -12,17 +12,26 @@
 // IOS_TEST_DERIVED_DATA optionally sets xcodebuild's -derivedDataPath.
 import { spawnSync } from 'node:child_process';
 
-const run = (cmd, args, options = {}) => spawnSync(cmd, args, { stdio: 'inherit', ...options });
+const run = (cmd, args, options = {}) =>
+  spawnSync(cmd, args, { stdio: 'inherit', ...options });
 
-const elapsed = (started) => `${((Date.now() - started) / 1000).toFixed(1)}s`;
+const elapsed = started => `${((Date.now() - started) / 1000).toFixed(1)}s`;
 
 const listAvailablePhones = () => {
-  const listed = spawnSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], { encoding: 'utf8' });
+  const listed = spawnSync(
+    'xcrun',
+    ['simctl', 'list', 'devices', 'available', '-j'],
+    { encoding: 'utf8' },
+  );
   if (listed.status !== 0) {
     throw new Error(`simctl list failed: ${listed.stderr}`);
   }
   const devices = JSON.parse(listed.stdout).devices;
-  const version = (runtime) => runtime.replace(/^.*iOS-/, '').split('-').map(Number);
+  const version = runtime =>
+    runtime
+      .replace(/^.*iOS-/, '')
+      .split('-')
+      .map(Number);
   const compare = (a, b) => {
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
       if ((a[i] ?? 0) !== (b[i] ?? 0)) {
@@ -32,7 +41,7 @@ const listAvailablePhones = () => {
     return 0;
   };
   const runtimes = Object.keys(devices)
-    .filter((key) => key.includes('SimRuntime.iOS-'))
+    .filter(key => key.includes('SimRuntime.iOS-'))
     .sort((a, b) => compare(version(a), version(b)));
   const phones = [];
   for (const runtime of runtimes) {
@@ -50,7 +59,7 @@ const pickSimulator = () => {
     return process.env.IOS_TEST_UDID;
   }
   const phones = listAvailablePhones();
-  const booted = phones.find((device) => device.state === 'Booted');
+  const booted = phones.find(device => device.state === 'Booted');
   if (booted) {
     return booted.udid;
   }
@@ -70,11 +79,20 @@ if (run('xcrun', ['simctl', 'bootstatus', udid, '-b']).status !== 0) {
 console.log(`ios-test: simulator ready in ${elapsed(bootStarted)}`);
 
 const destination = `platform=iOS Simulator,id=${udid},arch=arm64`;
+// `--spm <scheme>` tests the package through its Package.swift instead of the CocoaPods
+// workspace. Firebase then comes in as prebuilt SPM binaries (FirebaseFirestoreInternal, gRPC,
+// abseil), while the CocoaPods workspace compiles gRPC/BoringSSL/abseil from source.
+const spmIndex = process.argv.indexOf('--spm');
+const spmScheme = spmIndex === -1 ? undefined : process.argv[spmIndex + 1];
+if (spmIndex !== -1 && !spmScheme) {
+  console.error('ios-test: --spm needs a scheme name');
+  process.exit(1);
+}
+const project = spmScheme
+  ? ['-scheme', spmScheme]
+  : ['-workspace', 'Plugin.xcworkspace', '-scheme', 'Plugin'];
 const args = [
-  '-workspace',
-  'Plugin.xcworkspace',
-  '-scheme',
-  'Plugin',
+  ...project,
   '-destination',
   destination,
   '-parallel-testing-enabled',
@@ -90,6 +108,8 @@ if (process.env.IOS_TEST_DERIVED_DATA) {
 args.push('test');
 console.log(`ios-test: xcodebuild ${args.join(' ')}`);
 const testStarted = Date.now();
-const result = run('xcodebuild', args, { cwd: 'ios' });
-console.log(`ios-test: xcodebuild test finished in ${elapsed(testStarted)} (total ${elapsed(started)})`);
+const result = run('xcodebuild', args, { cwd: spmScheme ? '.' : 'ios' });
+console.log(
+  `ios-test: xcodebuild test finished in ${elapsed(testStarted)} (total ${elapsed(started)})`,
+);
 process.exit(result.status ?? 1);
