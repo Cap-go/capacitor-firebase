@@ -18,6 +18,7 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     private let pluginVersion: String = "8.6.2"
     public let tag = "FirebaseFunctions"
+    public let errorFirebaseNotConfigured = "Firebase is not configured: GoogleService-Info.plist is missing from the app bundle."
     private var implementation: FirebaseFunctions?
 
     override public func load() {
@@ -26,6 +27,10 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByName(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         do {
             let options = try CallByNameOptions(call)
 
@@ -42,6 +47,10 @@ public class FirebaseFunctionsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func callByUrl(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorFirebaseNotConfigured)
+            return
+        }
         do {
             let options = try CallByUrlOptions(call)
 

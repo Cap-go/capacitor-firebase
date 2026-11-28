@@ -29,6 +29,7 @@ private actor ListenerRegistrationMap {
     private let config: FirebaseFirestoreConfig
     private var listenerRegistrationMap = ListenerRegistrationMap()
     private let plugin: FirebaseFirestorePlugin
+    private(set) var isConfigured = true
 
     init(plugin: FirebaseFirestorePlugin, config: FirebaseFirestoreConfig) {
         self.plugin = plugin
@@ -37,6 +38,7 @@ private actor ListenerRegistrationMap {
         if FirebaseApp.app() == nil {
             guard FirebaseOptions.defaultOptions() != nil else {
                 CAPLog.print("[FirebaseFirestore] Firebase was not configured: GoogleService-Info.plist is missing from the app bundle.")
+                isConfigured = false
                 return
             }
             FirebaseApp.configure()

@@ -33,19 +33,35 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "writeBatch", returnType: CAPPluginReturnPromise)
     ]
     public let tag = "FirebaseFirestore"
+    public let errorImplementationMissing = "implementation is not initialized."
     private let pluginVersion = "8.6.1"
     private var implementation: FirebaseFirestore?
     private var pluginCallMap: [String: CAPPluginCall] = [:]
 
     override public func load() {
-        self.implementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
+        let createdImplementation = FirebaseFirestore(plugin: self, config: firebaseFirestoreConfig())
+        self.implementation = createdImplementation.isConfigured ? createdImplementation : nil
+    }
+
+    @objc override public func removeAllListeners(_ call: CAPPluginCall) {
+        for (_, savedCall) in self.pluginCallMap {
+            bridge?.releaseCall(withID: savedCall.callbackId)
+        }
+        self.pluginCallMap.removeAll()
+        self.eventListeners?.removeAllObjects()
+
+        implementation?.removeAllListeners {
+            self.resolveCall(call)
+        }
     }
 
     @objc func addCollectionGroupSnapshotListener(_ call: CAPPluginCall) {
         call.keepAlive = true
 
+        var callbackId: String?
         do {
             let options = try AddCollectionGroupSnapshotListenerOptions(call)
+            callbackId = options.callbackId
 
             self.pluginCallMap[options.callbackId] = call
 
@@ -57,15 +73,17 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
                 }
             })
         } catch {
-            rejectCall(call, error)
+            rejectListenerCall(call, callbackId: callbackId, error)
         }
     }
 
     @objc func addCollectionSnapshotListener(_ call: CAPPluginCall) {
         call.keepAlive = true
 
+        var callbackId: String?
         do {
             let options = try AddCollectionSnapshotListenerOptions(call)
+            callbackId = options.callbackId
 
             self.pluginCallMap[options.callbackId] = call
 
@@ -77,7 +95,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
                 }
             })
         } catch {
-            rejectCall(call, error)
+            rejectListenerCall(call, callbackId: callbackId, error)
         }
     }
 
@@ -100,8 +118,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func addDocumentSnapshotListener(_ call: CAPPluginCall) {
         call.keepAlive = true
 
+        var callbackId: String?
         do {
             let options = try AddDocumentSnapshotListenerOptions(call)
+            callbackId = options.callbackId
 
             self.pluginCallMap[options.callbackId] = call
 
@@ -113,7 +133,7 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
                 }
             })
         } catch {
-            rejectCall(call, error)
+            rejectListenerCall(call, callbackId: callbackId, error)
         }
     }
 
@@ -312,6 +332,10 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func terminate(_ call: CAPPluginCall) {
+        guard implementation != nil else {
+            call.reject(errorImplementationMissing)
+            return
+        }
         do {
             let options = TerminateOptions(call)
 
@@ -385,6 +409,14 @@ public class FirebaseFirestorePlugin: CAPPlugin, CAPBridgedPlugin {
         config.databaseId = getConfig().getString("databaseId")
 
         return config
+    }
+
+    private func rejectListenerCall(_ call: CAPPluginCall, callbackId: String?, _ error: Error) {
+        call.keepAlive = false
+        if let callbackId = callbackId, let savedCall = self.pluginCallMap.removeValue(forKey: callbackId) {
+            bridge?.releaseCall(withID: savedCall.callbackId)
+        }
+        rejectCall(call, error)
     }
 
     private func rejectCall(_ call: CAPPluginCall, _ error: Error) {
